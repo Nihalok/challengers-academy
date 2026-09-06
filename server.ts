@@ -582,7 +582,7 @@ async function seedGallery(db: Db) {
 let stripeInstance: Stripe | null = null;
 function getStripe() {
   if (!stripeInstance) {
-    const secret_key = process.env.STRIPE_SECRET_KEY;
+    const secret_key = process.env.STRIPE_SECRET_KEY?.trim();
     if (!secret_key) {
       console.warn('Stripe secret key missing. Using mock mode.');
       return null;

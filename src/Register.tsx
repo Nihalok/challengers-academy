@@ -582,6 +582,9 @@ export default function Register() {
     } else if (field === 'email') {
       // Disallow commas, semicolons, and spaces directly as typed
       finalValue = value.replace(/[\s,;]+/g, '').toLowerCase();
+    } else if (field === 'emergencyContactName' || field === 'playerName' || field === 'parentName') {
+      // Disallow numeric digits in name fields
+      finalValue = value.replace(/[0-9]/g, '');
     }
     setFormData(prev => ({ ...prev, [field]: finalValue }));
     if (formErrors[field]) {
@@ -606,7 +609,7 @@ export default function Register() {
     const trimmedPlayerName = formData.playerName.trim();
     if (!trimmedPlayerName) {
       errors.playerName = 'Athlete full name is required.';
-    } else if (!/^[a-zA-Z\s''-]{2,}$/.test(trimmedPlayerName)) {
+    } else if (/\d/.test(trimmedPlayerName) || !/^[a-zA-Z\s''-]{2,}$/.test(trimmedPlayerName)) {
       errors.playerName = 'Please enter a valid name using letters only.';
     } else if (trimmedPlayerName.split(/\s+/).length < 2) {
       errors.playerName = 'Please provide both first and last name.';
@@ -661,15 +664,23 @@ export default function Register() {
     if (requiresParent) {
       if (!trimmedParent) {
         errors.parentName = 'Parent / Guardian name is required for athletes under 18.';
+      } else if (/\d/.test(trimmedParent)) {
+        errors.parentName = 'Parent/guardian name cannot contain numbers.';
       } else if (trimmedParent.split(/\s+/).length < 2) {
         errors.parentName = 'Please enter parent/guardian first and last name.';
       }
     }
 
     // 6. Emergency Contact Person & Phone
-    if (!formData.emergencyContactName.trim()) {
+    const trimmedEmergencyName = formData.emergencyContactName.trim();
+    if (!trimmedEmergencyName) {
       errors.emergencyContactName = 'Emergency contact person is required.';
+    } else if (/\d/.test(trimmedEmergencyName)) {
+      errors.emergencyContactName = 'Emergency contact person must be a person\'s name (letters only), not numbers.';
+    } else if (trimmedEmergencyName.replace(/[^a-zA-Z]/g, '').length < 2) {
+      errors.emergencyContactName = 'Please enter a valid emergency contact name (e.g. Sarah Miller).';
     }
+
     const emergencyDigits = formData.emergencyContactPhone.replace(/\D/g, '');
     if (!formData.emergencyContactPhone.trim()) {
       errors.emergencyContactPhone = 'Emergency contact phone number is required.';

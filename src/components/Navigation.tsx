@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Menu, X, ArrowRight, ChevronDown } from 'lucide-react';
+import { Menu, X, ArrowRight } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -10,8 +10,8 @@ function cn(...inputs: ClassValue[]) {
 }
 
 const NAV_LINKS = [
-  { label: 'Programs', path: '/programs', hasArrow: true },
-  { label: 'Performance', path: '/performance', hasArrow: true },
+  { label: 'Programs', path: '/programs' },
+  { label: 'Performance', path: '/performance' },
   { label: 'Waiver', path: '/waiver' },
   { label: 'Gallery', path: '/gallery' },
   { label: 'Camps', path: '/camps' },
@@ -172,7 +172,6 @@ export default function Navigation() {
                   }
                 >
                   {link.label}
-                  {link.hasArrow && <ChevronDown className="w-3 h-3 opacity-60" />}
                 </NavLink>
               </li>
             ))}
