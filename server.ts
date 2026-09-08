@@ -256,7 +256,7 @@ export const DEFAULT_PROGRAMS = [
     features: ['4 x 1-Hour Sessions', '100% 1-on-1 Focus', 'Custom Mechanics', 'Flexible Booking'],
     price: 360,
     schedule: 'Flexible Schedule (1 Hour / Session)',
-    location: 'Open Park Facilities (Halcyon Park)',
+    location: 'Long Distance',
     capacity: 10,
     filled: 6,
     coach: 'Dedicated Master Coach',
@@ -652,8 +652,8 @@ export const SESSIONS_CATALOG: Record<string, SessionCatalogItem> = {
     category: 'Private Coaching',
     ageGroup: '1 Student Dedicated',
     skillLevel: 'Personalized Progression',
-    location: 'Open Park Facilities',
-    locationAddress: 'Halcyon Park & Regional Courts',
+    location: 'Long Distance',
+    locationAddress: 'Coach travels to your preferred location',
     schedule: 'Flexible Scheduling',
     dates: 'Book on Demand',
     time: '1 Hour per Session',
@@ -687,7 +687,7 @@ export const SESSIONS_CATALOG: Record<string, SessionCatalogItem> = {
     ageGroup: 'Group Format',
     skillLevel: 'All Levels Welcome',
     location: 'Open Park Facilities',
-    locationAddress: 'Halcyon Park / San Leandro Courts',
+    locationAddress: 'Outdoor Open Park Courts',
     schedule: 'Weekend & Weekday Slots',
     dates: 'Weekly Batches',
     time: '2 Hours per Session',
@@ -729,7 +729,7 @@ export const SESSIONS_CATALOG: Record<string, SessionCatalogItem> = {
     capacity: 30,
     filled: 12,
     coach: 'Wilson Mathew',
-    description: '2-hour comprehensive tryout evaluation session. Direct coach feedback, skill testing, and tier placement ($30).'
+    description: '2-hour comprehensive tryout evaluation session. Direct Head Coach feedback, skill testing, and tier placement ($30).'
   },
   'little-spikers-fremont': {
     id: 'little-spikers-fremont',

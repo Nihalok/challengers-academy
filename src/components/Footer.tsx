@@ -53,9 +53,9 @@ export default function Footer() {
           <div className="space-y-6">
             <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-orange">Contact Us</h4>
             <address className="text-sm font-medium leading-relaxed not-italic">
-              Fremont · Tracy · San Leandro<br />
-              Bay Area, California<br />
-              <a href="mailto:info@challengers.com" className="text-white/60 text-xs hover:text-white transition-colors">info@challengers.com</a>
+              Fremont · Manteca · Mountain House · San Jose<br />
+              California, USA<br />
+              <a href="mailto:challengersacademy@gmail.com" className="text-white/60 text-xs hover:text-white transition-colors">challengersacademy@gmail.com</a>
             </address>
           </div>
 
@@ -94,9 +94,15 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-6">
-          <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">
-            © 2026 CHALLENGERS ACADEMY. ALL RIGHTS RESERVED.
-          </p>
+          <div className="flex flex-col sm:flex-row items-center gap-2 text-center sm:text-left">
+            <p className="text-[10px] font-black text-white/50 uppercase tracking-[0.2em]">
+              © 2026 CHALLENGERS VOLLEYBALL ACADEMY. ALL RIGHTS RESERVED.
+            </p>
+            <span className="hidden sm:inline text-white/20">|</span>
+            <p className="text-[10px] font-medium text-white/40 tracking-wider">
+              All content and media are protected under copyright law.
+            </p>
+          </div>
           <div className="flex items-center gap-8 text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">
             <NavLink to="/privacy" className="hover:text-white transition-colors">Privacy</NavLink>
             <NavLink to="/terms" className="hover:text-white transition-colors">Terms</NavLink>

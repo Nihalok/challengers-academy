@@ -10,7 +10,7 @@ interface FAQ {
 const faqs: FAQ[] = [
   {
     question: "What age groups do you train?",
-    answer: "We mostly work with kids and teens between 10 and 18 years old. We split players into groups based on their skill level - not just their age - so everyone gets coaching that actually fits where they are."
+    answer: "We work with kids and teens from 5 to 18 years old. We split players into groups based on their age and skill level so everyone gets coaching that actually fits where they are."
   },
   {
     question: "Can my child join if they've never played before?",
@@ -22,7 +22,7 @@ const faqs: FAQ[] = [
   },
   {
     question: "Where are you located?",
-    answer: "We currently run sessions in Fremont, Tracy, and San Leandro in the Bay Area. We always make sure to book gyms with good flooring and proper nets."
+    answer: "We currently run sessions in Fremont, Manteca, Mountain House, and San Jose. We always make sure to book top facilities with quality flooring and proper nets."
   },
   {
     question: "What should my child bring to practice?",
@@ -31,6 +31,10 @@ const faqs: FAQ[] = [
   {
     question: "How does moving up to a higher level work?",
     answer: "We have 5 training levels. Players move up when they're genuinely ready - our coaches assess each player regularly and let families know when it's time to step up. It's always based on skill, not just how long they've been attending."
+  },
+  {
+    question: "What is your attendance and makeup class policy?",
+    answer: "Students who miss regular training classes are eligible for 1 makeup class quarterly, subject to academy scheduling and class availability. Please notify our staff prior to missing a session so we can coordinate availability."
   }
 ];
 

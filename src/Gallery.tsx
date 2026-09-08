@@ -22,8 +22,8 @@ const GALLERY_ITEMS: GalleryItem[] = [
     id: 'coaching-session',
     type: 'image',
     url: new URL('./assets/images/coaching.png', import.meta.url).href,
-    title: 'Coach Wilson at the Net',
-    description: 'Coach Wilson Mathew during a live training session - focused, composed, and ready to coach.',
+    title: 'Head Coach Wilson at the Net',
+    description: 'Head Coach Wilson Mathew during a live training session - focused, composed, and ready to coach.',
     category: 'Coaching & Technique',
   },
   {
@@ -56,7 +56,7 @@ const GALLERY_ITEMS: GalleryItem[] = [
     type: 'image',
     url: new URL('./assets/images/team_training_huddle_1783920253600.jpg', import.meta.url).href,
     title: 'Team Huddle',
-    description: "High-energy team training and huddle under Coach Wilson's expert guidance.",
+    description: "High-energy team training and huddle under Head Coach Wilson's expert guidance.",
     category: 'Team Drills',
   },
   {

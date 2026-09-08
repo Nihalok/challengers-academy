@@ -6,7 +6,7 @@ const COACH_SECTIONS = [
     id: 'section1',
     number: '01',
     role: 'FOUNDER & HEAD COACH',
-    name: 'Wilson Mathew',
+    name: 'Head Coach Wilson Mathew',
     description: 'I started this academy because I believe every player deserves a real coach - someone who shows up, pays attention, and helps them get better in a real way. Over 30 years on the court taught me everything I know.',
     image: ASSETS.ABOUT.COACH_PORTRAIT,
     bgTexture: ASSETS.HERO.ACTION_CARD_4,

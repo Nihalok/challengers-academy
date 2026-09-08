@@ -61,20 +61,26 @@ function SmoothScroll() {
     lenisRef.current = lenis;
     (window as any).__lenis = lenis;
 
+    // Keep GSAP ScrollTrigger & Lenis in sync
     lenis.on('scroll', ScrollTrigger.update);
 
-    let rafId: number;
-    const raf = (time: number) => {
-      lenis.raf(time);
-      rafId = requestAnimationFrame(raf);
+    const updateLenis = (time: number) => {
+      lenis.raf(time * 1000);
     };
 
-    rafId = requestAnimationFrame(raf);
+    gsap.ticker.add(updateLenis);
     gsap.ticker.lagSmoothing(0);
 
+    // Auto-resize Lenis whenever ScrollTrigger recalculates (pinned sections, images loading, layout shifts)
+    const handleScrollTriggerRefresh = () => {
+      lenis.resize();
+    };
+    ScrollTrigger.addEventListener('refresh', handleScrollTriggerRefresh);
+
     return () => {
+      ScrollTrigger.removeEventListener('refresh', handleScrollTriggerRefresh);
+      gsap.ticker.remove(updateLenis);
       lenis.destroy();
-      cancelAnimationFrame(rafId);
       lenisRef.current = null;
       (window as any).__lenis = null;
     };
@@ -84,11 +90,16 @@ function SmoothScroll() {
     window.scrollTo(0, 0);
     if (lenisRef.current) {
       lenisRef.current.scrollTo(0, { immediate: true });
+      lenisRef.current.resize();
     }
-    const rafId = requestAnimationFrame(() => {
+    const timer = setTimeout(() => {
       ScrollTrigger.refresh();
-    });
-    return () => cancelAnimationFrame(rafId);
+      if (lenisRef.current) {
+        lenisRef.current.resize();
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, [pathname]);
 
   return null;
@@ -97,13 +108,14 @@ function SmoothScroll() {
 function MainLayout() {
   const { pathname } = useLocation();
   const isAdmin = pathname.startsWith('/admin') || pathname.startsWith('/login');
+  const isContactPage = pathname === '/contact';
 
   return (
     <>
       <SmoothScroll />
       <CustomCursor />
       {!isAdmin && <Navigation />}
-      {!isAdmin && <WhatsAppFAB />}
+      {isContactPage && <WhatsAppFAB />}
       <main className="min-h-screen">
         <Suspense fallback={<Loading />}>
           <Routes>

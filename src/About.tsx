@@ -1,331 +1,633 @@
+import { useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { ASSETS } from './assets/images';
-import SectionHeader from './components/SectionHeader';
 import { useGsapReveal } from './hooks/useGsapReveal';
 import SEO from './components/SEO';
 import CoachesSection from './components/CoachesSection';
 import FAQSection from './components/FAQSection';
-import { Shield, Users, Trophy } from 'lucide-react';
+import { 
+  Award, 
+  Trophy, 
+  ShieldCheck, 
+  Target, 
+  CheckCircle2, 
+  Sparkles, 
+  Users, 
+  Flame, 
+  BookOpen,
+  Compass,
+  MapPin,
+  Calendar,
+  ChevronRight,
+  ArrowUpRight
+} from 'lucide-react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-const GRID_ITEMS = [
-  { type: 'color', bg: '#D62828',  radius: '50% 50% 0 50%' },
-  { type: 'img',   src: ASSETS.HERO.ACTION_CARD_1, radius: '50% 50% 0 0' },
-  { type: 'color', bg: '#F9BC00',  radius: '50%' },
-  { type: 'img',   src: ASSETS.JOURNEY.STEP_1, radius: '0 0 0 50%' },
-  { type: 'color', bg: '#F3722C',  radius: '0 50% 50% 0' },
-  { type: 'color', bg: '#EAE3D5',  radius: '0 50% 50% 50%' },
-  { type: 'img',   src: ASSETS.HERO.ACTION_CARD_2, radius: '50% 50% 0 50%' },
-  { type: 'color', bg: '#C1272D',  radius: '50% 0 0 50%' },
-  { type: 'color', bg: '#F5F0E6',  radius: '0 50% 50% 0' },
-  { type: 'img',   src: ASSETS.HERO.ACTION_CARD_3, radius: '50%' },
-  { type: 'color', bg: '#F9BC00',  radius: '50% 0 50% 50%' },
-  { type: 'img',   src: ASSETS.HERO.ACTION_CARD_4, radius: '50% 0 0 0' },
+gsap.registerPlugin(ScrollTrigger);
+
+const STATS = [
+  { value: '35+', label: 'Years Experience', sub: 'Coaching & Playing' },
+  { value: '500+', label: 'Athletes Mentored', sub: 'Youth to Advanced' },
+  { value: 'FIVB L2', label: 'Certified Coaching', sub: 'International Standards' },
+  { value: '4 Centers', label: 'Bay Area Hubs', sub: 'Fremont, Manteca, MH, SJ' },
+];
+
+const FOUNDER_PILLARS = [
+  {
+    icon: Flame,
+    title: 'Athletic Foundation',
+    tag: 'Multi-Sport Discipline',
+    desc: 'Coach Wilson grew up at G.V. Raja Sports School in Kerala, India. He initially excelled in track and field — winning state and National championships in Shot Put, Discus, and High Jump — before dedicating his athletic focus to volleyball.',
+    accent: '#D62828'
+  },
+  {
+    icon: Trophy,
+    title: 'SAI Elite Development',
+    tag: '5 Years Intensive Training',
+    desc: 'Selected for the Sports Authority of India (SAI), he completed five years of elite training under premier National Coaches, proudly representing his State, University, and Indian Railways in premier competitions.',
+    accent: '#F3722C'
+  },
+  {
+    icon: Award,
+    title: 'National & International Honors',
+    tag: 'MVP & Camp Selection',
+    desc: 'Earned selection for the Junior Indian Camp at Aurangabad and was awarded Most Valuable Player (MVP) at the prestigious Jimmy George National Tournament in Dallas (2026), reflecting decades of dedication.',
+    accent: '#F9BC00'
+  },
+  {
+    icon: BookOpen,
+    title: 'Coaching Philosophy',
+    tag: 'FIVB Certified Level 1 & 2',
+    desc: 'Holding international FIVB Level 1 and Level 2 coaching accreditations, Coach Wilson builds technical precision, court awareness, mental toughness, and high-character athletes who succeed both on and off the court.',
+    accent: '#1B1B1D'
+  }
+];
+
+const MILESTONES = [
+  {
+    period: 'Foundations',
+    title: 'Track & Field National Excellence',
+    location: 'Kerala, India',
+    desc: 'National Silver Medalist in Shot Put and State Champion across multiple disciplines at G.V. Raja Sports School.'
+  },
+  {
+    period: 'Elite Academy',
+    title: 'Sports Authority of India (SAI)',
+    location: 'National Centers',
+    desc: 'Selected for India’s premier SAI program, completing 5 years of rigorous, high-level volleyball coaching.'
+  },
+  {
+    period: 'National Camps',
+    title: 'National-Level Volleyball Camps',
+    location: 'All-India Centers',
+    desc: 'Participated in numerous National-level Volleyball camps throughout playing career.'
+  },
+  {
+    period: 'Competition',
+    title: 'Junior India Camp & Railways',
+    location: 'Aurangabad & National Tour',
+    desc: 'Represented State University and National teams, Indian Railways, and selected to the Junior Indian National Camp.'
+  },
+  {
+    period: 'Championship',
+    title: 'National Tournament MVP',
+    location: 'Dallas, TX',
+    desc: 'Awarded MVP honors at the Jimmy George National Tournament, showcasing top-tier competitive play.'
+  },
+  {
+    period: 'Current Era',
+    title: 'Challengers Academy Expansion',
+    location: 'SF Bay Area, CA',
+    desc: 'Bringing international FIVB training standards to young athletes across Fremont, Manteca, Mountain House, and San Jose.'
+  }
+];
+
+const CORE_VALUES = [
+  {
+    icon: Target,
+    title: 'Technical Precision',
+    description: 'We prioritize clean mechanics, footwork fundamentals, and repeatable habits over shortcuts. Strong basics build champions.'
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Honest Mentorship',
+    description: 'Direct, constructive feedback. We give every athlete a clear roadmap of where they stand and what is needed to reach the next tier.'
+  },
+  {
+    icon: Users,
+    title: 'Supportive Community',
+    description: 'A family-first environment where parents, players, and coaches build meaningful connections, sportsmanship, and lifelong discipline.'
+  },
+  {
+    icon: Sparkles,
+    title: 'Growth Mindset',
+    description: 'We prepare players for high school, club, and collegiate competition by cultivating emotional resilience and court confidence.'
+  }
+];
+
+const CREDENTIALS = [
+  { 
+    code: 'FIVB', 
+    name: 'FIVB Level 1 & 2', 
+    subtitle: 'International Volleyball Federation', 
+    badge: 'Certified',
+    logo: ASSETS.LOGOS.FIVB,
+    color: '#F9BC00',
+    bg: 'bg-white',
+    border: 'border-amber-200',
+    badgeColor: 'bg-amber-50 text-amber-800 border-amber-200'
+  },
+  { 
+    code: 'USAV', 
+    name: 'USA Volleyball', 
+    subtitle: 'Registered Member & Coach', 
+    badge: 'Active',
+    logo: ASSETS.LOGOS.USAV,
+    color: '#1B1B1D',
+    bg: 'bg-white',
+    border: 'border-slate-200',
+    badgeColor: 'bg-slate-100 text-slate-800 border-slate-300'
+  },
+  { 
+    code: 'AAU', 
+    name: 'AAU Volleyball', 
+    subtitle: 'Amateur Athletic Union Partner', 
+    badge: 'Member',
+    logo: ASSETS.LOGOS.AAU,
+    color: '#D62828',
+    bg: 'bg-white',
+    border: 'border-red-200',
+    badgeColor: 'bg-red-50 text-red-800 border-red-200'
+  },
+  { 
+    code: 'NFHS', 
+    name: 'NFHS Certified', 
+    subtitle: 'National Interscholastic Federation', 
+    badge: 'Accredited',
+    logo: ASSETS.LOGOS.NFHS,
+    color: '#F3722C',
+    bg: 'bg-white',
+    border: 'border-orange-200',
+    badgeColor: 'bg-orange-50 text-orange-800 border-orange-200'
+  }
+];
+
+const TICKER_ITEMS = [
+  'EXCELLENCE IN MOTION',
+  'FIVB CERTIFIED COACHING',
+  '35+ YEARS ATHLETIC PEDIGREE',
+  'BAY AREA VOLLEYBALL ACADEMY',
+  'FOUNDATION & DISCIPLINE',
+  'SAI NATIONAL DEVELOPMENT',
+  'JUNIOR INDIA CAMP SELECTION',
+  'FREMONT • MANTECA • MH • SAN JOSE'
 ];
 
 export default function About() {
   useGsapReveal();
+  const heroGridRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Render 64 cells for the hero Grid overlay (matching reference)
+    if (heroGridRef.current && heroGridRef.current.children.length === 0) {
+      const accents = new Set([2, 7, 18, 23, 36, 39, 44, 53, 58, 60]);
+      for (let i = 0; i < 64; i++) {
+        const div = document.createElement('div');
+        div.className = `border border-white/40 ${accents.has(i) ? 'bg-[#D62828]/35 mix-blend-multiply' : ''}`;
+        heroGridRef.current.appendChild(div);
+      }
+    }
+  }, []);
 
   return (
-    <div className="relative bg-white min-h-screen overflow-hidden font-sans">
+    <div className="bg-white text-[#1B1B1D] w-full overflow-x-hidden font-sans selection:bg-[#D62828] selection:text-white">
       <SEO
-        title="About Us"
-        description="Coach Wilson Mathew founded Challengers Academy after 30+ years of playing and coaching volleyball. Meet the team behind the training."
+        title="About Us | Challengers Volleyball Academy"
+        description="Learn about Challengers Volleyball Academy, founded by Head Coach Wilson Mathew (FIVB Level 1 & 2). Professional youth volleyball training across the SF Bay Area."
       />
 
-      {/* ── WATERCOLOR BACKGROUND (full page) ─────────────── */}
-      <div
-        className="fixed inset-0 pointer-events-none"
-        style={{ zIndex: 0 }}
-        aria-hidden="true"
-      >
-        <img
-          src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=90&w=2560"
-          alt=""
-          className="w-full h-full object-cover"
-          style={{ opacity: 0.22, mixBlendMode: 'multiply' }}
-        />
-        {/* soft white veil so text remains legible */}
-        <div className="absolute inset-0 bg-white/55" />
+      {/* ── TOP EDITORIAL MARQUEE TICKER ───────────────────────── */}
+      <div className="pt-28 sm:pt-32 bg-white overflow-hidden border-b border-[#1B1B1D]/10 py-3">
+        <div 
+          className="flex gap-12 whitespace-nowrap" 
+          style={{ animation: 'ticker 45s linear infinite' }}
+        >
+          {[...TICKER_ITEMS, ...TICKER_ITEMS].map((item, idx) => (
+            <div key={idx} className="flex items-center gap-12 shrink-0">
+              <span className="font-sans text-[13px] sm:text-[14px] uppercase tracking-[0.2em] font-bold text-[#1B1B1D]">
+                {item}
+              </span>
+              <span className="w-16 h-px bg-[#1B1B1D]/20"></span>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* ── HERO ──────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden pt-32 sm:pt-36 md:pt-40 pb-10 sm:pb-16" style={{ zIndex: 1 }}>
-        {/* subtle bleed blobs */}
-        <div className="absolute top-0 right-0 w-[480px] h-[480px] bg-[#F9BC00]/15 rounded-full blur-[120px] -mr-40 -mt-40 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[360px] h-[360px] bg-[#D62828]/10 rounded-full blur-[80px] -ml-20 pointer-events-none" />
+      {/* ── HERO EDITORIAL SECTION (REFERENCE MATCHING) ────────── */}
+      <section className="relative px-4 sm:px-8 pt-8 sm:pt-12 pb-10 overflow-hidden bg-[#FBF9F6]">
+        {/* 4 Corner Editorial Info Badges */}
+        <div data-anim="hero-info" className="absolute top-6 left-6 sm:left-12 z-10 hidden sm:block">
+          <div className="flex flex-col font-sans text-[#1B1B1D] uppercase items-start">
+            <p className="text-[11px] font-black text-[#D62828] tracking-widest">FOUNDER & HEAD COACH</p>
+            <p className="text-[16px] font-bold">Wilson Mathew</p>
+          </div>
+        </div>
+        <div data-anim="hero-info" className="absolute top-6 right-6 sm:right-12 z-10 hidden sm:block">
+          <div className="flex flex-col font-sans text-[#1B1B1D] uppercase items-end text-right">
+            <p className="text-[11px] font-black text-[#D62828] tracking-widest">EXPERIENCE</p>
+            <p className="text-[16px] font-bold">35+ Years</p>
+          </div>
+        </div>
+        <div data-anim="hero-info" className="absolute bottom-6 left-6 sm:left-12 z-10 hidden sm:block">
+          <div className="flex flex-col font-sans text-[#1B1B1D] uppercase items-start">
+            <p className="text-[11px] font-black text-[#D62828] tracking-widest">ACCREDITATION</p>
+            <p className="text-[16px] font-bold">FIVB Level 1 & 2</p>
+          </div>
+        </div>
+        <div data-anim="hero-info" className="absolute bottom-6 right-6 sm:right-12 z-10 hidden sm:block">
+          <div className="flex flex-col font-sans text-[#1B1B1D] uppercase items-end text-right">
+            <p className="text-[11px] font-black text-[#D62828] tracking-widest">LOCATION</p>
+            <p className="text-[16px] font-bold">SF Bay Area, CA</p>
+          </div>
+        </div>
 
-        <div className="container mx-auto px-4 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center relative z-10">
-
-          {/* left: text */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <div className="flex items-center gap-3 mb-4 sm:mb-5">
-              <div className="h-px w-8 sm:w-10 bg-[#D62828]" />
-              <span className="text-[#D62828] font-black text-[10px] tracking-[0.35em] sm:tracking-[0.4em] uppercase">Our Story</span>
-            </div>
-            <h1 className="text-4xl sm:text-5xl md:text-7xl font-condensed text-espresso uppercase tracking-tighter leading-[0.9] md:leading-[0.88] mb-4 sm:mb-5">
-              Building a<br />
-              <span className="text-[#D62828] font-serif-italic normal-case italic tracking-normal">legacy of excellence.</span>
+        {/* Center Editorial Title Banner with Script Overlay */}
+        <div className="mx-auto max-w-[1380px] px-4 sm:px-12 md:px-24 flex justify-center py-6 sm:py-12">
+          <div className="relative inline-block leading-[0.88] text-center" style={{ fontSize: 'clamp(52px, 15vw, 220px)' }}>
+            <h1 data-anim="hero-h1" className="font-display font-bold uppercase text-[#1B1B1D] tracking-[-0.04em] block leading-[inherit] text-[1em]">
+              Challengers
             </h1>
-            <p className="text-espresso/85 text-xs sm:text-sm md:text-base font-medium max-w-lg leading-relaxed mb-6 sm:mb-8">
-              Challengers Volleyball Academy was started with a simple idea - give every player the right coaching, a good environment, and the support they need to get better.
+            
+            {/* Handwritten Decorative Script Accents (Covered By Your Grace) */}
+            <span data-anim="hero-decor" className="font-hand text-[#D62828] leading-[0.9] absolute pointer-events-none whitespace-nowrap" style={{ top: '52%', left: '50%', transform: 'translate(-42%,-50%)', fontSize: '0.42em' }}>
+              Volleyball Academy
+            </span>
+            <span data-anim="hero-decor" className="font-hand text-[#F3722C] absolute leading-none" style={{ top: '-0.04em', left: '28%', transform: 'translateX(-50%) rotate(-25deg)', fontSize: '0.09em' }}>
+              Elite
+            </span>
+            <span data-anim="hero-decor" className="font-hand text-[#D62828] absolute leading-none whitespace-nowrap" style={{ bottom: '0.04em', left: '0.12em', transform: 'rotate(-45deg)', transformOrigin: 'left bottom', fontSize: '0.08em' }}>
+              SF Bay Area
+            </span>
+            <span data-anim="hero-decor" className="font-sans font-black text-[#1B1B1D]/40 absolute leading-none" style={{ top: '-0.01em', right: '0.02em', fontSize: '0.06em' }}>
+              ©
+            </span>
+            <span data-anim="hero-decor" className="font-hand text-[#F9BC00] absolute leading-none" style={{ bottom: '-0.04em', right: '0.04em', fontSize: '0.08em' }}>
+              '26
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* ── HERO HIGH-IMPACT PHOTO BANNER WITH GRID OVERLAY ─────── */}
+      <section className="px-4 sm:px-8 pt-4 pb-12 bg-white">
+        <div className="relative aspect-[16/9] md:aspect-[21/9] w-full overflow-hidden rounded-3xl bg-[#1B1B1D] shadow-2xl border-4 border-white">
+          <img 
+            data-anim="zoom" 
+            src={ASSETS.HERO.ACTION_CARD_4} 
+            alt="Challengers Volleyball Academy Playing Action" 
+            className="absolute inset-0 size-full object-cover opacity-90" 
+          />
+          {/* 8x8 Grid Overlay */}
+          <div 
+            ref={heroGridRef} 
+            data-anim="hero-grid" 
+            className="absolute inset-0 grid grid-cols-8 grid-rows-8 pointer-events-none"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#1B1B1D]/90 via-transparent to-transparent flex items-end p-6 sm:p-12">
+            <div className="flex flex-col md:flex-row md:items-end justify-between w-full gap-6">
+              <div>
+                <span className="inline-block px-3 py-1 rounded-full bg-[#D62828] text-white text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] mb-3 shadow-lg">
+                  Disciplined Excellence
+                </span>
+                <h2 className="text-2xl sm:text-4xl md:text-5xl font-display font-bold uppercase text-white tracking-tight">
+                  Building Champions On & Off The Court
+                </h2>
+              </div>
+              <a 
+                href="/programs" 
+                className="bg-[#F9BC00] text-[#1B1B1D] font-display font-bold uppercase px-8 py-4 rounded-2xl text-[13px] tracking-wider hover:bg-white transition-all shadow-xl shrink-0 inline-flex items-center gap-2"
+              >
+                <span>View Our Programs</span>
+                <ArrowUpRight className="w-4 h-4" />
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── STATS BAR (EDITORIAL STYLE) ────────────────────────── */}
+      <section className="px-4 sm:px-8 py-6 bg-[#FBF9F6] border-y border-[#1B1B1D]/10">
+        <div className="max-w-[1400px] mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8">
+          {STATS.map((stat, idx) => (
+            <div key={idx} className="p-4 sm:p-6 bg-white rounded-2xl border border-[#1B1B1D]/5 shadow-sm text-left">
+              <div className="text-3xl sm:text-5xl font-display font-bold text-[#D62828] tracking-tight mb-1">
+                {stat.value}
+              </div>
+              <div className="text-xs sm:text-sm font-bold text-[#1B1B1D] uppercase tracking-wider">
+                {stat.label}
+              </div>
+              <div className="text-[11px] text-[#1B1B1D]/60 font-medium">
+                {stat.sub}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── EDITORIAL ABOUT & PHILOSOPHY (MATCHING REFERENCE ROTATED CARD STACK) ── */}
+      <section id="about-intro" className="relative p-6 sm:p-12 md:p-16 min-h-[850px] flex flex-col justify-between bg-white border-b border-[#1B1B1D]/10">
+        <div className="flex items-start justify-between w-full max-w-[1600px] mx-auto">
+          <p data-anim="reveal" className="font-sans text-[13px] sm:text-[14px] uppercase tracking-[0.14px] leading-[1.3] max-w-[180px] font-bold text-[#1B1B1D]/70">
+            Experienced<br />Head Coach & Founder
+          </p>
+          <p data-anim="hand" className="font-hand text-[#D62828] text-[32px] sm:text-[42px] uppercase">
+            Philosophy
+          </p>
+        </div>
+
+        <div className="my-12 sm:my-16 flex-1 flex items-center justify-center relative max-w-[1600px] mx-auto w-full">
+          <div className="relative max-w-[920px] w-full text-center">
+            <h2 data-anim="reveal" className="font-display font-bold uppercase text-[42px] sm:text-[68px] md:text-[88px] leading-[0.95] tracking-[-0.04em] text-[#1B1B1D]">
+              Independent volleyball academy in SF Bay Area, creating clean, modern athletic form
+            </h2>
+            
+            {/* Floating Script Accents */}
+            <span data-anim="hand" className="font-hand text-[#D62828] text-[30px] sm:text-[38px] uppercase absolute -top-10 right-[10%] whitespace-nowrap hidden sm:block">
+              Who We Are
+            </span>
+            <span data-anim="hand" className="font-hand text-[#F3722C] text-[30px] sm:text-[38px] uppercase absolute -left-8 top-[calc(50%-60px)] hidden sm:block">
+              Elite
+            </span>
+            <span data-anim="hand" className="font-hand text-[#F9BC00] text-[30px] sm:text-[38px] uppercase absolute -bottom-10 left-[15%] whitespace-nowrap hidden sm:block">
+              Since 2018
+            </span>
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between w-full max-w-[1600px] mx-auto gap-6 pt-6 border-t border-[#1B1B1D]/10">
+          <p data-anim="reveal" className="font-sans text-[13px] sm:text-[14px] uppercase tracking-wider font-bold max-w-[180px] text-[#1B1B1D]">
+            Focused on Longevity & Discipline
+          </p>
+          <div data-anim="reveal" className="flex flex-col gap-4 max-w-[400px]">
+            <p className="font-sans text-[16px] sm:text-[18px] leading-relaxed text-[#1B1B1D]/80">
+              Head Coach Wilson Mathew shapes players with technical precision, court balance, and long-term athletic focus.
             </p>
-            {/* quick stats row */}
-            <div className="flex flex-wrap gap-3 sm:gap-4">
-              {[
-                { n: '500+', l: 'Athletes Trained' },
-                { n: '30+', l: 'Years Experience' },
-                { n: 'FIVB L2', l: 'Certified Coach' },
-              ].map((s) => (
-                <div key={s.l} className="px-4 sm:px-5 py-2.5 sm:py-3 bg-white rounded-2xl border border-espresso/5 shadow-sm">
-                  <div className="text-lg sm:text-xl font-condensed text-[#D62828]">{s.n}</div>
-                  <div className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-espresso/40">{s.l}</div>
+            <a href="/register" className="group relative inline-flex items-center gap-2 text-[14px] uppercase tracking-widest text-[#D62828] font-bold w-fit">
+              <span className="absolute left-0 right-0 bottom-0 h-0.5 bg-[#D62828]"></span>
+              <span>Enroll In Coaching</span>
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* ── HEAD COACH BIO & FOUNDER PILLARS (EDITORIAL CARDS) ───── */}
+      <section className="bg-[#1B1B1D] text-white px-6 sm:px-12 py-20 md:py-28 relative">
+        <div className="max-w-[1600px] mx-auto flex flex-col gap-16">
+          <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6 pb-8 border-b border-white/10">
+            <div>
+              <span data-anim="hand" className="font-hand text-[#F9BC00] text-[32px] uppercase block mb-1">
+                Leadership & Pedigree
+              </span>
+              <h2 data-anim="reveal" className="font-display font-bold uppercase text-4xl sm:text-6xl text-white tracking-tight">
+                Meet Head Coach Wilson Mathew
+              </h2>
+            </div>
+            <p data-anim="reveal" className="text-white/70 max-w-md text-sm sm:text-base leading-relaxed">
+              Over three decades of international athletic competition, national training academy credentials, and certified FIVB coaching expertise.
+            </p>
+          </div>
+
+          {/* Coach Bio Card & Pillars Grid */}
+          <div className="grid lg:grid-cols-12 gap-8 items-stretch">
+            {/* Left Coach Highlight Card */}
+            <div className="lg:col-span-5 bg-white/5 border border-white/10 rounded-3xl p-6 sm:p-8 flex flex-col justify-between backdrop-blur-md">
+              <div>
+                <div className="relative aspect-[4/5] rounded-2xl overflow-hidden mb-6 border border-white/20 shadow-2xl">
+                  <img src={ASSETS.ABOUT.COACH_PORTRAIT} alt="Coach Wilson Mathew" className="w-full h-full object-cover object-top" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#1B1B1D] via-transparent to-transparent" />
+                  <div className="absolute bottom-4 left-4 right-4 text-white">
+                    <span className="inline-block px-3 py-1 rounded-md bg-[#F9BC00] text-[#1B1B1D] text-[10px] font-black uppercase tracking-wider mb-2">
+                      Founder & Head Coach
+                    </span>
+                    <h3 className="text-2xl font-display font-bold uppercase tracking-tight">
+                      Wilson Mathew
+                    </h3>
+                    <p className="text-xs text-white/80 font-medium">
+                      FIVB Level 1 & 2 Certified Coach
+                    </p>
+                  </div>
+                </div>
+                <div className="p-4 rounded-xl bg-white/5 border-l-4 border-[#D62828] mb-6">
+                  <p className="text-xs sm:text-sm italic font-medium text-white/90 leading-relaxed">
+                    "Volleyball is about more than just technique — it instills discipline, mental clarity, and the resilience to perform under pressure."
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-3 text-xs text-white/80 pt-4 border-t border-white/10">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-[#F9BC00] shrink-0" />
+                  <span>Sports Authority of India (SAI) 5-Year Trainee</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-[#F9BC00] shrink-0" />
+                  <span>Junior India National Camp Selection</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-[#F9BC00] shrink-0" />
+                  <span>National Tournament MVP (Dallas 2026)</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right 4 Founder Pillar Cards */}
+            <div className="lg:col-span-7 grid sm:grid-cols-2 gap-6">
+              {FOUNDER_PILLARS.map((pillar, idx) => (
+                <div 
+                  key={idx} 
+                  data-anim="card-pop"
+                  className="bg-white/5 border border-white/10 p-6 sm:p-8 rounded-3xl flex flex-col justify-between hover:bg-white/10 transition-all duration-300 group"
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-4">
+                      <div 
+                        className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg"
+                        style={{ backgroundColor: pillar.accent }}
+                      >
+                        <pillar.icon className="w-6 h-6" />
+                      </div>
+                      <span className="text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-white/10 text-white/80">
+                        {pillar.tag}
+                      </span>
+                    </div>
+                    <h3 className="text-xl font-display font-bold text-white uppercase tracking-tight mb-3">
+                      {pillar.title}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-white/70 leading-relaxed font-normal">
+                      {pillar.desc}
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>
-          </motion.div>
+          </div>
+        </div>
+      </section>
 
-          {/* right: colourful circular grid */}
-          <div className="grid grid-cols-4 grid-rows-3 gap-2.5 sm:gap-3 md:gap-4 mt-6 lg:mt-0">
-            {GRID_ITEMS.map((item, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: i * 0.07, duration: 0.45, ease: 'backOut' }}
-                className="aspect-square overflow-hidden shadow-md"
-                style={{
-                  borderRadius: item.radius,
-                  background: item.type === 'color' ? item.bg : undefined,
-                }}
+      {/* ── CAREER TIMELINE & MILESTONES (STAGGERED EDITORIAL NUMBERS) ───── */}
+      <section className="px-6 sm:px-12 py-20 md:py-28 bg-[#FBF9F6] border-b border-[#1B1B1D]/10">
+        <div className="max-w-[1400px] mx-auto">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <span data-anim="hand" className="font-hand text-[#D62828] text-[36px] uppercase block mb-1">
+              Historical Record
+            </span>
+            <h2 data-anim="reveal" className="font-display font-bold uppercase text-3xl sm:text-5xl md:text-6xl text-[#1B1B1D]">
+              Career Timeline & Milestones
+            </h2>
+            <p data-anim="reveal" className="text-xs sm:text-base text-[#1B1B1D]/70 mt-3">
+              From National Track & Field Gold Medals in India to FIVB Volleyball Coaching in the Bay Area.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {MILESTONES.map((item, idx) => (
+              <div 
+                key={idx}
+                data-anim="stagger"
+                className="bg-white p-6 sm:p-8 rounded-3xl border border-[#1B1B1D]/10 shadow-sm relative overflow-hidden group hover:border-[#D62828]/50 transition-colors flex flex-col justify-between"
               >
-                {item.type === 'img' && (
-                  <img src={item.src} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                )}
-              </motion.div>
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="font-hand text-[#D62828] text-[36px] leading-none">
+                      0{idx + 1}
+                    </span>
+                    <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded bg-[#D62828]/10 text-[#D62828]">
+                      {item.period}
+                    </span>
+                  </div>
+                  <h3 className="text-lg sm:text-xl font-display font-bold text-[#1B1B1D] uppercase tracking-tight mb-2">
+                    {item.title}
+                  </h3>
+                  <div className="text-xs font-bold text-[#1B1B1D]/50 uppercase tracking-widest flex items-center gap-1 mb-3">
+                    <MapPin className="w-3.5 h-3.5 text-[#D62828]" /> {item.location}
+                  </div>
+                  <p className="text-xs sm:text-sm text-[#1B1B1D]/75 leading-relaxed">
+                    {item.desc}
+                  </p>
+                </div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      <div className="container mx-auto px-4 py-8 sm:py-12" style={{ position: 'relative', zIndex: 1 }}>
-
-        {/* ── FOUNDER STORY ─────────────────────────────────── */}
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start mb-12 sm:mb-16">
-
-          {/* sticky left: portrait + quick cards */}
-          <div className="space-y-5 sticky top-28">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.97 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              className="rounded-[2.5rem] overflow-hidden shadow-xl aspect-[4/5] relative group border-4 border-white/80"
-            >
-              <img
-                src={ASSETS.ABOUT.COACH_PORTRAIT}
-                alt="Coach Wilson Mathew"
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                referrerPolicy="no-referrer"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-espresso/60 to-transparent" />
-              <div className="absolute bottom-7 left-7">
-                <p className="text-[9px] font-black uppercase tracking-widest text-[#F9BC00] mb-1">Founder & Head Coach</p>
-                <h3 className="text-2xl font-serif text-white">Wilson Mathew</h3>
-              </div>
-            </motion.div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-5 bg-[#F9BC00]/90 rounded-2xl border border-espresso/5 shadow-md backdrop-blur-sm">
-                <h4 className="text-[9px] font-black uppercase tracking-widest text-espresso mb-2">Our Vision</h4>
-                <p className="text-xs font-bold text-espresso/70 leading-relaxed italic">
-                  "We want to be the go-to volleyball program in California - where players come to genuinely improve and love the game."
-                </p>
-              </div>
-              <div className="p-5 bg-[#D62828]/90 text-white rounded-2xl shadow-md backdrop-blur-sm">
-                <h4 className="text-[9px] font-black uppercase tracking-widest text-[#F9BC00] mb-2">Our Mission</h4>
-                <p className="text-xs font-bold text-white/70 leading-relaxed italic">
-                  "We teach volleyball, but what we really build is discipline, confidence, and the kind of character that lasts well beyond the court."
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* right: narrative */}
-          <div className="space-y-8 sm:space-y-10">
-            <div className="gsap-reveal">
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-condensed uppercase tracking-tighter mb-4 sm:mb-5">
-                Meet Our Founder -{' '}
-                <span className="text-[#D62828] font-serif-italic normal-case italic tracking-normal">Coach Wilson</span>
-              </h2>
-              <p className="text-base sm:text-lg font-serif text-espresso/75 leading-relaxed italic mb-6 sm:mb-8">
-                "Volleyball has given me everything. I started this academy because I wanted to pass that on - the discipline, the teamwork, and the joy of getting better every single day."
-              </p>
-
-              <div className="space-y-4 sm:space-y-5 text-espresso/70 font-medium leading-relaxed text-xs sm:text-sm">
-                {/* Journey card - orange accent */}
-                <div className="p-5 sm:p-6 bg-[#F3722C]/15 rounded-2xl border-l-4 border-[#F3722C] backdrop-blur-sm">
-                  <h4 className="text-[9px] font-black uppercase tracking-widest text-[#F3722C] mb-2 sm:mb-3">The Journey</h4>
-                  <p>
-                    Wilson Mathew grew up at G.V. Raja Sports School in Kerala. He started in track and field - winning state championships in Shot Put, Discus, and High Jump - before switching to volleyball, where he found his real calling.
-                  </p>
-                </div>
-
-                <div className="grid sm:grid-cols-2 gap-4 sm:gap-5">
-                  <div className="p-4 sm:p-5 bg-white/80 rounded-2xl border border-espresso/5 shadow-sm backdrop-blur-sm">
-                    <h4 className="text-[9px] font-black uppercase tracking-widest text-espresso/40 mb-2 sm:mb-3">Elite Training</h4>
-                    <p className="text-xs">
-                      He was selected for the Sports Authority of India (SAI) and spent five years training under top national coaches, representing his state, university, and Indian Railways.
-                    </p>
-                  </div>
-                  <div className="p-4 sm:p-5 bg-white/80 rounded-2xl border border-espresso/5 shadow-sm backdrop-blur-sm">
-                    <h4 className="text-[9px] font-black uppercase tracking-widest text-espresso/40 mb-2 sm:mb-3">Professional Excellence</h4>
-                    <p className="text-xs">
-                      He was selected for the Junior India National camp and won MVP at the Jimmy George National Tournament in Dallas (2026) - two highlights in a career built on hard work and consistency.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="p-4 sm:p-5 bg-white/80 rounded-2xl border border-espresso/5 shadow-sm backdrop-blur-sm">
-                  <h4 className="text-[9px] font-black uppercase tracking-widest text-espresso/40 mb-2 sm:mb-3">Coaching Philosophy</h4>
-                  <p className="text-xs">
-                    Wilson holds FIVB Level 1 and 2 coaching certifications. He believes good coaching is about more than drills - it's about helping players think better, compete confidently, and grow as people.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Timeline */}
-            <div className="relative pl-8 sm:pl-10 space-y-6 sm:space-y-8 gsap-reveal">
-              <div className="absolute left-3 top-2 bottom-2 w-0.5 bg-gradient-to-b from-[#D62828] via-[#F9BC00] to-[#F3722C]/30" />
-              {[
-                { year: 'Early Career', event: 'Track & Field Excellence',        desc: 'National Silver Medalist in Shot Put and State Champion in multiple disciplines.' },
-                { year: 'Development', event: 'SAI Elite Training',               desc: "Selected for India's premier Sports Authority, completing 5 years of advanced volleyball training." },
-                { year: 'Competitive', event: 'National & University Representative', desc: 'Represented Indian Railways and state university teams at the highest competitive levels.' },
-                { year: '2024',        event: 'Founded Challengers Academy',      desc: 'Established the academy in Florida, bringing international standards to youth development.' },
-                { year: '2026',        event: 'MVP Award & California Expansion', desc: 'MVP at Jimmy George National Tournament; expanded operations to the SF Bay Area.' },
-              ].map((m, idx) => (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, x: -16 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: idx * 0.08 }}
-                  className="relative"
-                >
-                  <div className="absolute -left-8 sm:-left-10 top-1 w-5 sm:w-6 h-5 sm:h-6 bg-white border-2 border-[#D62828] rounded-full flex items-center justify-center shadow-sm z-10">
-                    <div className="w-1.5 sm:w-2 h-1.5 sm:h-2 bg-[#D62828] rounded-full" />
-                  </div>
-                  <div className="text-[9px] font-black text-[#D62828] tracking-widest uppercase mb-0.5">{m.year}</div>
-                  <h4 className="text-sm sm:text-base font-serif text-espresso mb-1">{m.event}</h4>
-                  <p className="text-xs text-espresso/55 leading-relaxed">{m.desc}</p>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Vision / Mission repeat */}
-            <div className="grid sm:grid-cols-2 gap-4 sm:gap-5 gsap-reveal">
-              <div className="p-5 sm:p-7 bg-[#F9BC00] rounded-[1.5rem] sm:rounded-[1.75rem] border border-espresso/5 shadow-md relative overflow-hidden group">
-                <div className="absolute -top-6 -right-6 w-20 h-20 bg-white/20 rounded-full blur-xl group-hover:scale-150 transition-transform duration-700" />
-                <h3 className="text-base font-serif text-espresso mb-2 relative z-10">Vision</h3>
-                <p className="text-xs text-espresso/70 leading-relaxed italic relative z-10">
-                  "A place where players genuinely improve, feel supported, and discover what they're capable of."
-                </p>
-              </div>
-              <div className="p-5 sm:p-7 bg-[#D62828] text-white rounded-[1.5rem] sm:rounded-[1.75rem] shadow-md relative overflow-hidden group">
-                <div className="absolute -top-6 -right-6 w-20 h-20 bg-white/10 rounded-full blur-xl group-hover:scale-150 transition-transform duration-700" />
-                <h3 className="text-base font-serif mb-2 relative z-10">Mission</h3>
-                <p className="text-xs text-white/70 leading-relaxed italic relative z-10">
-                  "Teach the game well. Build good people. Keep it real."
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ── VALUES ────────────────────────────────────────── */}
-        <div className="mb-12 sm:mb-16 gsap-reveal">
-          <div className="text-center mb-6 sm:mb-8">
-            <p className="text-[#D62828] font-black text-[10px] tracking-[0.4em] uppercase mb-2">Core Values</p>
-            <h2 className="text-3xl md:text-5xl font-condensed text-espresso uppercase tracking-tighter">What we stand for.</h2>
-          </div>
-          <div className="grid md:grid-cols-3 gap-4 sm:gap-6">
-            {[
-              { icon: Shield, title: 'Honesty',     desc: 'We tell players where they actually stand and what they need to work on. No fluff.',  bg: 'bg-[#1A1A1A]',  text: 'text-white', iconBg: 'bg-white/10 text-white' },
-              { icon: Users,  title: 'Community',  desc: 'We\'re a tight-knit group. Parents, kids, and coaches all know each other by name.',       bg: 'bg-[#F9BC00]',  text: 'text-espresso', iconBg: 'bg-espresso/10 text-espresso' },
-              { icon: Trophy, title: 'Hard Work',  desc: 'We don\'t promise shortcuts. We promise that if you put in the effort, you will improve.', bg: 'bg-[#D62828]',  text: 'text-white', iconBg: 'bg-white/10 text-white' },
-            ].map((item, idx) => (
-              <motion.div
-                key={idx}
-                whileHover={{ y: -6 }}
-                className={`p-6 sm:p-8 rounded-[1.5rem] sm:rounded-[2rem] shadow-md border border-espresso/5 group transition-all ${item.bg} ${item.text} backdrop-blur-sm`}
-              >
-                <div className={`w-10 sm:w-11 h-10 sm:h-11 rounded-xl flex items-center justify-center mb-4 sm:mb-5 group-hover:scale-110 transition-transform ${item.iconBg}`}>
-                  <item.icon className="w-5 h-5" />
-                </div>
-                <h3 className="text-lg sm:text-xl font-serif mb-2 sm:mb-3">{item.title}</h3>
-                <p className="text-xs sm:text-sm opacity-70 leading-relaxed font-medium">{item.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-
-        {/* Pinned Coaches Section */}
-        <div className="-mx-4 md:-mx-8 lg:-mx-16 my-10 sm:my-16">
-          <CoachesSection />
-        </div>
-
-        {/* FAQ */}
-        <div className="gsap-reveal mb-12 sm:mb-16">
-          <SectionHeader
-            eyebrow="Common Inquiries"
-            title="Everything you need to know."
-            italicWord="know"
-            id="faq-header"
-          />
-          <FAQSection />
-        </div>
-
-        {/* ── CREDIBILITY ─────────────────────────────────── */}
-        <div className="bg-white/80 backdrop-blur-md rounded-[1.75rem] sm:rounded-[2.5rem] p-6 sm:p-10 md:p-14 border border-espresso/5 shadow-md relative overflow-hidden gsap-reveal">
-          {/* colourful top border strip */}
-          <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#D62828] via-[#F9BC00] to-[#F3722C] rounded-t-[2.5rem]" />
-
-          <div className="text-center mb-6 sm:mb-10">
-            <p className="text-[#D62828] font-black text-[10px] tracking-[0.4em] uppercase mb-2">Credibility</p>
-            <h2 className="text-3xl md:text-5xl font-condensed text-espresso uppercase tracking-tighter">
-              A legacy of athletic <span className="text-[#D62828] font-serif-italic normal-case italic tracking-normal">excellence.</span>
+      {/* ── CORE ACADEMY VALUES (PROCESS STEPS EDITORIAL) ────────── */}
+      <section className="relative px-6 py-20 sm:py-28 bg-white overflow-hidden border-b border-[#1B1B1D]/10">
+        <div className="relative z-10 max-w-[1400px] mx-auto flex flex-col items-center gap-12">
+          <div className="text-center">
+            <span data-anim="hand" className="font-hand text-[#D62828] text-[36px] uppercase block mb-1">
+              What To Expect
+            </span>
+            <h2 data-anim="reveal" className="font-display font-bold uppercase text-3xl sm:text-5xl text-[#1B1B1D] tracking-tight">
+              Our Core Standards
             </h2>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[
-              { label: 'AAU Member',     icon: 'AAU',  color: '#D62828', bg: 'bg-[#D62828]/10' },
-              { label: 'FIVB Level 2',   icon: 'FIVB', color: '#F9BC00', bg: 'bg-[#F9BC00]/20' },
-              { label: 'NFHS Certified', icon: 'NFHS', color: '#F3722C', bg: 'bg-[#F3722C]/10' },
-              { label: 'USA Volleyball', icon: 'USAV', color: '#1B1B1D', bg: 'bg-espresso/5'    },
-            ].map((item, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.1 }}
-                whileHover={{ y: -4 }}
-                className="flex flex-col items-center gap-3 p-5 bg-[#FBF9F6] rounded-2xl border border-espresso/5 shadow-sm"
-              >
-                <div className={`w-14 h-14 ${item.bg} rounded-full flex items-center justify-center font-black text-base border-2`}
-                  style={{ color: item.color, borderColor: `${item.color}44` }}>
-                  {item.icon}
+          <div data-anim="steps" className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
+            {CORE_VALUES.map((val, idx) => (
+              <div key={idx} className="bg-[#FBF9F6] p-6 sm:p-8 rounded-3xl border border-[#1B1B1D]/10 flex flex-col justify-between">
+                <div>
+                  <div className="relative inline-flex items-start uppercase mb-6">
+                    <p className="font-hand absolute -left-6 -top-3 text-[#D62828] text-[32px]">0{idx + 1}</p>
+                    <div className="w-12 h-12 rounded-2xl bg-white border border-[#1B1B1D]/10 flex items-center justify-center text-[#D62828]">
+                      <val.icon className="w-6 h-6" />
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-display font-bold text-[#1B1B1D] uppercase tracking-tight mb-3">
+                    {val.title}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-[#1B1B1D]/75 leading-relaxed font-normal">
+                    {val.description}
+                  </p>
                 </div>
-                <span className="text-[9px] font-black uppercase tracking-widest text-espresso/50 text-center">{item.label}</span>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
+      </section>
+
+      {/* ── ACCREDITATIONS & GOVERNING AFFILIATIONS ──────────────── */}
+      <section className="px-6 py-16 bg-[#FBF9F6] border-b border-[#1B1B1D]/10">
+        <div className="max-w-[1400px] mx-auto">
+          <div className="text-center mb-10">
+            <span className="text-[11px] font-black uppercase tracking-[0.3em] text-[#1B1B1D]/40 block mb-1">
+              Official Standards
+            </span>
+            <h3 className="text-2xl sm:text-3xl font-display font-bold uppercase tracking-tight text-[#1B1B1D]">
+              Accreditations & Governing Affiliations
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
+            {CREDENTIALS.map((cred, idx) => (
+              <div 
+                key={idx}
+                className="p-6 bg-white rounded-3xl border border-[#1B1B1D]/10 shadow-sm text-center flex flex-col items-center justify-between gap-4 hover:shadow-md transition-shadow"
+              >
+                <div className={`inline-block px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border ${cred.badgeColor}`}>
+                  {cred.badge}
+                </div>
+                <div 
+                  className={`w-28 h-20 sm:w-32 sm:h-24 bg-white ${cred.border} rounded-2xl flex items-center justify-center p-3 border shadow-sm hover:scale-105 transition-transform duration-300 overflow-hidden`}
+                >
+                  <img 
+                    src={cred.logo} 
+                    alt={cred.name} 
+                    className="max-w-full max-h-full object-contain"
+                    onError={(e) => {
+                      (e.target as HTMLElement).style.display = 'none';
+                      const fallback = (e.target as HTMLElement).nextElementSibling as HTMLElement;
+                      if (fallback) fallback.style.display = 'flex';
+                    }}
+                  />
+                  <span className="hidden font-black text-xl font-condensed tracking-wider text-espresso">
+                    {cred.code}
+                  </span>
+                </div>
+                <div>
+                  <h4 className="text-base font-bold text-[#1B1B1D] tracking-tight mb-0.5">
+                    {cred.name}
+                  </h4>
+                  <p className="text-[11px] text-[#1B1B1D]/60 font-medium">
+                    {cred.subtitle}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── COACHES SECTION ────────────────────────────────────── */}
+      <div className="w-full relative bg-white">
+        <CoachesSection />
       </div>
+
+      {/* ── FAQ SECTION ────────────────────────────────────────── */}
+      <section className="relative py-20 bg-[#FBF9F6] border-t border-[#1B1B1D]/10">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="text-center mb-12">
+            <span data-anim="hand" className="font-hand text-[#D62828] text-[36px] uppercase block mb-1">
+              Have Questions?
+            </span>
+            <h2 className="text-3xl sm:text-5xl font-display font-bold uppercase text-[#1B1B1D]">
+              Frequently Asked Questions
+            </h2>
+          </div>
+          <FAQSection />
+        </div>
+      </section>
     </div>
   );
 }

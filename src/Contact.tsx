@@ -1,6 +1,6 @@
 import { motion } from 'motion/react';
 import SectionHeader from './components/SectionHeader';
-import { Mail, Phone, Send, MessageCircle } from 'lucide-react';
+import { Mail, Phone, Send, MessageCircle, MapPin } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { useGsapReveal } from './hooks/useGsapReveal';
 import SEO from './components/SEO';
@@ -60,8 +60,9 @@ export default function Contact() {
             <div className="space-y-4 sm:space-y-6">
               {[
                 { icon: Phone, label: 'Phone', value: '+1 (510) 555-0123', sub: 'Mon-Fri 9am - 6pm', color: 'bg-[#F9BC00]' },
-                { icon: Mail, label: 'Email', value: 'hello@challengerscoaching.com', sub: 'Response within 24 hours', color: 'bg-[#D62828]' },
-                { icon: MessageCircle, label: 'WhatsApp', value: '+1 863-845-9913', sub: 'Fastest for quick questions', color: 'bg-[#1A1A1A]' }
+                { icon: Mail, label: 'Email', value: 'challengersacademy@gmail.com', sub: 'Response within 24 hours', color: 'bg-[#D62828]' },
+                { icon: MessageCircle, label: 'WhatsApp', value: '+1 863-845-9913', sub: 'Fastest for quick questions', color: 'bg-[#1A1A1A]' },
+                { icon: MapPin, label: 'Training Locations', value: 'Fremont · Manteca · Mountain House · San Jose', sub: 'Hansen Elementary, Courtside Sports & more', color: 'bg-[#F3722C]' }
               ].map((item, idx) => (
                 <motion.div 
                   key={idx}

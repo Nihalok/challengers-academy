@@ -166,7 +166,7 @@ export default function Camps() {
               Spaces are <span className="text-[#F9BC00] font-serif-italic lowercase italic tracking-normal">filling fast.</span>
             </h2>
             <p className="text-white/80 text-xs sm:text-sm font-medium mb-5 sm:mb-6">
-              Our summer camps are our most popular programs. Don't miss your chance to train with Coach Wilson this summer.
+              Our summer camps are our most popular programs. Don't miss your chance to train with Head Coach Wilson this summer.
             </p>
             <NavLink 
               to="/register?program=summer-camp-2026-fremont" 

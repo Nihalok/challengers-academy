@@ -32,6 +32,7 @@ export const ASSETS = {
     STYLIZED_BG: new URL('./images/stylized_volleyball_background_1784054225034.jpg', import.meta.url).href,
   },
   ABOUT: {
+    ARTISTIC_BG: new URL('./images/about_artistic_bg.png', import.meta.url).href,
     COACH_PORTRAIT: new URL('./images/coach_wilson_portrait_1783920268527.jpg', import.meta.url).href,
     COACH_SARAH: new URL('./images/coach_sarah_jenkins_headshot_1784039862809.jpg', import.meta.url).href,
     COACH_MICHAEL: new URL('./images/coach_michael_chen_headshot_1784039879618.jpg', import.meta.url).href,
@@ -40,5 +41,11 @@ export const ASSETS = {
   PERFORMANCE: {
     ANALYTICS_HERO: new URL('./images/performance_analytics_visual_1785509230519.jpg', import.meta.url).href,
     DASHBOARD_BG: new URL('./images/performance_analytics_visual_1785509230519.jpg', import.meta.url).href,
+  },
+  LOGOS: {
+    FIVB: new URL('./logo/fivb.jpg', import.meta.url).href,
+    USAV: new URL('./logo/usav.png', import.meta.url).href,
+    AAU: new URL('./logo/aau.png', import.meta.url).href,
+    NFHS: new URL('./logo/nfhs.png', import.meta.url).href,
   },
 };

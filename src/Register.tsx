@@ -46,50 +46,119 @@ export interface SessionItem {
 // 7 Official Academy Training Packages
 const OFFICIAL_SESSIONS: SessionItem[] = [
   {
+    id: 'tryout-session',
+    name: 'Tryout Session & Evaluation',
+    category: 'Assessment',
+    students: '1 Student / Group',
+    sessionDuration: '2 Hours',
+    packageCount: 'Evaluation Session',
+    ageGroup: 'All Ages / Prospective Athletes',
+    skillLevel: 'Placement Evaluation',
+    location: 'Fremont · Manteca · Mountain House · San Jose',
+    locationAddress: 'Fremont (Hansen Elem / Kerala House) · Manteca (Courtside Sports) · Mountain House · San Jose',
+    schedule: 'Weekly Tryout Batches',
+    dates: 'Upcoming Weekend Batch',
+    time: '2 Hours Assessment',
+    price: 30,
+    priceNote: 'evaluation fee',
+    capacity: 20,
+    filled: 9,
+    coach: 'Head Coach Wilson Mathew',
+    description: 'Comprehensive court evaluation, baseline physical assessment, and coach feedback to determine ideal program placement.',
+    features: ['Court Evaluation', 'Mechanics & Skill Audit', 'Roster Level Recommendation', 'No Long-Term Commitment'],
+    popular: false
+  },
+  {
     id: 'gym-training-4',
-    name: 'Gym Training (4 Sessions)',
+    name: 'Gym Training Package',
     category: 'Gym Training',
     students: 'Group',
     sessionDuration: '2 Hours',
-    packageCount: '4 Sessions',
+    packageCount: 'Standard Package',
     ageGroup: 'All Ages / Group',
     skillLevel: 'Beginner to Advanced',
-    location: 'Fremont Arena / Tracy Facility',
-    locationAddress: '43575 Mission Blvd, Fremont, CA',
-    schedule: 'Weekly Batches (2 Hours / Session)',
+    location: 'Fremont · Manteca · Mountain House · San Jose',
+    locationAddress: 'Fremont (Hansen Elem / Kerala House) · Manteca (Courtside Sports) · Mountain House · San Jose',
+    schedule: 'Weekly Batches',
     dates: 'Starting Next Weekend',
     time: '2 Hours per Session',
     price: 200,
     priceNote: 'package fee',
     capacity: 25,
     filled: 14,
-    coach: 'Wilson Mathew & Coaching Team',
-    description: '4 indoor gym training sessions (2 hours each) covering volleyball mechanics, passing precision, agility, and scrimmages.',
-    features: ['4 x 2-Hour Sessions', 'Indoor Gym Facility', 'Rotations & Tactics', 'Coach Mentorship'],
+    coach: 'Head Coach Wilson Mathew & Coaching Team',
+    description: 'Indoor gym training sessions covering volleyball mechanics, passing precision, agility, and scrimmages.',
+    features: ['Indoor Gym Facility', 'Rotations & Tactics', 'Coach Mentorship', 'Skill Progression'],
     popular: false
   },
   {
     id: 'gym-training-12',
-    name: 'Gym Training (12 Sessions - Best Value)',
+    name: 'Gym Training Package (Best Value)',
     category: 'Gym Training',
     students: 'Group',
     sessionDuration: '2 Hours',
-    packageCount: '12 Sessions',
+    packageCount: 'Comprehensive Package',
     ageGroup: 'All Ages / Group',
     skillLevel: 'All Skill Levels (Best Value)',
-    location: 'Fremont Arena / Tracy Facility',
-    locationAddress: '43575 Mission Blvd, Fremont, CA',
-    schedule: '3 Days / Week (2 Hours / Session)',
+    location: 'Fremont · Manteca · Mountain House · San Jose',
+    locationAddress: 'Fremont (Hansen Elem / Kerala House) · Manteca (Courtside Sports) · Mountain House · San Jose',
+    schedule: '3 Days / Week Batches',
     dates: 'Rolling Monthly Batches',
     time: '2 Hours per Session',
     price: 550,
     priceNote: 'package fee (Save $50)',
     capacity: 25,
     filled: 18,
-    coach: 'Wilson Mathew & Senior Staff',
-    description: '12 comprehensive group training sessions in our indoor gym facility. 2 hours per session for full athlete progression.',
-    features: ['12 x 2-Hour Sessions', 'Best Value Package', 'Position Specialization', 'School & Club Tryout Prep'],
-    popular: true
+    coach: 'Head Coach Wilson Mathew & Senior Staff',
+    description: 'Comprehensive group training sessions in our indoor gym facility for full athlete progression.',
+    features: ['Best Value Package', 'Position Specialization', 'School & Club Tryout Prep', 'Full Athlete Progression'],
+    popular: false
+  },
+  {
+    id: 'open-park-group',
+    name: 'Open Park Group Training',
+    category: 'Open Park Group',
+    students: '12 Members',
+    sessionDuration: '2 Hours',
+    packageCount: 'Group Package',
+    ageGroup: 'All Youth & Juniors',
+    skillLevel: 'Fundamental & Repetitive Drills',
+    location: 'Open Park Facilities',
+    locationAddress: 'Outdoor Open Park Courts',
+    schedule: 'Saturday & Sunday Mornings',
+    dates: 'Starting Next Weekend',
+    time: '2 Hours per Session',
+    price: 150,
+    priceNote: 'per student',
+    capacity: 12,
+    filled: 9,
+    coach: 'Head Coach Wilson Mathew & Assistants',
+    description: 'High-repetition group training sessions in open park atmosphere building stamina and ball control.',
+    features: ['Outdoor Open Air Training', 'High-Rep Passing & Defense', 'Economical Group Rate', 'Stamina & Ball Control'],
+    popular: false
+  },
+  {
+    id: 'large-group-training',
+    name: 'Large Group Training',
+    category: 'Large Group',
+    students: '13 or more students',
+    sessionDuration: '2 Hours',
+    packageCount: 'Team Package',
+    ageGroup: 'School Squads / Large Teams',
+    skillLevel: 'Team Tactics & Scrimmage',
+    location: 'Fremont · Manteca · Mountain House · San Jose',
+    locationAddress: 'Fremont (Hansen Elem / Kerala House) · Manteca (Courtside Sports) · Mountain House · San Jose',
+    schedule: 'Scheduled with Team Coordinator',
+    dates: 'Custom Team Batches',
+    time: '2 Hours per Session',
+    price: 120,
+    priceNote: 'per student (Min 13)',
+    capacity: 35,
+    filled: 22,
+    coach: 'Head Coach Wilson Mathew & Master Staff',
+    description: 'Tactical team sessions designed for school teams, clubs, or organized squads of players.',
+    features: ['Team Tactical Systems', 'Court Communication & Chemistry', 'Best Per-Student Value', 'Squad Performance'],
+    popular: false
   },
   {
     id: 'open-park-private',
@@ -97,11 +166,11 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     category: 'Private Coaching',
     students: '1 Student',
     sessionDuration: '1 Hour',
-    packageCount: '4 Sessions',
+    packageCount: 'Private Package',
     ageGroup: '1 Student Dedicated',
     skillLevel: 'Personalized Progression',
-    location: 'Open Park Facilities (Halcyon Park)',
-    locationAddress: 'Halcyon Park & Regional Courts',
+    location: 'Long Distance',
+    locationAddress: 'Coach travels to your preferred location',
     schedule: 'Flexible Scheduling',
     dates: 'Book on Demand',
     time: '1 Hour per Session',
@@ -110,8 +179,8 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     capacity: 10,
     filled: 6,
     coach: 'Dedicated Master Coach',
-    description: '4 one-on-one private coaching sessions (1 hour each) in open park. 100% focused personal mechanics coaching.',
-    features: ['4 x 1-Hour Sessions', '100% Focused 1-on-1', 'Targeted Weakness Elimination', 'Custom Progression'],
+    description: 'One-on-one private coaching sessions in open park. 100% focused personal mechanics coaching.',
+    features: ['100% Focused 1-on-1', 'Targeted Weakness Elimination', 'Custom Progression', 'Personal Mechanics Coaching'],
     popular: false
   },
   {
@@ -120,11 +189,11 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     category: 'Private Coaching',
     students: '1 Student',
     sessionDuration: '1 Hour',
-    packageCount: '4 Sessions',
+    packageCount: 'Travel Package',
     ageGroup: '1 Student Dedicated',
     skillLevel: 'Convenient Travel Coaching',
-    location: 'Nearby Park Court of Choice',
-    locationAddress: 'Short-distance travel regional parks',
+    location: 'Long Distance',
+    locationAddress: 'Coach travels to your preferred location',
     schedule: 'Flexible Weekend / Weekday Times',
     dates: 'Book on Demand',
     time: '1 Hour per Session',
@@ -133,77 +202,8 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     capacity: 10,
     filled: 4,
     coach: 'Certified Academy Coach',
-    description: '4 personalized private sessions (1 hour each) with coach traveling to a convenient nearby park facility.',
-    features: ['4 x 1-Hour Sessions', 'Nearby Park Location', 'Skill Acceleration', 'Flexible Scheduling'],
-    popular: false
-  },
-  {
-    id: 'open-park-group',
-    name: 'Open Park Group Training',
-    category: 'Open Park Group',
-    students: 'Group',
-    sessionDuration: '2 Hours',
-    packageCount: '4 Sessions',
-    ageGroup: 'All Youth & Juniors',
-    skillLevel: 'Fundamental & Repetitive Drills',
-    location: 'Open Park Courts (Halcyon Park)',
-    locationAddress: 'Halcyon Park, San Leandro / Bay Area',
-    schedule: 'Saturday & Sunday Mornings',
-    dates: 'Starting Next Weekend',
-    time: '2 Hours per Session',
-    price: 150,
-    priceNote: 'per student',
-    capacity: 24,
-    filled: 15,
-    coach: 'Wilson Mathew & Assistants',
-    description: '4 high-repetition group training sessions (2 hours each) in open park atmosphere building stamina and ball control.',
-    features: ['4 x 2-Hour Sessions', 'Outdoor Open Air Training', 'High-Rep Passing & Defense', 'Economical Group Rate'],
-    popular: false
-  },
-  {
-    id: 'large-group-training',
-    name: 'Large Group Training (13+ Students)',
-    category: 'Large Group',
-    students: '13 or more students',
-    sessionDuration: '2 Hours',
-    packageCount: '4 Sessions',
-    ageGroup: 'School Squads / Large Teams',
-    skillLevel: 'Team Tactics & Scrimmage',
-    location: 'Fremont Arena / Regional Courts',
-    locationAddress: '43575 Mission Blvd, Fremont, CA',
-    schedule: 'Scheduled with Team Coordinator',
-    dates: 'Custom Team Batches',
-    time: '2 Hours per Session',
-    price: 120,
-    priceNote: 'per student (Min 13)',
-    capacity: 35,
-    filled: 22,
-    coach: 'Wilson Mathew & Master Staff',
-    description: '4 tactical team sessions (2 hours each) designed for school teams, clubs, or organized squads of 13+ players.',
-    features: ['4 x 2-Hour Sessions', 'Team Tactical Systems', 'Court Communication & Chemistry', 'Best Per-Student Value'],
-    popular: false
-  },
-  {
-    id: 'tryout-session',
-    name: 'Tryout Session & Evaluation',
-    category: 'Assessment',
-    students: '1 Student / Group',
-    sessionDuration: '2 Hours',
-    packageCount: '1 Session',
-    ageGroup: 'All Ages / Prospective Athletes',
-    skillLevel: 'Placement Evaluation',
-    location: 'Fremont Arena / Halcyon Park',
-    locationAddress: 'Academy Training Facilities',
-    schedule: 'Weekly Tryout Batches',
-    dates: 'Upcoming Weekend Batch',
-    time: '2 Hours Assessment',
-    price: 30,
-    priceNote: 'evaluation fee',
-    capacity: 20,
-    filled: 9,
-    coach: 'Wilson Mathew',
-    description: 'Comprehensive 2-hour court evaluation, baseline physical assessment, and coach feedback to determine ideal program placement.',
-    features: ['2-Hour Court Evaluation', 'Mechanics & Skill Audit', 'Roster Level Recommendation', 'No Long-Term Commitment'],
+    description: 'Personalized private sessions with coach traveling to a convenient nearby park facility.',
+    features: ['Nearby Park Location', 'Skill Acceleration', 'Flexible Scheduling', 'Personalized Coaching'],
     popular: false
   }
 ];
@@ -233,6 +233,7 @@ export default function Register() {
     email: '',
     phone: '',
     dob: '',
+    preferredLocation: 'Fremont (Hansen Elementary / Kerala House)',
     emergencyContactName: '',
     emergencyContactPhone: '',
     medicalNotes: '',
@@ -266,7 +267,7 @@ export default function Register() {
   const [paymentSettings, setPaymentSettings] = useState<any>({
     zellePhone: '+1 (863) 845-9913',
     zelleEmail: 'kenznajeeb@gmail.com',
-    zelleName: 'Wilson Mathew / Challengers Academy',
+    zelleName: 'Head Coach Wilson Mathew / Challengers Academy',
     venmoHandle: '@Challengers-Academy',
     cashAppHandle: '$ChallengersAcademy',
     upiId: '18638459913@upi',
@@ -324,52 +325,46 @@ export default function Register() {
       .then(res => res.json())
       .then(data => {
         if (data.success && Array.isArray(data.sessions) && data.sessions.length > 0) {
-          const uniqueMap = new Map<string, SessionItem>();
-          
-          // Seed official training sessions first
-          OFFICIAL_SESSIONS.forEach(item => {
-            uniqueMap.set(item.id, item);
-          });
+          const campSessions: SessionItem[] = [];
+          const otherServerSessions: SessionItem[] = [];
 
-          // Augment or add from database
+          // Augment or add from database — split camps vs others
           data.sessions.forEach((s: any) => {
-            if (uniqueMap.has(s.id)) {
-              const existing = uniqueMap.get(s.id)!;
-              uniqueMap.set(s.id, {
-                ...existing,
-                price: Number(s.price) || existing.price,
-                capacity: Number(s.capacity) || existing.capacity,
-                filled: Number(s.filled) || existing.filled,
-                location: s.location || existing.location,
-              });
-            } else if (!s.id.toLowerCase().includes('duplicate')) {
-              uniqueMap.set(s.id, {
-                id: s.id,
-                name: s.name,
-                category: s.category || 'Coaching Program',
-                students: s.category?.includes('Private') ? '1 Student' : 'Group',
-                sessionDuration: '2 Hours',
-                packageCount: '4 Sessions',
-                ageGroup: s.ageGroup || 'All Ages',
-                skillLevel: s.skillLevel || 'All Levels',
-                location: s.location || 'Fremont Arena',
-                locationAddress: s.locationAddress || 'Bay Area Facility',
-                schedule: s.schedule || 'Scheduled Sessions',
-                dates: s.dates || 'Rolling Enrollment',
-                time: s.time || '2 Hours per Session',
-                price: Number(s.price) || 200,
-                priceNote: 'package fee',
-                capacity: Number(s.capacity) || 25,
-                filled: Number(s.filled) || 0,
-                coach: s.coach || 'Wilson Mathew & Coaches',
-                description: s.description || 'Comprehensive academy volleyball coaching.',
-                features: ['Professional Mentorship', 'Court Drills', 'Tactics', 'Technique Review'],
-                popular: false
-              });
+            const isCamp = (s.category || '').toLowerCase().includes('summer') ||
+                           (s.id || '').toLowerCase().includes('summer-camp') ||
+                           (s.id || '').toLowerCase().includes('camp');
+            const sessionItem: SessionItem = {
+              id: s.id,
+              name: s.name,
+              category: s.category || 'Coaching Program',
+              students: s.category?.includes('Private') ? '1 Student' : 'Group',
+              sessionDuration: s.duration || '2 Hours',
+              packageCount: 'Coaching Package',
+              ageGroup: s.ageGroup || 'All Ages',
+              skillLevel: s.skillLevel || s.bestFor || 'All Levels',
+              location: s.location || 'Fremont Arena',
+              locationAddress: s.locationAddress || 'Bay Area Facility',
+              schedule: s.schedule || 'Scheduled Sessions',
+              dates: s.months || s.dates || 'Rolling Enrollment',
+              time: s.time || '2 Hours per Session',
+              price: Number(s.price) || 200,
+              priceNote: 'package fee',
+              capacity: Number(s.capacity) || 25,
+              filled: Number(s.filled) || 0,
+              coach: s.coach || 'Head Coach Wilson Mathew & Coaches',
+              description: s.description || 'Comprehensive academy volleyball coaching.',
+              features: ['Professional Mentorship', 'Court Drills', 'Tactics', 'Technique Review'],
+              popular: false
+            };
+            if (isCamp) {
+              campSessions.push(sessionItem);
+            } else if (!OFFICIAL_SESSIONS.find(o => o.id === s.id) && !s.id.toLowerCase().includes('duplicate')) {
+              otherServerSessions.push(sessionItem);
             }
           });
 
-          setSessions(Array.from(uniqueMap.values()));
+          // Order: Summer Camps first → Official Sessions → any extra server sessions
+          setSessions([...campSessions, ...OFFICIAL_SESSIONS, ...otherServerSessions]);
         }
       })
       .catch(() => {
@@ -836,10 +831,10 @@ export default function Register() {
             <Shield className="w-4 h-4 text-amber-600" />
           </div>
           <div className="text-xs text-amber-900 leading-relaxed font-medium">
-            <span className="font-bold uppercase tracking-wider text-[11px] block text-amber-800 mb-0.5">
-              ⚠️ Important Enrollment Policy:
+            <span className="font-bold uppercase tracking-wider text-[11px] block text-amber-800 mb-1">
+              ⚠️ IMPORTANT ENROLLMENT POLICY:
             </span>
-            All coaching program fees and registrations are <strong className="text-amber-950 underline decoration-amber-500 font-black">strictly non-refundable</strong> once enrolled to guarantee court bookings, equipment reservations, and master coach allocations.
+            ALL COACHING PROGRAM FEES AND REGISTRATIONS ARE <strong className="bg-red-600 text-white px-2 py-0.5 rounded-md font-black tracking-wider shadow-sm inline-block mx-1">STRICTLY NON-REFUNDABLE</strong> ONCE ENROLLED TO GUARANTEE COURT BOOKINGS, EQUIPMENT RESERVATIONS, AND MASTER COACH ALLOCATIONS.
           </div>
         </div>
 
@@ -905,74 +900,167 @@ export default function Register() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {filteredSessions.map((session) => {
               const isSelected = selectedSessionId === session.id;
+              
+              // Helper to get custom background theme & image per package type
+              const getTheme = (id: string, category: string) => {
+                if (id.includes('tryout') || category.includes('Assessment')) {
+                  return {
+                    bgClass: 'bg-gradient-to-br from-[#2E2400] via-[#1C1600] to-[#0A0800] border-[#F9BC00]/60 text-white',
+                    badgeClass: 'bg-[#F9BC00] text-espresso',
+                    priceColor: 'text-[#F9BC00]',
+                    titleColor: 'text-white group-hover:text-[#F9BC00]',
+                    btnClass: 'bg-[#F9BC00] text-espresso hover:bg-white',
+                    bgImage: 'https://images.unsplash.com/photo-1519766304817-4f37bda74a29?auto=format&fit=crop&w=800&q=80'
+                  };
+                }
+                if (id.includes('gym-training-12')) {
+                  return {
+                    bgClass: 'bg-gradient-to-br from-[#610C0C] via-[#3B0707] to-[#1F0404] border-[#D62828]/80 text-white',
+                    badgeClass: 'bg-[#D62828] text-white',
+                    priceColor: 'text-[#F9BC00]',
+                    titleColor: 'text-white group-hover:text-[#F9BC00]',
+                    btnClass: 'bg-white text-espresso hover:bg-[#F9BC00]',
+                    bgImage: 'https://images.unsplash.com/photo-1592656631147-f1aa2112bf7c?auto=format&fit=crop&w=800&q=80'
+                  };
+                }
+                if (id.includes('gym-training-4') || category.includes('Gym Training')) {
+                  return {
+                    bgClass: 'bg-gradient-to-br from-[#1C1600] via-[#2E2400] to-[#121212] border-[#F9BC00]/50 text-white',
+                    badgeClass: 'bg-[#F9BC00] text-espresso',
+                    priceColor: 'text-[#F9BC00]',
+                    titleColor: 'text-white group-hover:text-[#F9BC00]',
+                    btnClass: 'bg-[#F9BC00] text-espresso hover:bg-white',
+                    bgImage: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=800&q=80'
+                  };
+                }
+                if (id.includes('park-group') || category.includes('Park')) {
+                  return {
+                    bgClass: 'bg-gradient-to-br from-[#06383C] via-[#032023] to-[#011112] border-[#0B5D51]/70 text-white',
+                    badgeClass: 'bg-[#0B5D51] text-white',
+                    priceColor: 'text-[#44E5D4]',
+                    titleColor: 'text-white group-hover:text-[#44E5D4]',
+                    btnClass: 'bg-[#0B5D51] text-white hover:bg-white hover:text-espresso',
+                    bgImage: 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?auto=format&fit=crop&w=800&q=80'
+                  };
+                }
+                if (id.includes('private') || category.includes('Private')) {
+                  return {
+                    bgClass: 'bg-gradient-to-br from-[#1F1F24] via-[#0E1520] to-[#070B12] border-amber-400/60 text-white',
+                    badgeClass: 'bg-amber-400 text-espresso',
+                    priceColor: 'text-amber-400',
+                    titleColor: 'text-white group-hover:text-amber-400',
+                    btnClass: 'bg-amber-400 text-espresso hover:bg-white',
+                    bgImage: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=800&q=80'
+                  };
+                }
+                if (id.includes('travel') || category.includes('Travel')) {
+                  return {
+                    bgClass: 'bg-gradient-to-br from-[#5E2404] via-[#3A1602] to-[#1F0B01] border-[#F3722C]/70 text-white',
+                    badgeClass: 'bg-[#F3722C] text-white',
+                    priceColor: 'text-[#F3722C]',
+                    titleColor: 'text-white group-hover:text-[#F3722C]',
+                    btnClass: 'bg-[#F3722C] text-white hover:bg-white hover:text-espresso',
+                    bgImage: 'https://images.unsplash.com/photo-1593787467001-7394837e5814?auto=format&fit=crop&w=800&q=80'
+                  };
+                }
+                if (id.includes('large-group') || category.includes('Large Group')) {
+                  return {
+                    bgClass: 'bg-gradient-to-br from-[#071A2D] via-[#04101D] to-[#02080F] border-blue-400/60 text-white',
+                    badgeClass: 'bg-blue-600 text-white',
+                    priceColor: 'text-blue-400',
+                    titleColor: 'text-white group-hover:text-blue-400',
+                    btnClass: 'bg-blue-600 text-white hover:bg-white hover:text-espresso',
+                    bgImage: 'https://images.unsplash.com/photo-1547347298-1d74850778d1?auto=format&fit=crop&w=800&q=80'
+                  };
+                }
+                // Fallback / Camp theme
+                return {
+                  bgClass: 'bg-gradient-to-br from-[#540827] via-[#330417] to-[#1A020B] border-pink-500/60 text-white',
+                  badgeClass: 'bg-pink-600 text-white',
+                  priceColor: 'text-pink-400',
+                  titleColor: 'text-white group-hover:text-pink-300',
+                  btnClass: 'bg-pink-600 text-white hover:bg-white hover:text-espresso',
+                  bgImage: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=800&q=80'
+                };
+              };
+
+              const theme = getTheme(session.id, session.category);
 
               return (
                 <div
                   key={session.id}
                   onClick={() => handleSelectPackage(session.id)}
-                  className={`group text-left p-6 rounded-2xl border transition-all duration-300 relative flex flex-col justify-between cursor-pointer hover:shadow-xl hover:-translate-y-1 ${
-                    isSelected
-                      ? 'border-[#D62828] bg-white ring-2 ring-[#D62828]/20 shadow-lg'
-                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  className={`group text-left p-6 rounded-2xl border transition-all duration-300 relative flex flex-col justify-between cursor-pointer overflow-hidden hover:shadow-2xl hover:-translate-y-1 ${theme.bgClass} ${
+                    isSelected ? 'ring-4 ring-white/50 scale-[1.02]' : ''
                   }`}
                 >
+                  {/* Background Image Tint Overlay */}
+                  <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+                    <img 
+                      src={theme.bgImage} 
+                      alt={session.name}
+                      className="w-full h-full object-cover opacity-20 scale-105 group-hover:scale-110 transition-transform duration-700 mix-blend-overlay"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/60" />
+                  </div>
+
                   {session.popular && (
-                    <div className="absolute -top-3 right-4 bg-[#D62828] text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-sm">
+                    <div className="absolute -top-3 right-4 bg-[#D62828] text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-md z-20">
                       Best Value
                     </div>
                   )}
 
-                  <div>
+                  <div className="relative z-10">
                     {/* Top Row: Category & Fee */}
                     <div className="flex items-start justify-between gap-2 mb-3">
-                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg">
+                      <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg ${theme.badgeClass}`}>
                         {session.category}
                       </span>
                       <div className="text-right">
-                        <span className="text-2xl font-serif font-black text-[#D62828] leading-none block">
+                        <span className={`text-2xl font-serif font-black leading-none block ${theme.priceColor}`}>
                           ${session.price}
                         </span>
-                        <span className="text-[9px] text-slate-500 uppercase font-bold tracking-tight">
+                        <span className="text-[9px] text-white/60 uppercase font-bold tracking-tight">
                           {session.priceNote || 'fee'}
                         </span>
                       </div>
                     </div>
 
                     {/* Course Title */}
-                    <h3 className="font-serif font-black text-lg text-slate-900 mb-2 group-hover:text-[#D62828] transition-colors leading-snug">
+                    <h3 className={`font-serif font-black text-lg mb-2 transition-colors leading-snug ${theme.titleColor}`}>
                       {session.name}
                     </h3>
 
                     {/* Description */}
-                    <p className="text-xs text-slate-600 line-clamp-2 mb-4 leading-relaxed font-medium">
+                    <p className="text-xs text-white/75 line-clamp-2 mb-4 leading-relaxed font-medium">
                       {session.description}
                     </p>
 
                     {/* Program Details Chips */}
-                    <div className="space-y-1.5 py-3 border-t border-slate-100 text-[11px] text-slate-600 font-medium">
+                    <div className="space-y-1.5 py-3 border-t border-white/10 text-[11px] text-white/80 font-medium">
                       <div className="flex items-center gap-2">
-                        <Clock className="w-3.5 h-3.5 text-[#D62828] shrink-0" />
+                        <Clock className="w-3.5 h-3.5 text-white/60 shrink-0" />
                         <span>{session.sessionDuration} · {session.packageCount}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Users className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                        <span>Format: <strong className="text-slate-800">{session.students}</strong></span>
+                        <Users className="w-3.5 h-3.5 text-white/60 shrink-0" />
+                        <span>Format: <strong className="text-white">{session.students}</strong></span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                        <span className="truncate">{session.location}</span>
+                        <MapPin className="w-3.5 h-3.5 text-white/60 shrink-0" />
+                        <span className="text-white/90 font-semibold">Location: Select by Choice</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Enroll Button - Clean Crimson Accent with high-contrast White Text */}
+                  {/* Enroll Button */}
                   <button
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleSelectPackage(session.id);
                     }}
-                    className="mt-4 w-full py-3.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md bg-[#D62828] hover:bg-[#b01c1c] active:scale-[0.98] text-white"
+                    className={`relative z-10 mt-4 w-full py-3.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] ${theme.btnClass}`}
                   >
                     <span>Select Package</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -1102,7 +1190,7 @@ export default function Register() {
                     <div className="bg-amber-50 border border-amber-200 text-amber-900 px-4 py-3 rounded-xl text-xs mb-6 flex items-start gap-2.5">
                       <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                       <div>
-                        <strong>Non-Refundable Policy:</strong> Registration fee of <strong>${selectedSession.price}</strong> is final and non-refundable upon submission.
+                        <strong>Non-Refundable Policy:</strong> Program fee of <strong>${selectedSession.price}</strong> is final and non-refundable upon submission.
                       </div>
                     </div>
 
@@ -1231,6 +1319,24 @@ export default function Register() {
                           )}
                         </div>
 
+                        {/* Preferred Training Location (Available for Every Session) */}
+                        <div>
+                          <label className="block text-[10px] font-black uppercase tracking-wider text-slate-700 mb-1">
+                            Preferred Training Location <span className="text-[#D62828]">*</span>
+                          </label>
+                          <select
+                            value={formData.preferredLocation}
+                            onChange={(e) => handleInputChange('preferredLocation', e.target.value)}
+                            className="w-full bg-[#F8FAFC] border border-slate-200 focus:border-[#D62828] focus:bg-white rounded-xl px-4 py-2.5 text-xs text-slate-900 font-medium outline-none transition-all cursor-pointer font-bold"
+                          >
+                            <option value="Fremont (Hansen Elementary / Kerala House)">Fremont (Hansen Elementary / Kerala House)</option>
+                            <option value="Manteca (Courtside Sports)">Manteca (Courtside Sports)</option>
+                            <option value="Mountain House">Mountain House</option>
+                            <option value="San Jose">San Jose</option>
+                          </select>
+                          <span className="text-[10px] text-slate-500 font-medium block mt-1">Select your primary court location</span>
+                        </div>
+
                         {/* Emergency Contact Person */}
                         <div data-error={!!formErrors.emergencyContactName}>
                           <label className="block text-[10px] font-black uppercase tracking-wider text-slate-700 mb-1">
@@ -1313,6 +1419,8 @@ export default function Register() {
                             <p>I authorize Challengers Volleyball Academy coaches to secure emergency medical treatment or paramedic care if I cannot be reached promptly.</p>
                             <p className="font-bold text-slate-900">3. Strict Non-Refundable Enrollment Policy</p>
                             <p>All fees are 100% non-refundable once registered. Court bookings and coach assignments are finalized upon registration submission.</p>
+                            <p className="font-bold text-slate-900">4. Attendance &amp; Makeup Class Policy</p>
+                            <p>Students who miss regular training classes will be eligible for 1 makeup class quarterly, subject to academy scheduling and availability.</p>
                           </div>
                         )}
 
@@ -1481,7 +1589,7 @@ export default function Register() {
                               <div className="flex-1 w-full space-y-4 text-xs">
                                 <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 flex items-center justify-between">
                                   <div>
-                                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Registration Fee</span>
+                                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Program Fee</span>
                                     <span className="text-xl font-black text-slate-900">${selectedSession.price}.00 <span className="text-xs font-bold text-slate-500">USD</span></span>
                                   </div>
                                   <div className="text-right">
@@ -1551,7 +1659,7 @@ export default function Register() {
                               <div className="space-y-3 text-xs bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                                 <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                                   <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Recipient Account</span>
-                                  <strong className="text-slate-900">{paymentSettings.zelleName || 'Wilson Mathew / Challengers Academy'}</strong>
+                                  <strong className="text-slate-900">{paymentSettings.zelleName || 'Head Coach Wilson Mathew / Challengers Academy'}</strong>
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">

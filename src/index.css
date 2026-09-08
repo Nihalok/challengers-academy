@@ -1,11 +1,13 @@
 /* stylelint-disable */
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Archivo:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Archivo:ital,wght@0,100..900;1,100..900&family=Asul:wght@400;700&family=Covered+By+Your+Grace&family=Cabin:ital,wght@0,400..700;1,400..700&display=swap');
 @import "tailwindcss";
 
 
 @theme {
   --font-serif: "Fraunces", serif;
   --font-sans: "Archivo", sans-serif;
+  --font-display: "Asul", serif;
+  --font-hand: "Covered By Your Grace", cursive;
   
   --color-ivory: #F5F0E6;
   --color-espresso: #1B1B1D;
@@ -15,9 +17,23 @@
   --color-sand: #EAE3D5;
   --color-clay: #d4d4d4;
   --color-muted: #8c8581;
+  --color-accent: #D62828;
   
   --radius-xl: 1.5rem;
   --radius-2xl: 1.75rem;
+}
+
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.font-hand {
+  font-family: 'Covered By Your Grace', cursive;
+}
+
+.font-display {
+  font-family: 'Asul', serif;
 }
 
 @layer base {

@@ -141,7 +141,18 @@ export default function AcademyJourney() {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    
+    // Refresh ScrollTrigger and Lenis calculation after component mounts
+    const timer = setTimeout(() => {
+      if ((window as any).__lenis) {
+        (window as any).__lenis.resize();
+      }
+    }, 150);
+
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      clearTimeout(timer);
+    };
   }, []);
 
   const { scrollYProgress } = useScroll({
@@ -149,7 +160,7 @@ export default function AcademyJourney() {
     offset: ["start start", "end end"]
   });
 
-  const smoothProgress = useSpring(scrollYProgress, { stiffness: 70, damping: 20, restDelta: 0.001 });
+  const smoothProgress = useSpring(scrollYProgress, { stiffness: 100, damping: 28, restDelta: 0.001 });
   const pathFlowOffset = useTransform(smoothProgress, [0, 1], [0, -40]); 
 
   const [trail, setTrail] = useState<TrailImage[]>([]);

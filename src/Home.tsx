@@ -53,7 +53,7 @@ export default function Home() {
     <div ref={containerRef} className="flex flex-col">
       <SEO 
         title="Challengers Volleyball Academy" 
-        description="Volleyball coaching for kids and adults in the Bay Area. We train at Fremont, Tracy, and San Leandro. All skill levels welcome."
+        description="Volleyball coaching for kids and adults. We train at Fremont, Manteca, Mountain House, and San Jose. All skill levels welcome."
       />
       <ModernHero />
       <Marquee 
@@ -297,7 +297,7 @@ export default function Home() {
 
       {/* Text Reveal Section */}
       <section className="bg-ivory gsap-reveal">
-        <TextReveal text="We help players get better - one session at a time. Our coaches keep it simple, focused, and built around what each player actually needs." />
+        <TextReveal text="We help players get better - one session at a time. Our Coaches keep it simple, focused, and built around what each player actually needs." />
       </section>
 
       {/* Expertise Section (Pinned Panels) */}

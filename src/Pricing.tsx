@@ -23,7 +23,10 @@ const OFFICIAL_PACKAGES = [
       'Zero long-term commitment'
     ],
     popular: false,
-    color: 'bg-white text-espresso border-espresso/10'
+    color: 'bg-gradient-to-br from-[#2E2400] via-[#1C1600] to-[#0A0800] border-[#F9BC00]/60 text-white',
+    badgeClass: 'bg-[#F9BC00] text-espresso',
+    btnClass: 'bg-[#F9BC00] text-espresso hover:bg-white',
+    bgImage: 'https://images.unsplash.com/photo-1519766304817-4f37bda74a29?auto=format&fit=crop&w=800&q=80'
   },
   {
     id: 'gym-training-4',
@@ -42,7 +45,10 @@ const OFFICIAL_PACKAGES = [
       'Active coach mentorship'
     ],
     popular: false,
-    color: 'bg-[#F9BC00] text-espresso border-amber-400'
+    color: 'bg-gradient-to-br from-[#1C1600] via-[#2E2400] to-[#121212] border-[#F9BC00]/50 text-white',
+    badgeClass: 'bg-[#F9BC00] text-espresso',
+    btnClass: 'bg-[#F9BC00] text-espresso hover:bg-white',
+    bgImage: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=800&q=80'
   },
   {
     id: 'gym-training-12',
@@ -62,7 +68,10 @@ const OFFICIAL_PACKAGES = [
       'Save $50 compared to 4-session pack'
     ],
     popular: true,
-    color: 'bg-[#D62828] text-white border-red-600'
+    color: 'bg-gradient-to-br from-[#610C0C] via-[#3B0707] to-[#1F0404] border-[#D62828]/80 text-white',
+    badgeClass: 'bg-[#D62828] text-white',
+    btnClass: 'bg-white text-espresso hover:bg-[#F9BC00]',
+    bgImage: 'https://images.unsplash.com/photo-1592656631147-f1aa2112bf7c?auto=format&fit=crop&w=800&q=80'
   },
   {
     id: 'open-park-group',
@@ -81,7 +90,10 @@ const OFFICIAL_PACKAGES = [
       'Great value group format'
     ],
     popular: false,
-    color: 'bg-white text-espresso border-espresso/10'
+    color: 'bg-gradient-to-br from-[#06383C] via-[#032023] to-[#011112] border-[#0B5D51]/70 text-white',
+    badgeClass: 'bg-[#0B5D51] text-white',
+    btnClass: 'bg-[#0B5D51] text-white hover:bg-white hover:text-espresso',
+    bgImage: 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?auto=format&fit=crop&w=800&q=80'
   },
   {
     id: 'open-park-private',
@@ -100,7 +112,10 @@ const OFFICIAL_PACKAGES = [
       'Custom drill progression'
     ],
     popular: false,
-    color: 'bg-[#1A1A1A] text-white border-zinc-700'
+    color: 'bg-gradient-to-br from-[#1F1F24] via-[#0E1520] to-[#070B12] border-amber-400/60 text-white',
+    badgeClass: 'bg-amber-400 text-espresso',
+    btnClass: 'bg-amber-400 text-espresso hover:bg-white',
+    bgImage: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=800&q=80'
   },
   {
     id: 'open-park-travel',
@@ -119,7 +134,10 @@ const OFFICIAL_PACKAGES = [
       'Personalized drill routines'
     ],
     popular: false,
-    color: 'bg-white text-espresso border-espresso/10'
+    color: 'bg-gradient-to-br from-[#5E2404] via-[#3A1602] to-[#1F0B01] border-[#F3722C]/70 text-white',
+    badgeClass: 'bg-[#F3722C] text-white',
+    btnClass: 'bg-[#F3722C] text-white hover:bg-white hover:text-espresso',
+    bgImage: 'https://images.unsplash.com/photo-1593787467001-7394837e5814?auto=format&fit=crop&w=800&q=80'
   },
   {
     id: 'large-group-training',
@@ -133,122 +151,95 @@ const OFFICIAL_PACKAGES = [
     desc: 'Special group pricing for school squads, clubs, and large youth batches.',
     features: [
       '4 x 2-hour team & group sessions',
-      'Team tactical & scrimmage dynamics',
-      'Communication and court chemistry',
-      'Most economical per-student rate'
+      'Team rotation & system tactical play',
+      'Competitive squad scrimmages',
+      'Custom scheduling for groups'
     ],
     popular: false,
-    color: 'bg-white text-espresso border-espresso/10'
+    color: 'bg-gradient-to-br from-[#071A2D] via-[#04101D] to-[#02080F] border-blue-400/60 text-white',
+    badgeClass: 'bg-blue-600 text-white',
+    btnClass: 'bg-blue-600 text-white hover:bg-white hover:text-espresso',
+    bgImage: 'https://images.unsplash.com/photo-1547347298-1d74850778d1?auto=format&fit=crop&w=800&q=80'
   }
 ];
 
 export default function Pricing() {
-  const [filter, setFilter] = useState<'all' | 'gym' | 'park' | 'private'>('all');
-
-  const filtered = OFFICIAL_PACKAGES.filter(pkg => {
-    if (filter === 'gym') return pkg.category.includes('Indoor');
-    if (filter === 'park') return pkg.category.includes('Outdoor') || pkg.category.includes('Group');
-    if (filter === 'private') return pkg.category.includes('Private') || pkg.id === 'tryout-session';
-    return true;
-  });
-
   return (
-    <div className="pt-32 sm:pt-36 md:pt-40 pb-16 md:pb-24 bg-[#FBF9F6] min-h-screen font-sans">
+    <div className="relative pt-32 sm:pt-36 md:pt-40 pb-20 min-h-screen bg-[#FBF9F6] font-sans">
       <SEO 
         title="Training Fees & Packages" 
-        description="Official training fees for Challengers Volleyball Academy: Gym Training, Open Park Group, Private 1-on-1, and Tryouts."
+        description="Transparent pricing for Challengers Volleyball Academy training packages. Gym training, open park group, private 1-on-1, and team coaching in the Bay Area."
       />
 
-      <motion.div 
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.8 }}
-        className="container mx-auto px-4"
-      >
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl relative z-10">
         <SectionHeader 
-          eyebrow="Academy Fees" 
-          title="Clear, transparent coaching fees."
-          italicWord="transparent"
+          eyebrow="Transparent Rates" 
+          title="Training Packages & Official Fee Schedule." 
+          italicWord="Schedule"
+          id="pricing-header"
         />
 
-        {/* Filter Pills */}
-        <div className="flex justify-center gap-2 sm:gap-3 mt-8 mb-10 flex-wrap">
-          {[
-            { id: 'all', label: 'All Packages (7)' },
-            { id: 'gym', label: 'Gym Training' },
-            { id: 'park', label: 'Park & Groups' },
-            { id: 'private', label: 'Private & Tryouts' }
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setFilter(tab.id as any)}
-              className={`px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                filter === tab.id
-                  ? 'bg-espresso text-white shadow-md'
-                  : 'bg-white text-espresso/70 hover:bg-espresso/10 border border-espresso/5'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Cards Grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filtered.map((plan, idx) => (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mt-12 sm:mt-16">
+          {OFFICIAL_PACKAGES.map((plan, idx) => (
             <motion.div
               key={plan.id}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: idx * 0.05 }}
-              className={`relative p-6 sm:p-8 rounded-[2rem] border shadow-xl flex flex-col justify-between ${plan.color}`}
+              className={`relative p-6 sm:p-8 rounded-[2rem] border shadow-2xl overflow-hidden flex flex-col justify-between ${plan.color}`}
             >
+              <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+                <img 
+                  src={plan.bgImage} 
+                  alt={plan.name}
+                  className="w-full h-full object-cover opacity-20 scale-105 group-hover:scale-110 transition-transform duration-700 mix-blend-overlay"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/60" />
+              </div>
+
               {plan.popular && (
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#F9BC00] text-espresso px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shadow-md z-10 flex items-center gap-1.5">
-                  <Sparkles className="w-3 h-3" /> Most Popular • Best Value
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#D62828] text-white px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shadow-md z-20 flex items-center gap-1.5">
+                  <Sparkles className="w-3 h-3 text-[#F9BC00]" /> Most Popular • Best Value
                 </div>
               )}
               
-              <div>
+              <div className="relative z-10">
                 <div className="flex items-center justify-between gap-2 mb-3">
-                  <span className="text-[10px] font-black uppercase tracking-widest opacity-60 bg-black/5 px-3 py-1 rounded-full">
+                  <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full ${plan.badgeClass}`}>
                     {plan.category}
                   </span>
-                  <div className="flex items-center gap-1.5 text-xs font-bold opacity-70">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-white/70">
                     <Clock className="w-3.5 h-3.5" />
                     <span>{plan.duration}</span>
                   </div>
                 </div>
 
-                <h3 className="text-xl sm:text-2xl font-condensed font-black uppercase tracking-tight mb-2">{plan.name}</h3>
-                <p className="text-xs opacity-75 mb-6 leading-relaxed min-h-[32px]">{plan.desc}</p>
+                <h3 className="text-xl sm:text-2xl font-condensed font-black uppercase tracking-tight mb-2 text-white">{plan.name}</h3>
+                <p className="text-xs text-white/75 mb-6 leading-relaxed min-h-[32px]">{plan.desc}</p>
 
-                <div className="flex items-baseline gap-2 mb-6 pb-6 border-b border-current/10">
-                  <span className="text-4xl sm:text-5xl font-condensed font-black tracking-tighter">${plan.price}</span>
-                  <span className="text-[10px] font-black uppercase tracking-widest opacity-60">
+                <div className="flex items-baseline gap-2 mb-6 pb-6 border-b border-white/10">
+                  <span className="text-4xl sm:text-5xl font-condensed font-black tracking-tighter text-white">${plan.price}</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-white/60">
                     {plan.priceNote}
                   </span>
                 </div>
 
-                <div className="space-y-2 mb-6 text-[11px] font-bold opacity-80">
+                <div className="space-y-2 mb-6 text-[11px] font-bold text-white/80">
                   <div className="flex items-center gap-2">
-                    <Users className="w-3.5 h-3.5 text-orange shrink-0" />
-                    <span>Students: <strong>{plan.students}</strong></span>
+                    <Users className="w-3.5 h-3.5 text-white/60 shrink-0" />
+                    <span>Students: <strong className="text-white">{plan.students}</strong></span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Check className="w-3.5 h-3.5 text-orange shrink-0" />
-                    <span>Package: <strong>{plan.sessions}</strong></span>
+                    <Check className="w-3.5 h-3.5 text-white/60 shrink-0" />
+                    <span>Package: <strong className="text-white">{plan.sessions}</strong></span>
                   </div>
                 </div>
 
                 <ul className="space-y-2.5 mb-8">
                   {plan.features.map(f => (
-                    <li key={f} className="flex items-center gap-2.5 text-xs font-medium">
-                      <div className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${
-                        plan.id === 'gym-training-12' ? 'bg-white/20 text-white' : 'bg-[#D62828]/10 text-[#D62828]'
-                      }`}>
+                    <li key={f} className="flex items-center gap-2.5 text-xs font-medium text-white/90">
+                      <div className="w-4 h-4 rounded-full bg-white/15 text-white flex items-center justify-center shrink-0">
                         <Check className="w-2.5 h-2.5" />
                       </div>
                       <span>{f}</span>
@@ -259,12 +250,7 @@ export default function Pricing() {
 
               <NavLink
                 to={`/register?session=${plan.id}`}
-                className={`w-full py-4 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-md active:scale-98
-                  ${plan.id === 'gym-training-12' ? 'bg-white text-[#D62828] hover:bg-[#F9BC00] hover:text-espresso' :
-                    plan.id === 'gym-training-4' ? 'bg-espresso text-white hover:bg-[#D62828]' :
-                    plan.id === 'open-park-private' ? 'bg-[#F9BC00] text-espresso hover:bg-white' :
-                    'bg-espresso text-white hover:bg-[#D62828]'}
-                `}
+                className={`relative z-10 w-full py-4 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-md active:scale-98 ${plan.btnClass}`}
               >
                 Enroll in Package <ArrowRight className="w-4 h-4" />
               </NavLink>
@@ -272,7 +258,6 @@ export default function Pricing() {
           ))}
         </div>
 
-        {/* Official Fee Schedule Table */}
         <div className="mt-16 bg-white rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 border border-espresso/5 shadow-xl">
           <div className="mb-6">
             <span className="text-[#D62828] text-[10px] font-black uppercase tracking-widest">Official Schedule</span>
@@ -367,7 +352,7 @@ export default function Pricing() {
             </p>
           </div>
         </motion.div>
-      </motion.div>
+      </div>
     </div>
   );
 }

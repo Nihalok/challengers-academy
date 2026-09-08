@@ -81,7 +81,7 @@ export const TESTIMONIALS: Testimonial[] = [
     id: 2,
     name: "Marcus Chen",
     role: "Setter, Varsity Captain",
-    content: "Coach Wilson doesn't just tell you what to do - he breaks down exactly why. That made a big difference for me as a setter. I finally understood the game, not just the plays.",
+    content: "Head Coach Wilson doesn't just tell you what to do - he breaks down exactly why. That made a big difference for me as a setter. I finally understood the game, not just the plays.",
     avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=200&h=200&auto=format&fit=crop"
   },
   {
@@ -96,37 +96,46 @@ export const TESTIMONIALS: Testimonial[] = [
 export const LOCATIONS: Location[] = [
   {
     id: 'fremont',
-    name: 'Fremont - Kerala House',
-    address: '40374 Fremont Blvd',
+    name: 'Fremont - Hansen Elementary / Kerala House',
+    address: '4037 Fremont Blvd',
     city: 'Fremont',
     zip: '94538',
     coords: { lat: 37.5342, lng: -121.9682 },
-    description: 'Our main training spot in Fremont. Full court, good space, easy to find.'
+    description: 'Hansen Elementary & Kerala House facility in Fremont. Indoor court space for fundamental and advanced volleyball training.'
   },
   {
-    id: 'tracy',
-    name: 'Tracy - Bethany Elementary',
-    address: '570 S Escuela Dr',
-    city: 'Tracy',
+    id: 'manteca',
+    name: 'Manteca - Courtside Sports',
+    address: '450 Commerce Ct',
+    city: 'Manteca',
+    zip: '95336',
+    coords: { lat: 37.7972, lng: -121.2161 },
+    description: 'Courtside Sports facility in Manteca. High quality courts equipped for team drills, skills development, and game play.'
+  },
+  {
+    id: 'mountain-house',
+    name: 'Mountain House',
+    address: 'Mountain House Training Center',
+    city: 'Mountain House',
     zip: '95391',
-    coords: { lat: 37.7314, lng: -121.5204 },
-    description: 'A well-maintained gym at Bethany Elementary - great for youth sessions and team practice.'
+    coords: { lat: 37.7846, lng: -121.5438 },
+    description: 'Dedicated volleyball coaching and skill-building sessions for athletes in Mountain House.'
   },
   {
-    id: 'san-leandro',
-    name: 'San Leandro - Halcyon Park',
-    address: '1245 147th Ave',
-    city: 'San Leandro',
-    zip: '94578',
-    coords: { lat: 37.7019, lng: -122.1388 },
-    description: 'Both indoor and outdoor space at Halcyon Park - good for drills and community training sessions.'
+    id: 'san-jose',
+    name: 'San Jose',
+    address: 'San Jose Training Center',
+    city: 'San Jose',
+    zip: '95112',
+    coords: { lat: 37.3382, lng: -121.8863 },
+    description: 'Convenient training location serving young athletes and competitive players in San Jose.'
   }
 ];
 
 export const STATS: Stat[] = [
   { label: 'Years Coaching', value: 35, suffix: '+' },
   { label: 'Athletes Trained', value: 5000, suffix: '+' },
-  { label: 'Program Locations', value: 3 },
+  { label: 'Program Locations', value: 4 },
   { label: 'Success Rate', value: 98, suffix: '%' }
 ];
 

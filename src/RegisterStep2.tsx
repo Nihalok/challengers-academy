@@ -285,7 +285,7 @@ export default function RegisterStep2() {
                     </div>
                     <div className="pt-8 border-t border-white/5 space-y-4">
                        <div className="flex justify-between text-xs font-bold text-white/60">
-                          <span>Registration Fee</span>
+                          <span>Program Fee</span>
                           <span>${registrationFee}</span>
                        </div>
                        <div className="flex justify-between text-lg font-bold text-white pt-2">

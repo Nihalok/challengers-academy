@@ -56,7 +56,7 @@ export default function Admin() {
     location: 'Fremont Arena',
     capacity: 20,
     filled: 0,
-    coach: 'Wilson Mathew & Team',
+    coach: 'Head Coach Wilson Mathew & Team',
     image: 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?q=80&w=1200&auto=format&fit=crop',
     isActive: true,
   });
@@ -75,7 +75,7 @@ export default function Admin() {
     location: 'Fremont Arena',
     capacity: 25,
     filled: 0,
-    coach: 'Wilson Mathew & Staff',
+    coach: 'Head Coach Wilson Mathew & Staff',
     description: '',
     isActive: true,
   });
@@ -110,7 +110,7 @@ export default function Admin() {
   const [adminPaymentSettings, setAdminPaymentSettings] = useState<any>({
     zellePhone: '+1 (863) 845-9913',
     zelleEmail: 'kenznajeeb@gmail.com',
-    zelleName: 'Wilson Mathew / Challengers Academy',
+    zelleName: 'Head Coach Wilson Mathew / Challengers Academy',
     venmoHandle: '@Challengers-Academy',
     cashAppHandle: '$ChallengersAcademy',
     upiId: '18638459913@upi',
@@ -305,7 +305,7 @@ export default function Admin() {
       location: 'Fremont Arena',
       capacity: 25,
       filled: 0,
-      coach: 'Wilson Mathew & Staff',
+      coach: 'Head Coach Wilson Mathew & Staff',
       description: '',
       isActive: true,
     });
@@ -324,7 +324,7 @@ export default function Admin() {
       location: camp.location || 'Fremont Arena',
       capacity: camp.capacity || 25,
       filled: camp.filled || 0,
-      coach: camp.coach || 'Wilson Mathew & Staff',
+      coach: camp.coach || 'Head Coach Wilson Mathew & Staff',
       description: camp.description || '',
       isActive: camp.isActive !== false,
     });
@@ -403,7 +403,7 @@ export default function Admin() {
       location: 'Fremont Arena',
       capacity: 20,
       filled: 0,
-      coach: 'Wilson Mathew & Team',
+      coach: 'Head Coach Wilson Mathew & Team',
       image: 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?q=80&w=1200&auto=format&fit=crop',
       isActive: true,
     });
@@ -425,7 +425,7 @@ export default function Admin() {
       location: prog.location || 'Fremont Arena',
       capacity: prog.capacity || 20,
       filled: prog.filled || 0,
-      coach: prog.coach || 'Wilson Mathew & Team',
+      coach: prog.coach || 'Head Coach Wilson Mathew & Team',
       image: prog.image || 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?q=80&w=1200&auto=format&fit=crop',
       isActive: prog.isActive !== false,
     });
@@ -1467,7 +1467,7 @@ export default function Admin() {
                         </div>
                         <div className="space-y-2">
                           <label className="text-[10px] font-black uppercase tracking-widest text-espresso/40">Assigned Coach</label>
-                          <input value={programForm.coach} onChange={e => setProgramForm({ ...programForm, coach: e.target.value })} className="w-full bg-ivory border-0 rounded-xl px-4 py-3 text-sm font-medium" placeholder="e.g. Wilson Mathew & Team" />
+                          <input value={programForm.coach} onChange={e => setProgramForm({ ...programForm, coach: e.target.value })} className="w-full bg-ivory border-0 rounded-xl px-4 py-3 text-sm font-medium" placeholder="e.g. Head Coach Wilson Mathew & Team" />
                         </div>
                         <div className="space-y-2">
                           <label className="text-[10px] font-black uppercase tracking-widest text-espresso/40">Capacity / Max Spots</label>
@@ -1667,7 +1667,7 @@ export default function Admin() {
                         </div>
                         <div className="space-y-2">
                           <label className="text-[10px] font-black uppercase tracking-widest text-espresso/40">Lead Coach</label>
-                          <input value={campForm.coach} onChange={e => setCampForm({ ...campForm, coach: e.target.value })} className="w-full bg-ivory border-0 rounded-xl px-4 py-3 text-sm font-medium" placeholder="e.g. Wilson Mathew & Staff" />
+                          <input value={campForm.coach} onChange={e => setCampForm({ ...campForm, coach: e.target.value })} className="w-full bg-ivory border-0 rounded-xl px-4 py-3 text-sm font-medium" placeholder="e.g. Head Coach Wilson Mathew & Staff" />
                         </div>
                         <div className="space-y-2">
                           <label className="text-[10px] font-black uppercase tracking-widest text-espresso/40">Capacity / Max Spots</label>
@@ -1993,7 +1993,7 @@ export default function Admin() {
                             type="text"
                             value={adminPaymentSettings.zelleName || ''}
                             onChange={(e) => setAdminPaymentSettings({ ...adminPaymentSettings, zelleName: e.target.value })}
-                            placeholder="Wilson Mathew / Challengers Academy"
+                            placeholder="Head Coach Wilson Mathew / Challengers Academy"
                             className="w-full bg-ivory border-0 rounded-xl px-4 py-2.5 text-xs font-bold text-espresso"
                           />
                         </div>
