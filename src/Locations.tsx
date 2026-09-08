@@ -36,7 +36,7 @@ export default function Locations() {
   const [selectedLocation, setSelectedLocation] = useState(LOCATIONS[0]);
   useGsapReveal();
 
-  const containerClasses = "relative py-12 md:py-16 bg-[#FBF9F6] min-h-screen overflow-hidden font-sans";
+  const containerClasses = "relative pt-28 sm:pt-32 md:pt-36 pb-12 sm:pb-16 bg-[#FBF9F6] min-h-screen overflow-hidden font-sans";
   const bgClasses = "absolute inset-0 z-0 pointer-events-none";
 
   if (!hasValidKey) {

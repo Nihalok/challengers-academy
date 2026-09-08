@@ -118,12 +118,17 @@ export default function Home() {
             {[ASSETS.HERO.ACTION_CARD_1, ASSETS.HERO.ACTION_CARD_2, ASSETS.HERO.ACTION_CARD_3, ASSETS.HERO.ACTION_CARD_4].map((img, i) => (
               <motion.div 
                 key={i}
-                style={{ rotate: [r1, r2, r3, r4][i], y: [y1, y2, y3, y4][i] }}
+                style={{ 
+                  rotate: [r1, r2, r3, r4][i], 
+                  y: [y1, y2, y3, y4][i],
+                  left: `${i * 1.75}rem`,
+                  zIndex: (i + 1) * 10
+                }}
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className={`absolute left-${i * 8} sm:left-${i * 12} bottom-${i * 2} w-20 sm:w-32 h-28 sm:h-44 bg-sand rounded-2xl overflow-hidden border border-espresso/10 shadow-2xl z-${(i + 1) * 10} will-change-transform`}
+                className="absolute bottom-2 w-20 sm:w-32 h-28 sm:h-44 bg-sand rounded-2xl overflow-hidden border border-espresso/10 shadow-2xl will-change-transform"
               >
                 <OptimizedImage src={img} alt="Action" className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-espresso/40 to-transparent" />

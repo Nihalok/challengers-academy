@@ -4,7 +4,7 @@ import SectionHeader from './components/SectionHeader';
 
 export default function Privacy() {
   return (
-    <div className="pt-24 pb-16 bg-ivory/50 min-h-screen">
+    <div className="pt-28 sm:pt-32 md:pt-36 pb-16 bg-ivory/50 min-h-screen">
       <div className="container mx-auto px-4 max-w-4xl">
         <SectionHeader 
           eyebrow="Legal" 

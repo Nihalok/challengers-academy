@@ -178,7 +178,7 @@ export default function Login() {
   };
 
   return (
-    <div className="relative py-6 md:py-10 bg-ivory min-h-screen flex items-center justify-center overflow-hidden font-sans">
+    <div className="relative pt-28 pb-10 md:py-10 bg-ivory min-h-screen flex items-center justify-center overflow-hidden font-sans">
       <SEO
         title="Admin Login"
         description="Administrative access for Challengers Volleyball Academy staff."

@@ -165,10 +165,10 @@ export default function Navigation() {
               </div>
             </div>
             <div className="snb__logo-text">
-              <span className="text-white font-condensed text-[15px] font-black tracking-[0.18em] uppercase leading-none block drop-shadow-sm">
+              <span className="text-white font-condensed text-[12px] sm:text-[15px] font-black tracking-[0.14em] sm:tracking-[0.18em] uppercase leading-none block drop-shadow-sm">
                 CHALLENGERS
               </span>
-              <span className="text-[#C1272D] font-condensed text-[9px] font-black tracking-[0.2em] uppercase leading-none mt-0.5 block drop-shadow-sm whitespace-nowrap">
+              <span className="text-[#C1272D] font-condensed text-[7px] sm:text-[9px] font-black tracking-[0.14em] sm:tracking-[0.2em] uppercase leading-none mt-0.5 block drop-shadow-sm whitespace-nowrap hidden min-[360px]:block">
                 VOLLEYBALL ACADEMY
               </span>
             </div>
@@ -199,10 +199,10 @@ export default function Navigation() {
           <div className="snb__ctas">
             <NavLink
               to="/register"
-              className="snb__btn snb__btn--solid"
+              className="snb__btn snb__btn--solid text-[9px] sm:text-[11px] px-3 sm:px-5 py-1.5 sm:py-2"
             >
               <span>Enroll Now</span>
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+              <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 group-hover:translate-x-0.5 transition-transform" />
             </NavLink>
 
             {/* Mobile hamburger */}
@@ -248,7 +248,7 @@ export default function Navigation() {
           >
             <div className="absolute inset-0 bg-[#1a1a2e]/98 backdrop-blur-3xl" />
 
-            <div className="relative h-full flex flex-col p-8 pt-[110px]">
+            <div className="relative h-full flex flex-col p-6 sm:p-8 pt-[100px] sm:pt-[110px] overflow-y-auto max-h-screen">
               <div className="space-y-6">
                 <span className="text-white/30 text-[10px] font-black uppercase tracking-[0.4em]">Academy Navigation</span>
                 <div className="flex flex-col gap-4">
@@ -472,27 +472,43 @@ export default function Navigation() {
 
         @media (max-width: 1024px) {
           .snb {
-            width: calc(100% - 24px);
-            top: 46px;
+            width: min(340px, calc(100% - 24px));
+            top: 44px;
           }
           .snb--top {
-            top: 46px;
+            top: 44px;
           }
           .snb--scrolled {
-            top: 12px;
+            top: 10px;
           }
-          .snb--collapsed {
-            width: min(310px, calc(100% - 24px));
+          .snb .snb__logo-text,
+          .snb .snb__links {
+            display: none !important;
+          }
+          .snb__inner {
+            padding: 6px 8px 6px 10px;
+            gap: 8px;
+          }
+          .snb__logo {
+            gap: 0;
           }
           .snb__logo-badge {
-            width: 50px;
-            height: 50px;
-            margin-top: -8px;
-            margin-bottom: -8px;
+            width: 44px;
+            height: 44px;
+            margin-top: -6px;
+            margin-bottom: -6px;
           }
           .snb__logo-mark {
-            width: 38px;
-            height: 38px;
+            width: 32px;
+            height: 32px;
+          }
+          .snb__btn--solid {
+            font-size: 9.5px !important;
+            padding: 6.5px 13px !important;
+            letter-spacing: 0.08em !important;
+          }
+          .snb__ctas {
+            gap: 6px;
           }
         }
 

@@ -177,7 +177,7 @@ export default function CoachesSection() {
                   transition={{ duration: 0.8, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
                   className="w-full md:w-auto flex justify-center md:justify-end pb-8 sm:pb-12 md:pb-0 shrink-0"
                 >
-                  <div className="relative w-[180px] sm:w-[280px] md:w-[440px] lg:w-[480px] h-[180px] sm:h-[280px] md:h-[440px] lg:h-[480px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.35)] border-4 border-white/40 group bg-white">
+                  <div className="relative w-[220px] sm:w-[280px] md:w-[440px] lg:w-[480px] h-[240px] sm:h-[280px] md:h-[440px] lg:h-[480px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.35)] border-4 border-white/40 group bg-white">
                     <img
                       src={section.image}
                       alt={section.name}
@@ -186,18 +186,18 @@ export default function CoachesSection() {
                     {/* Gradient Overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
 
-                    {/* Card Bottom Label */}
-                    <div className="absolute bottom-5 left-5 right-5 p-3.5 rounded-2xl bg-white/90 backdrop-blur-md border border-white/50 flex items-center justify-between shadow-lg">
-                      <div>
-                        <span className="text-[9px] font-black uppercase tracking-widest text-espresso/40 block">
+                    {/* Card Bottom Label - Small & Compact on Mobile to Keep Coach Portrait 100% Visible */}
+                    <div className="absolute bottom-2 left-2 right-2 p-2 sm:bottom-5 sm:left-5 sm:right-5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-white/90 backdrop-blur-md border border-white/50 flex items-center justify-between shadow-lg">
+                      <div className="min-w-0">
+                        <span className="hidden sm:block text-[9px] font-black uppercase tracking-widest text-espresso/40">
                           Challengers Volleyball
                         </span>
-                        <span className="text-base font-black text-espresso font-condensed uppercase tracking-wider">
+                        <span className="text-xs sm:text-base font-black text-espresso font-condensed uppercase tracking-wider block truncate">
                           {section.name}
                         </span>
                       </div>
                       <div
-                        className="w-9 h-9 rounded-full flex items-center justify-center font-black text-xs shadow-md"
+                        className="w-6 h-6 sm:w-9 sm:h-9 rounded-full flex items-center justify-center font-black text-[9px] sm:text-xs shadow-md shrink-0 ml-2"
                         style={{
                           backgroundColor: section.badgeBg,
                           color: section.badgeText,

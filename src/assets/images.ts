@@ -6,6 +6,7 @@
 export const ASSETS = {
   HERO: {
     BACKGROUND: new URL('./images/modern1.png', import.meta.url).href,
+    MOBILE_BACKGROUND: new URL('./images/hero mob.png', import.meta.url).href,
     BADGE: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80',
     ACTION_CARD_1: new URL('./images/skill_development_1783920238862.jpg', import.meta.url).href,
     ACTION_CARD_2: new URL('./images/team_training_huddle_1783920253600.jpg', import.meta.url).href,

@@ -253,26 +253,26 @@ export default function About() {
         </div>
 
         {/* Center Editorial Title Banner with Script Overlay */}
-        <div className="mx-auto max-w-[1380px] px-4 sm:px-12 md:px-24 flex justify-center py-6 sm:py-12">
-          <div className="relative inline-block leading-[0.88] text-center" style={{ fontSize: 'clamp(52px, 15vw, 220px)' }}>
-            <h1 data-anim="hero-h1" className="font-display font-bold uppercase text-[#1B1B1D] tracking-[-0.04em] block leading-[inherit] text-[1em]">
+        <div className="mx-auto max-w-[1400px] px-3 sm:px-8 flex justify-center py-8 sm:py-16 w-full overflow-hidden">
+          <div className="relative inline-block leading-[0.88] text-center max-w-full" style={{ fontSize: 'clamp(34px, 11.5vw, 160px)' }}>
+            <h1 data-anim="hero-h1" className="font-display font-bold uppercase text-[#1B1B1D] tracking-[-0.03em] block leading-[inherit] text-[1em] whitespace-nowrap">
               Challengers
             </h1>
             
-            {/* Handwritten Decorative Script Accents (Covered By Your Grace) */}
-            <span data-anim="hero-decor" className="font-hand text-[#D62828] leading-[0.9] absolute pointer-events-none whitespace-nowrap" style={{ top: '52%', left: '50%', transform: 'translate(-42%,-50%)', fontSize: '0.42em' }}>
+            {/* Handwritten Decorative Script Accents */}
+            <span data-anim="hero-decor" className="font-hand text-[#D62828] leading-[0.9] absolute pointer-events-none whitespace-nowrap drop-shadow-sm" style={{ top: '55%', left: '50%', transform: 'translate(-48%,-50%)', fontSize: 'clamp(16px, 4.5vw, 58px)' }}>
               Volleyball Academy
             </span>
-            <span data-anim="hero-decor" className="font-hand text-[#F3722C] absolute leading-none" style={{ top: '-0.04em', left: '28%', transform: 'translateX(-50%) rotate(-25deg)', fontSize: '0.09em' }}>
+            <span data-anim="hero-decor" className="font-hand text-[#F3722C] absolute leading-none whitespace-nowrap" style={{ top: '-0.3em', left: '26%', transform: 'translateX(-50%) rotate(-12deg)', fontSize: 'clamp(13px, 3vw, 38px)' }}>
               Elite
             </span>
-            <span data-anim="hero-decor" className="font-hand text-[#D62828] absolute leading-none whitespace-nowrap" style={{ bottom: '0.04em', left: '0.12em', transform: 'rotate(-45deg)', transformOrigin: 'left bottom', fontSize: '0.08em' }}>
+            <span data-anim="hero-decor" className="font-hand text-[#D62828] absolute leading-none whitespace-nowrap" style={{ bottom: '-0.32em', left: '0%', transform: 'rotate(-18deg)', fontSize: 'clamp(12px, 2.6vw, 34px)' }}>
               SF Bay Area
             </span>
-            <span data-anim="hero-decor" className="font-sans font-black text-[#1B1B1D]/40 absolute leading-none" style={{ top: '-0.01em', right: '0.02em', fontSize: '0.06em' }}>
+            <span data-anim="hero-decor" className="font-sans font-black text-[#1B1B1D]/30 absolute leading-none hidden sm:block" style={{ top: '-0.02em', right: '-0.15em', fontSize: '0.12em' }}>
               ©
             </span>
-            <span data-anim="hero-decor" className="font-hand text-[#F9BC00] absolute leading-none" style={{ bottom: '-0.04em', right: '0.04em', fontSize: '0.08em' }}>
+            <span data-anim="hero-decor" className="font-hand text-[#F9BC00] absolute leading-none whitespace-nowrap" style={{ bottom: '-0.32em', right: '0%', fontSize: 'clamp(12px, 2.6vw, 34px)' }}>
               '26
             </span>
           </div>
@@ -490,12 +490,18 @@ export default function About() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* Mobile Swipe Hint */}
+          <div className="md:hidden flex items-center justify-between text-[11px] font-black uppercase tracking-widest text-[#D62828] mb-4 px-1">
+            <span>Swipe Milestones</span>
+            <span>01 - 06 →</span>
+          </div>
+
+          <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-8 overflow-x-auto pb-6 md:pb-0 no-scrollbar snap-x snap-mandatory -mx-6 px-6 md:mx-0 md:px-0">
             {MILESTONES.map((item, idx) => (
               <div 
                 key={idx}
                 data-anim="stagger"
-                className="bg-white p-6 sm:p-8 rounded-3xl border border-[#1B1B1D]/10 shadow-sm relative overflow-hidden group hover:border-[#D62828]/50 transition-colors flex flex-col justify-between"
+                className="shrink-0 w-[82vw] sm:w-[340px] md:w-auto snap-center bg-white p-6 sm:p-8 rounded-3xl border border-[#1B1B1D]/10 shadow-sm relative overflow-hidden group hover:border-[#D62828]/50 transition-colors flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-center justify-between mb-4">
@@ -557,23 +563,34 @@ export default function About() {
         </div>
       </section>
 
-      {/* ── ACCREDITATIONS & GOVERNING AFFILIATIONS ──────────────── */}
-      <section className="px-6 py-16 bg-[#FBF9F6] border-b border-[#1B1B1D]/10">
-        <div className="max-w-[1400px] mx-auto">
-          <div className="text-center mb-10">
+      {/* ── ACCREDITATIONS & GOVERNING AFFILIATIONS (INFINITE MOVING MARQUEE) ── */}
+      <section className="py-14 sm:py-20 bg-[#FBF9F6] border-b border-[#1B1B1D]/10 overflow-hidden">
+        <div className="max-w-[1400px] mx-auto px-6">
+          <div className="text-center mb-10 sm:mb-12">
             <span className="text-[11px] font-black uppercase tracking-[0.3em] text-[#1B1B1D]/40 block mb-1">
               Official Standards
             </span>
-            <h3 className="text-2xl sm:text-3xl font-display font-bold uppercase tracking-tight text-[#1B1B1D]">
+            <h3 className="text-2xl sm:text-4xl font-display font-bold uppercase tracking-tight text-[#1B1B1D]">
               Accreditations & Governing Affiliations
             </h3>
           </div>
+        </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
-            {CREDENTIALS.map((cred, idx) => (
+        {/* Moving Marquee Container */}
+        <div className="relative w-full overflow-hidden flex">
+          {/* Gradient Edge Masks */}
+          <div className="absolute top-0 bottom-0 left-0 w-16 sm:w-32 bg-gradient-to-r from-[#FBF9F6] to-transparent z-10 pointer-events-none" />
+          <div className="absolute top-0 bottom-0 right-0 w-16 sm:w-32 bg-gradient-to-l from-[#FBF9F6] to-transparent z-10 pointer-events-none" />
+
+          <motion.div 
+            animate={{ x: ['0%', '-50%'] }}
+            transition={{ repeat: Infinity, duration: 25, ease: 'linear' }}
+            className="flex gap-6 whitespace-nowrap shrink-0 px-4"
+          >
+            {[...CREDENTIALS, ...CREDENTIALS, ...CREDENTIALS, ...CREDENTIALS].map((cred, idx) => (
               <div 
                 key={idx}
-                className="p-6 bg-white rounded-3xl border border-[#1B1B1D]/10 shadow-sm text-center flex flex-col items-center justify-between gap-4 hover:shadow-md transition-shadow"
+                className="shrink-0 w-[240px] sm:w-[280px] p-5 sm:p-6 bg-white rounded-3xl border border-[#1B1B1D]/10 shadow-sm text-center flex flex-col items-center justify-between gap-3 sm:gap-4 hover:shadow-md transition-shadow"
               >
                 <div className={`inline-block px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border ${cred.badgeColor}`}>
                   {cred.badge}
@@ -595,7 +612,7 @@ export default function About() {
                     {cred.code}
                   </span>
                 </div>
-                <div>
+                <div className="whitespace-normal">
                   <h4 className="text-base font-bold text-[#1B1B1D] tracking-tight mb-0.5">
                     {cred.name}
                   </h4>
@@ -605,7 +622,7 @@ export default function About() {
                 </div>
               </div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
