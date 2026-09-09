@@ -49,4 +49,12 @@ export const ASSETS = {
     AAU: new URL('./logo/aau.png', import.meta.url).href,
     NFHS: new URL('./logo/nfhs.png', import.meta.url).href,
   },
+  CAMPS: {
+    DAY_7: new URL('./images/camp_7day_intensive.jpg', import.meta.url).href,
+    DAY_10: new URL('./images/camp_10day_elite.jpg', import.meta.url).href,
+    DAY_15: new URL('./images/camp_15day_master.jpg', import.meta.url).href,
+    PRIVATE: new URL('./images/camp_private_coaching.jpg', import.meta.url).href,
+    JUNIOR: new URL('./images/camp_junior_spikers.jpg', import.meta.url).href,
+    HERO: new URL('./images/camp_overview_hero.jpg', import.meta.url).href,
+  },
 };

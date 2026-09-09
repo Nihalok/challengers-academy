@@ -29,7 +29,41 @@ export default function Programs() {
       });
   }, []);
 
+  const ORDERED_PROGRAM_IDS = [
+    'tryout-session',
+    'gym-training-4',
+    'gym-training-12',
+    'open-park-private',
+    'open-park-group',
+    'open-park-travel',
+    'large-group-training'
+  ];
+
+  const sortedFrameworkPrograms = [...programsList].sort((a, b) => {
+    const idxA = ORDERED_PROGRAM_IDS.indexOf(a.id);
+    const idxB = ORDERED_PROGRAM_IDS.indexOf(b.id);
+    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+    if (idxA !== -1) return -1;
+    if (idxB !== -1) return 1;
+    return 0;
+  });
+
   const REGULAR_PACKAGES = [
+    { 
+      id: 'tryout-session',
+      title: 'Tryout Session', 
+      fee: '$30', 
+      sessions: '1 Court Evaluation', 
+      duration: '2 Hours Duration',
+      students: 'Individual / Group',
+      popular: false,
+      tag: 'EVALUATION',
+      bgImage: ASSETS.HERO.ACTION_CARD_4,
+      badgeStyle: 'bg-[#F9BC00] text-espresso font-black',
+      btnStyle: 'bg-espresso text-white hover:bg-[#F9BC00] hover:text-espresso',
+      ageRange: '5 - 18',
+      ageGroups: ['5-10', '11-14', '15-18']
+    },
     { 
       id: 'gym-training-4',
       title: 'Gym Training (4 Sessions)', 
@@ -40,9 +74,8 @@ export default function Programs() {
       popular: false,
       tag: 'INDOOR GYM',
       bgImage: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=800&q=80',
-      themeClass: 'bg-gradient-to-br from-[#1C1600] via-[#2E2400] to-[#121212] border-[#F9BC00]/40 text-white',
-      badgeStyle: 'bg-[#F9BC00] text-espresso',
-      btnStyle: 'bg-[#F9BC00] text-espresso hover:bg-white',
+      badgeStyle: 'bg-[#F9BC00] text-espresso font-black',
+      btnStyle: 'bg-espresso text-white hover:bg-[#F9BC00] hover:text-espresso',
       ageRange: '5 - 18',
       ageGroups: ['5-10', '11-14', '15-18']
     },
@@ -56,25 +89,8 @@ export default function Programs() {
       popular: true,
       tag: 'POPULAR INTENSIVE',
       bgImage: 'https://images.unsplash.com/photo-1592656631147-f1aa2112bf7c?auto=format&fit=crop&w=800&q=80',
-      themeClass: 'bg-gradient-to-br from-[#610C0C] via-[#3B0707] to-[#1F0404] border-[#D62828]/60 text-white',
-      badgeStyle: 'bg-[#D62828] text-white',
-      btnStyle: 'bg-white text-espresso hover:bg-[#F9BC00]',
-      ageRange: '5 - 18',
-      ageGroups: ['5-10', '11-14', '15-18']
-    },
-    { 
-      id: 'open-park-group',
-      title: 'Open Park Group Training', 
-      fee: '$150', 
-      sessions: '4 Outdoor Sessions', 
-      duration: '2 Hours per Session',
-      students: '12 Members',
-      popular: false,
-      tag: 'OUTDOOR PARK',
-      bgImage: 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?auto=format&fit=crop&w=800&q=80',
-      themeClass: 'bg-gradient-to-br from-[#06383C] via-[#032023] to-[#011112] border-[#0B5D51]/50 text-white',
-      badgeStyle: 'bg-[#0B5D51] text-white',
-      btnStyle: 'bg-[#0B5D51] text-white hover:bg-white hover:text-espresso',
+      badgeStyle: 'bg-[#D62828] text-white font-black',
+      btnStyle: 'bg-[#D62828] text-white hover:bg-espresso',
       ageRange: '5 - 18',
       ageGroups: ['5-10', '11-14', '15-18']
     },
@@ -88,9 +104,23 @@ export default function Programs() {
       popular: false,
       tag: 'PRIVATE 1-ON-1',
       bgImage: ASSETS.EXPERTISE.ELITE,
-      themeClass: 'bg-gradient-to-br from-[#1F1F24] via-[#0E1520] to-[#070B12] border-amber-400/40 text-white',
-      badgeStyle: 'bg-amber-400 text-espresso',
-      btnStyle: 'bg-amber-400 text-espresso hover:bg-white',
+      badgeStyle: 'bg-[#F9BC00] text-espresso font-black',
+      btnStyle: 'bg-espresso text-white hover:bg-[#F9BC00] hover:text-espresso',
+      ageRange: '5 - 18',
+      ageGroups: ['5-10', '11-14', '15-18']
+    },
+    { 
+      id: 'open-park-group',
+      title: 'Open Park Group Training', 
+      fee: '$150', 
+      sessions: '4 Outdoor Sessions', 
+      duration: '2 Hours per Session',
+      students: '12 Members',
+      popular: false,
+      tag: 'OUTDOOR PARK',
+      bgImage: 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?auto=format&fit=crop&w=800&q=80',
+      badgeStyle: 'bg-[#0B5D51] text-white font-black',
+      btnStyle: 'bg-espresso text-white hover:bg-[#0B5D51]',
       ageRange: '5 - 18',
       ageGroups: ['5-10', '11-14', '15-18']
     },
@@ -104,9 +134,8 @@ export default function Programs() {
       popular: false,
       tag: 'TRAVEL COACHING',
       bgImage: 'https://images.unsplash.com/photo-1593787467001-7394837e5814?auto=format&fit=crop&w=800&q=80',
-      themeClass: 'bg-gradient-to-br from-[#5E2404] via-[#3A1602] to-[#1F0B01] border-[#F3722C]/50 text-white',
-      badgeStyle: 'bg-[#F3722C] text-white',
-      btnStyle: 'bg-[#F3722C] text-white hover:bg-white hover:text-espresso',
+      badgeStyle: 'bg-[#F3722C] text-white font-black',
+      btnStyle: 'bg-espresso text-white hover:bg-[#F3722C]',
       ageRange: '5 - 18',
       ageGroups: ['5-10', '11-14', '15-18']
     },
@@ -120,27 +149,10 @@ export default function Programs() {
       popular: false,
       tag: 'TEAM SQUAD',
       bgImage: ASSETS.EXPERTISE.TACTICAL,
-      themeClass: 'bg-gradient-to-br from-[#071A2D] via-[#04101D] to-[#02080F] border-blue-400/40 text-white',
-      badgeStyle: 'bg-blue-600 text-white',
-      btnStyle: 'bg-blue-600 text-white hover:bg-white hover:text-espresso',
+      badgeStyle: 'bg-blue-600 text-white font-black',
+      btnStyle: 'bg-espresso text-white hover:bg-blue-600',
       ageRange: '11 - 18',
       ageGroups: ['11-14', '15-18']
-    },
-    { 
-      id: 'tryout-session',
-      title: 'Tryout Session', 
-      fee: '$30', 
-      sessions: '1 Court Evaluation', 
-      duration: '2 Hours Duration',
-      students: 'Individual / Group',
-      popular: false,
-      tag: 'EVALUATION',
-      bgImage: ASSETS.HERO.ACTION_CARD_4,
-      themeClass: 'bg-gradient-to-br from-[#3D3000] via-[#241C00] to-[#120E00] border-[#F9BC00]/50 text-white',
-      badgeStyle: 'bg-[#F9BC00] text-espresso',
-      btnStyle: 'bg-[#F9BC00] text-espresso hover:bg-white',
-      ageRange: '5 - 18',
-      ageGroups: ['5-10', '11-14', '15-18']
     }
   ];
 
@@ -191,34 +203,165 @@ export default function Programs() {
           </p>
         </div>
 
-        {/* Dynamic Programs Carousel */}
-        <div className="relative mb-10 sm:mb-12 gsap-reveal">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-black uppercase tracking-tight text-espresso/40">
-              Foundational Framework
-            </h2>
+        {/* Regular Coaching Packages - Sliding Carousel (ON TOP) */}
+        <div className="mb-12 sm:mb-16 relative overflow-hidden py-2">
+          <div className="flex items-end justify-between mb-6 sm:mb-8 gsap-reveal">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-[#F3722C]/10 rounded-xl flex items-center justify-center text-[#F3722C]">
+                <Package className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-2xl sm:text-3xl font-condensed font-black uppercase text-espresso">
+                  Regular Coaching Packages
+                </h2>
+                <p className="text-espresso/60 text-[10px] font-black uppercase tracking-widest">Our regular coaching programs</p>
+              </div>
+            </div>
+            
+            {/* Carousel Controls */}
+            <div className="hidden md:flex gap-3">
+              <button 
+                onClick={() => scroll('left', scrollRef)}
+                className="w-12 h-12 rounded-full bg-[#F9BC00] text-espresso flex items-center justify-center hover:bg-espresso hover:text-white hover:scale-105 transition-all shadow-md group"
+                aria-label="Scroll left"
+              >
+                <ChevronLeft className="w-6 h-6 group-hover:-translate-x-0.5 transition-transform" />
+              </button>
+              <button 
+                onClick={() => scroll('right', scrollRef)}
+                className="w-12 h-12 rounded-full bg-[#F9BC00] text-espresso flex items-center justify-center hover:bg-espresso hover:text-white hover:scale-105 transition-all shadow-md group"
+                aria-label="Scroll right"
+              >
+                <ChevronRight className="w-6 h-6 group-hover:translate-x-0.5 transition-transform" />
+              </button>
+            </div>
+          </div>
+
+          {/* Carousel Viewport */}
+          <div 
+            ref={scrollRef}
+            className="relative -mx-4 px-4 overflow-x-auto pt-2 pb-6 no-scrollbar snap-x snap-mandatory flex gap-6"
+          >
+            <AnimatePresence mode="popLayout">
+              {REGULAR_PACKAGES.map((pkg, idx) => (
+                <motion.div 
+                  key={pkg.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  whileHover={{ y: -6 }}
+                  className="group relative p-5 sm:p-7 md:p-8 rounded-[1.8rem] sm:rounded-[2.2rem] border border-espresso/15 bg-white overflow-hidden shadow-lg hover:shadow-2xl hover:border-espresso/30 transition-all duration-500 shrink-0 w-[80vw] sm:w-[320px] md:w-[350px] snap-center flex flex-col justify-between"
+                >
+                  {/* Vibrant Background Image for Light Theme */}
+                  <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+                    <img 
+                      src={pkg.bgImage} 
+                      alt=""
+                      aria-hidden="true"
+                      className="w-full h-full object-cover opacity-40 sm:opacity-45 group-hover:opacity-65 scale-105 group-hover:scale-110 transition-all duration-700 filter brightness-105 contrast-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-white via-white/85 to-white/30" />
+                  </div>
+
+                  {/* Content Layer */}
+                  <div className="relative z-10">
+                    <div className="flex flex-wrap items-center justify-between gap-1.5 mb-3 min-h-[28px]">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-espresso text-white shrink-0">
+                          PKG 0{idx + 1}
+                        </span>
+                        <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider shrink-0 ${pkg.badgeStyle}`}>
+                          {pkg.tag}
+                        </span>
+                      </div>
+                      {pkg.popular && (
+                        <span className="bg-[#D62828] text-white text-[8px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-sm shrink-0">
+                          BEST VALUE
+                        </span>
+                      )}
+                    </div>
+                    
+                    <h3 className="text-xl sm:text-2xl font-condensed font-black uppercase tracking-tight text-espresso mb-1 leading-tight">
+                      {pkg.title}
+                    </h3>
+                    <div className="text-[10px] font-black uppercase tracking-wider text-espresso/60 mb-3">
+                      Ages {pkg.ageRange}
+                    </div>
+                    
+                    <div className="mb-4 flex items-baseline gap-2">
+                      <span className="text-3xl sm:text-5xl font-condensed font-black tracking-tighter text-espresso">
+                        {pkg.fee}
+                      </span>
+                      <span className="text-[9px] font-black uppercase tracking-widest text-espresso/60">
+                        {pkg.students.includes('Per Student') ? '/ student' : '/ package'}
+                      </span>
+                    </div>
+                    <ul className="space-y-2 mb-6">
+                      {[pkg.sessions, pkg.duration, pkg.students, 'Certified Coaches'].map((item, i) => (
+                        <li key={i} className="flex items-center gap-2.5 text-xs font-bold text-espresso/85">
+                          <div className="w-1.5 h-1.5 rounded-full bg-espresso/40 shrink-0" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <NavLink 
+                    to={`/register?session=${pkg.id}`}
+                    className="relative z-10 flex items-center justify-between w-full bg-gradient-to-r from-[#F3722C] via-[#FF6A00] to-[#E05200] text-white px-6 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl font-black uppercase tracking-[0.16em] text-[10px] sm:text-[11px] shadow-[0_8px_22px_rgba(243,114,44,0.4)] hover:shadow-[0_16px_32px_rgba(243,114,44,0.6),0_4px_12px_rgba(0,0,0,0.15)] hover:-translate-y-1 hover:scale-[1.02] active:translate-y-0.5 active:scale-95 transition-all duration-300 border-t border-white/35 group/btn"
+                  >
+                    <span>Enroll Now</span>
+                    <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center group-hover/btn:bg-white group-hover/btn:text-[#F3722C] transition-all shadow-sm">
+                      <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-0.5 transition-transform" />
+                    </div>
+                  </NavLink>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        </div>
+
+        {/* Dynamic Programs Carousel - Foundational Framework (BELOW) */}
+        <div className="relative mb-12 sm:mb-16 gsap-reveal overflow-hidden py-2">
+          <div className="flex items-end justify-between mb-6 sm:mb-8">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-[#D62828]/10 rounded-xl flex items-center justify-center text-[#D62828]">
+                <Sparkles className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-2xl sm:text-3xl font-condensed font-black uppercase text-espresso drop-shadow-sm">
+                  Foundational Framework
+                </h2>
+                <p className="text-espresso/70 text-[10px] font-black uppercase tracking-widest">Structured player progression levels</p>
+              </div>
+            </div>
+
             <div className="flex gap-2">
               <button 
                 onClick={() => scroll('left', programScrollRef)}
-                className="w-9 h-9 rounded-full bg-[#D62828] text-white flex items-center justify-center hover:bg-espresso hover:scale-105 transition-all shadow-md group"
+                className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#D62828] text-white flex items-center justify-center hover:bg-espresso hover:scale-105 transition-all shadow-md group"
+                aria-label="Scroll left"
               >
-                <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+                <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 group-hover:-translate-x-0.5 transition-transform" />
               </button>
               <button 
                 onClick={() => scroll('right', programScrollRef)}
-                className="w-9 h-9 rounded-full bg-[#D62828] text-white flex items-center justify-center hover:bg-espresso hover:scale-105 transition-all shadow-md group"
+                className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#D62828] text-white flex items-center justify-center hover:bg-espresso hover:scale-105 transition-all shadow-md group"
+                aria-label="Scroll right"
               >
-                <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 group-hover:translate-x-0.5 transition-transform" />
               </button>
             </div>
           </div>
           
           <div 
             ref={programScrollRef}
-            className="flex gap-5 overflow-x-auto pb-6 no-scrollbar snap-x snap-mandatory -mx-4 px-4"
+            className="flex gap-5 overflow-x-auto pt-2 pb-6 no-scrollbar snap-x snap-mandatory -mx-4 px-4"
           >
             <AnimatePresence mode="popLayout">
-              {programsList.map((program, idx) => (
+              {sortedFrameworkPrograms.map((program, idx) => (
                 <motion.div
                   key={program.id}
                   layout
@@ -232,115 +375,6 @@ export default function Programs() {
                     program={program}
                     index={idx}
                   />
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-        </div>
-
-        {/* Regular Coaching Packages - Sliding Carousel */}
-        <div className="mb-10 sm:mb-14">
-          <div className="flex items-end justify-between mb-8 gsap-reveal">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#F3722C]/10 rounded-xl flex items-center justify-center text-[#F3722C]">
-                <Package className="w-5 h-5" />
-              </div>
-              <div>
-                <h2 className="text-2xl sm:text-3xl font-condensed font-black uppercase text-espresso">
-                  Regular Coaching Packages
-                </h2>
-                <p className="text-espresso/40 text-[9px] font-black uppercase tracking-widest">Our regular coaching programs</p>
-              </div>
-            </div>
-            
-            {/* Carousel Controls */}
-            <div className="hidden md:flex gap-3">
-              <button 
-                onClick={() => scroll('left', scrollRef)}
-                className="w-12 h-12 rounded-full bg-[#F9BC00] text-espresso flex items-center justify-center hover:bg-espresso hover:text-white hover:scale-105 transition-all shadow-md group"
-              >
-                <ChevronLeft className="w-6 h-6 group-hover:-translate-x-0.5 transition-transform" />
-              </button>
-              <button 
-                onClick={() => scroll('right', scrollRef)}
-                className="w-12 h-12 rounded-full bg-[#F9BC00] text-espresso flex items-center justify-center hover:bg-espresso hover:text-white hover:scale-105 transition-all shadow-md group"
-              >
-                <ChevronRight className="w-6 h-6 group-hover:translate-x-0.5 transition-transform" />
-              </button>
-            </div>
-          </div>
-
-          {/* Carousel Viewport */}
-          <div 
-            ref={scrollRef}
-            className="relative -mx-4 px-4 overflow-x-auto pb-6 no-scrollbar snap-x snap-mandatory flex gap-6"
-          >
-            <AnimatePresence mode="popLayout">
-              {REGULAR_PACKAGES.map((pkg, idx) => (
-                <motion.div 
-                  key={pkg.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                  transition={{ duration: 0.4, ease: "easeOut" }}
-                  whileHover={{ y: -6 }}
-                  className={`relative p-5 sm:p-7 md:p-8 rounded-[1.8rem] sm:rounded-[2.2rem] border overflow-hidden shadow-2xl transition-all duration-500 shrink-0 w-[80vw] sm:w-[320px] md:w-[350px] snap-center flex flex-col justify-between ${pkg.themeClass}`}
-                >
-                  {/* Background Image with Dark Tint */}
-                  <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-                    <img 
-                      src={pkg.bgImage} 
-                      alt={pkg.title}
-                      className="w-full h-full object-cover opacity-25 scale-105 group-hover:scale-110 transition-transform duration-700 mix-blend-overlay"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/60" />
-                  </div>
-
-                  {/* Content Layer */}
-                  <div className="relative z-10">
-                    <div className="flex items-center justify-between gap-2 mb-3">
-                      <span className={`px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-wider ${pkg.badgeStyle}`}>
-                        {pkg.tag}
-                      </span>
-                      {pkg.popular && (
-                        <span className="bg-[#D62828] text-white text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full shadow-lg">
-                          BEST VALUE
-                        </span>
-                      )}
-                    </div>
-                    
-                    <h3 className="text-xl sm:text-2xl font-condensed font-black uppercase tracking-tight text-white mb-1">
-                      {pkg.title}
-                    </h3>
-                    <div className="text-[10px] font-black uppercase tracking-wider text-white/60 mb-4">
-                      Ages {pkg.ageRange}
-                    </div>
-                    
-                    <div className="mb-5 flex items-baseline gap-2">
-                      <span className="text-3xl sm:text-5xl font-condensed font-black tracking-tighter text-white">
-                        {pkg.fee}
-                      </span>
-                      <span className="text-[9px] font-black uppercase tracking-widest text-white/70">
-                        {pkg.students.includes('Per Student') ? '/ student' : '/ package'}
-                      </span>
-                    </div>
-                    <ul className="space-y-2.5 mb-6">
-                      {[pkg.sessions, pkg.duration, pkg.students, 'Certified Coaches'].map((item, i) => (
-                        <li key={i} className="flex items-center gap-2.5 text-xs font-bold text-white/90">
-                          <div className="w-1.5 h-1.5 rounded-full bg-white/70" />
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <NavLink 
-                    to={`/register?session=${pkg.id}`}
-                    className={`relative z-10 block text-center py-3.5 sm:py-4 rounded-xl font-black uppercase tracking-[0.15em] text-[10px] transition-all shadow-md active:scale-95 ${pkg.btnStyle}`}
-                  >
-                    Enroll Now
-                  </NavLink>
                 </motion.div>
               ))}
             </AnimatePresence>

@@ -168,7 +168,7 @@ export default function Navigation() {
               <span className="text-white font-condensed text-[12px] sm:text-[15px] font-black tracking-[0.14em] sm:tracking-[0.18em] uppercase leading-none block drop-shadow-sm">
                 CHALLENGERS
               </span>
-              <span className="text-[#C1272D] font-condensed text-[7px] sm:text-[9px] font-black tracking-[0.14em] sm:tracking-[0.2em] uppercase leading-none mt-0.5 block drop-shadow-sm whitespace-nowrap hidden min-[360px]:block">
+              <span className="text-[#ffffff] font-condensed text-[7px] sm:text-[10px] font-black tracking-[0.14em] sm:tracking-[0.2em] uppercase leading-none mt-0.5 block drop-shadow-sm whitespace-nowrap hidden min-[360px]:block">
                 VOLLEYBALL ACADEMY
               </span>
             </div>

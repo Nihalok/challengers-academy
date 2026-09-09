@@ -85,7 +85,7 @@ const MILESTONES = [
   },
   {
     period: 'Competition',
-    title: 'Junior India Camp & Railways',
+    title: 'Junior Indian Camp & Railways',
     location: 'Aurangabad & National Tour',
     desc: 'Represented State University and National teams, Indian Railways, and selected to the Junior Indian National Camp.'
   },
@@ -159,17 +159,6 @@ const CREDENTIALS = [
     bg: 'bg-white',
     border: 'border-red-200',
     badgeColor: 'bg-red-50 text-red-800 border-red-200'
-  },
-  { 
-    code: 'NFHS', 
-    name: 'NFHS Certified', 
-    subtitle: 'National Interscholastic Federation', 
-    badge: 'Accredited',
-    logo: ASSETS.LOGOS.NFHS,
-    color: '#F3722C',
-    bg: 'bg-white',
-    border: 'border-orange-200',
-    badgeColor: 'bg-orange-50 text-orange-800 border-orange-200'
   }
 ];
 
@@ -180,7 +169,7 @@ const TICKER_ITEMS = [
   'BAY AREA VOLLEYBALL ACADEMY',
   'FOUNDATION & DISCIPLINE',
   'SAI NATIONAL DEVELOPMENT',
-  'JUNIOR INDIA CAMP SELECTION',
+  'JUNIOR INDIAN CAMP SELECTION',
   'FREMONT • MANTECA • MH • SAN JOSE'
 ];
 
@@ -432,7 +421,7 @@ export default function About() {
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[#F9BC00] shrink-0" />
-                  <span>Junior India National Camp Selection</span>
+                  <span>Junior Indian National Camp Selection</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[#F9BC00] shrink-0" />
@@ -488,6 +477,7 @@ export default function About() {
             <p data-anim="reveal" className="text-xs sm:text-base text-[#1B1B1D]/70 mt-3">
               From National Track & Field Gold Medals in India to FIVB Volleyball Coaching in the Bay Area.
             </p>
+
           </div>
 
           {/* Mobile Swipe Hint */}
@@ -563,7 +553,7 @@ export default function About() {
         </div>
       </section>
 
-      {/* ── ACCREDITATIONS & GOVERNING AFFILIATIONS (INFINITE MOVING MARQUEE) ── */}
+      {/* ── ACCREDITATIONS & GOVERNING AFFILIATIONS ── */}
       <section className="py-14 sm:py-20 bg-[#FBF9F6] border-b border-[#1B1B1D]/10 overflow-hidden">
         <div className="max-w-[1400px] mx-auto px-6">
           <div className="text-center mb-10 sm:mb-12">
@@ -574,23 +564,13 @@ export default function About() {
               Accreditations & Governing Affiliations
             </h3>
           </div>
-        </div>
 
-        {/* Moving Marquee Container */}
-        <div className="relative w-full overflow-hidden flex">
-          {/* Gradient Edge Masks */}
-          <div className="absolute top-0 bottom-0 left-0 w-16 sm:w-32 bg-gradient-to-r from-[#FBF9F6] to-transparent z-10 pointer-events-none" />
-          <div className="absolute top-0 bottom-0 right-0 w-16 sm:w-32 bg-gradient-to-l from-[#FBF9F6] to-transparent z-10 pointer-events-none" />
-
-          <motion.div 
-            animate={{ x: ['0%', '-50%'] }}
-            transition={{ repeat: Infinity, duration: 25, ease: 'linear' }}
-            className="flex gap-6 whitespace-nowrap shrink-0 px-4"
-          >
-            {[...CREDENTIALS, ...CREDENTIALS, ...CREDENTIALS, ...CREDENTIALS].map((cred, idx) => (
+          {/* Desktop: Static centered grid */}
+          <div className="hidden md:flex justify-center gap-6">
+            {CREDENTIALS.map((cred, idx) => (
               <div 
                 key={idx}
-                className="shrink-0 w-[240px] sm:w-[280px] p-5 sm:p-6 bg-white rounded-3xl border border-[#1B1B1D]/10 shadow-sm text-center flex flex-col items-center justify-between gap-3 sm:gap-4 hover:shadow-md transition-shadow"
+                className="w-[260px] p-5 sm:p-6 bg-white rounded-3xl border border-[#1B1B1D]/10 shadow-sm text-center flex flex-col items-center justify-between gap-3 sm:gap-4 hover:shadow-md transition-shadow"
               >
                 <div className={`inline-block px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border ${cred.badgeColor}`}>
                   {cred.badge}
@@ -622,7 +602,36 @@ export default function About() {
                 </div>
               </div>
             ))}
-          </motion.div>
+          </div>
+
+          {/* Mobile: Scrolling marquee */}
+          <div className="md:hidden relative w-full overflow-hidden flex">
+            <div className="absolute top-0 bottom-0 left-0 w-16 bg-gradient-to-r from-[#FBF9F6] to-transparent z-10 pointer-events-none" />
+            <div className="absolute top-0 bottom-0 right-0 w-16 bg-gradient-to-l from-[#FBF9F6] to-transparent z-10 pointer-events-none" />
+            <motion.div 
+              animate={{ x: ['0%', '-50%'] }}
+              transition={{ repeat: Infinity, duration: 20, ease: 'linear' }}
+              className="flex gap-6 whitespace-nowrap shrink-0 px-4"
+            >
+              {[...CREDENTIALS, ...CREDENTIALS].map((cred, idx) => (
+                <div 
+                  key={idx}
+                  className="shrink-0 w-[240px] p-5 bg-white rounded-3xl border border-[#1B1B1D]/10 shadow-sm text-center flex flex-col items-center justify-between gap-3"
+                >
+                  <div className={`inline-block px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border ${cred.badgeColor}`}>
+                    {cred.badge}
+                  </div>
+                  <div className={`w-28 h-20 bg-white ${cred.border} rounded-2xl flex items-center justify-center p-3 border shadow-sm overflow-hidden`}>
+                    <img src={cred.logo} alt={cred.name} className="max-w-full max-h-full object-contain" />
+                  </div>
+                  <div className="whitespace-normal">
+                    <h4 className="text-base font-bold text-[#1B1B1D] tracking-tight mb-0.5">{cred.name}</h4>
+                    <p className="text-[11px] text-[#1B1B1D]/60 font-medium">{cred.subtitle}</p>
+                  </div>
+                </div>
+              ))}
+            </motion.div>
+          </div>
         </div>
       </section>
 

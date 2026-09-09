@@ -3,54 +3,74 @@ import { ASSETS } from './assets/images';
 
 export const PROGRAMS: Program[] = [
   {
-    id: 'little-spikers',
-    title: 'Little Spikers',
-    description: 'Introduction to volleyball for the youngest athletes.',
-    longDescription: 'Little Spikers is for kids who are brand new to the sport. We keep it fun, age-appropriate, and focused on the basics - how to move, how to hit, and how to work as a team. No prior experience needed.',
-    image: ASSETS.EXPERTISE.FOUNDATIONAL,
-    ageRange: '5 - 10',
-    ageGroups: ['5-10'],
-    features: ['Motor Skills', 'Fun Drills', 'Basic Rules', 'Team Play']
-  },
-  {
-    id: 'youth-foundations',
-    title: 'Youth Foundations',
-    description: 'Building technical precision and core mechanics.',
-    longDescription: 'This group is for middle-school players who already know the basics and want to get sharper. We work on cleaner passing, better serving, and how to run simple plays - so players are ready for school or club tryouts.',
-    image: ASSETS.EXPERTISE.TACTICAL,
-    ageRange: '11 - 14',
-    ageGroups: ['11-14'],
-    features: ['Technical Precision', 'Serving Power', 'Basic Rotations', 'Tryout Prep']
-  },
-  {
-    id: 'high-school-prep',
-    title: 'High School Prep',
-    description: 'Advanced tactical systems and elite performance.',
-    longDescription: 'For high school players who are serious about the game. We go deep on offensive and defensive systems, position-specific skills, and the mindset needed to compete at the varsity level. College-prep support is included for those who want it.',
-    image: ASSETS.EXPERTISE.ELITE,
-    ageRange: '15 - 18',
-    ageGroups: ['15-18'],
-    features: ['Positional IQ', 'Advanced Systems', 'Mental Game', 'College Prep']
-  },
-  {
-    id: 'all-ages-clinics',
-    title: 'Open Skills Clinics',
-    description: 'Targeted skill development for all experience levels.',
-    longDescription: 'These open sessions focus on one skill at a time - setting, hitting, passing, or serving. Open to all ages. We group players by what they can actually do, not how old they are, so no one is out of place.',
-    image: ASSETS.JOURNEY.STEP_1,
+    id: 'tryout-session',
+    title: 'Tryout Session (Court Evaluation)',
+    description: 'Court evaluation to assess skill level, agility, and place athlete in the optimal academy group.',
+    longDescription: 'Our 2-hour court evaluation gives new players a complete skill assessment. Coaches evaluate passing, serving, setting, and court awareness to assign players to their ideal training group.',
+    image: ASSETS.HERO.ACTION_CARD_4,
     ageRange: '5 - 18',
     ageGroups: ['5-10', '11-14', '15-18'],
-    features: ['Targeted Skills', 'Level Grouping', 'High Reps', 'Expert Feedback']
+    features: ['1 Court Evaluation', '2-Hour Session', 'Individual / Group', 'Certified Coaches']
   },
   {
-    id: 'competitive-league',
-    title: 'Junior Academy League',
-    description: 'Internal league play for real-game experience.',
-    longDescription: 'This is our in-house league for players who want real match experience. Games are held within the academy so you get all the excitement of competition without the travel. Great for building confidence and learning how to play under pressure.',
-    image: ASSETS.JOURNEY.STEP_2,
+    id: 'gym-training-4',
+    title: 'Gym Training (4 Sessions)',
+    description: 'Core indoor academy training with structured drills, rotations, and scrimmages.',
+    longDescription: 'Comprehensive 4-session indoor program focusing on fundamentals, ball control, positional awareness, and competitive scrimmage play in a professional gym facility.',
+    image: ASSETS.EXPERTISE.FOUNDATIONAL,
+    ageRange: '5 - 18',
+    ageGroups: ['5-10', '11-14', '15-18'],
+    features: ['4 x 2-Hour Sessions', 'Group Format', 'Indoor Gym Facility', 'Certified Coaches']
+  },
+  {
+    id: 'gym-training-12',
+    title: 'Gym Training (12 Sessions - Best Value)',
+    description: 'Comprehensive 12-session indoor program for accelerated player development.',
+    longDescription: 'Our flagship 12-session intensive program designed for maximum skill growth. Players master advanced footwork, attack timing, tactical rotations, and match execution.',
+    image: 'https://images.unsplash.com/photo-1592656631147-f1aa2112bf7c?auto=format&fit=crop&w=800&q=80',
+    ageRange: '5 - 18',
+    ageGroups: ['5-10', '11-14', '15-18'],
+    features: ['12 x 2-Hour Sessions', 'Best Value Package', 'Save $50 vs 4-Pack', 'Group Format']
+  },
+  {
+    id: 'open-park-private',
+    title: 'Open Park (Private Coaching 1-on-1)',
+    description: 'Dedicated 1-on-1 private coaching tailored entirely to your personal mechanics.',
+    longDescription: 'Personalized 1-on-1 coaching focusing exclusively on your mechanics—serving accuracy, spike power, setter hand positioning, or libero defense.',
+    image: ASSETS.EXPERTISE.ELITE,
+    ageRange: '5 - 18',
+    ageGroups: ['5-10', '11-14', '15-18'],
+    features: ['4 x 1-Hour Sessions', '100% 1-on-1 Focus', 'Custom Mechanics', 'Dedicated Coach']
+  },
+  {
+    id: 'open-park-group',
+    title: 'Open Park Group Training',
+    description: 'High-repetition outdoor group training building agility, ball control, and match readiness.',
+    longDescription: 'Outdoor park group training with high repetitions. Great for developing quick footwork, stamina, outdoor ball control, and team communication.',
+    image: 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?auto=format&fit=crop&w=800&q=80',
+    ageRange: '5 - 18',
+    ageGroups: ['5-10', '11-14', '15-18'],
+    features: ['4 x 2-Hour Sessions', 'Outdoor Park Court', '12 Members Max', 'High Repetition Drills']
+  },
+  {
+    id: 'open-park-travel',
+    title: 'Open Park (Short Distance Travel)',
+    description: 'Personalized 1-on-1 coaching with coach travel to your local designated park court.',
+    longDescription: 'Private 1-on-1 coaching with the convenience of coach travel to a designated park court near you. Customized drill progression for individual growth.',
+    image: 'https://images.unsplash.com/photo-1593787467001-7394837e5814?auto=format&fit=crop&w=800&q=80',
+    ageRange: '5 - 18',
+    ageGroups: ['5-10', '11-14', '15-18'],
+    features: ['4 x 1-Hour Sessions', 'Coach Travels To You', 'Personalized Drills', 'Flexible Schedule']
+  },
+  {
+    id: 'large-group-training',
+    title: 'Large Group (13+ Students Team Squad)',
+    description: 'Team squad training focusing on rotation tactics, scrimmage plays, and match strategy.',
+    longDescription: 'Large group team squad development for middle and high school athletes. High-energy scrimmage sessions focusing on serve receive, transitions, and defense.',
+    image: ASSETS.EXPERTISE.TACTICAL,
     ageRange: '11 - 18',
     ageGroups: ['11-14', '15-18'],
-    features: ['Game Strategy', 'Team Dynamics', 'Internal Playoffs', 'Certified Refs']
+    features: ['4 x 2-Hour Sessions', '13+ Student Squad', 'Team Dynamics', 'Certified Coaches']
   }
 ];
 

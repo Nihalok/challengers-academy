@@ -75,8 +75,8 @@ export default function Home() {
           <div className="absolute inset-0 bg-gradient-to-r from-espresso via-espresso/90 to-transparent" />
         </div>
 
-        {/* Left Col: Yellow Statement */}
-        <div className="flex-1 bg-yellow p-6 sm:p-12 lg:p-20 pt-20 sm:pt-32 flex flex-col justify-between relative border-r border-espresso/5 overflow-hidden">
+        {/* Left Col: Warm Amber Premium */}
+        <div className="flex-1 p-6 sm:p-12 lg:p-20 pt-20 sm:pt-32 flex flex-col justify-between relative border-r overflow-hidden" style={{ background: 'linear-gradient(145deg, #fffbf0 0%, #fff3d6 40%, #fef7e0 70%, #fffaf0 100%)', borderColor: 'rgba(193,39,45,0.08)' }}>
           {/* Stylized Background Image for Yellow Section */}
           <div className="absolute inset-0 opacity-10 pointer-events-none" aria-hidden="true">
             <OptimizedImage 
@@ -93,20 +93,23 @@ export default function Home() {
             transition={{ duration: 0.8 }}
             className="relative z-10"
           >
-            <div className="text-espresso font-black text-[10px] mb-3 md:mb-4 tracking-[0.3em] md:tracking-[0.4em] uppercase opacity-40">ELITE TRAINING</div>
-            <h1 className="text-espresso font-condensed text-4xl sm:text-7xl md:text-8xl leading-[0.9] md:leading-[0.85] mb-6 md:mb-8 uppercase tracking-tighter">
+            <div className="text-[10px] mb-3 md:mb-4 tracking-[0.3em] md:tracking-[0.4em] uppercase font-black" style={{ color: 'rgba(193,100,0,0.5)' }}>ELITE TRAINING</div>
+            <h1 className="font-condensed text-4xl sm:text-7xl md:text-8xl leading-[0.9] md:leading-[0.85] mb-6 md:mb-8 uppercase tracking-tighter" style={{ color: '#1a0800' }}>
               PLAY <br />
-              <span className="text-white drop-shadow-sm">BETTER</span> <br />
-              <span className="font-serif-italic text-2xl sm:text-5xl md:text-6xl normal-case tracking-normal text-espresso/80 block mt-2">reach higher.</span>
+              <span style={{ color: '#C1272D', textShadow: '0 2px 20px rgba(193,39,45,0.18)' }}>BETTER</span> <br />
+              <span className="font-serif-italic text-2xl sm:text-5xl md:text-6xl normal-case tracking-normal block mt-2" style={{ color: 'rgba(100,50,0,0.55)' }}>reach higher.</span>
             </h1>
-            <p className="text-espresso/70 text-xs sm:text-sm max-w-[320px] leading-relaxed mb-8 md:mb-10 font-bold">
+            <p className="text-xs sm:text-sm max-w-[320px] leading-relaxed mb-8 md:mb-10 font-bold" style={{ color: 'rgba(80,40,0,0.60)' }}>
               Good coaching makes a real difference. We work with each player to sharpen their skills and track how far they've come.
             </p>
             
             <div className="flex flex-wrap gap-4 mt-8 md:mt-12">
               <NavLink 
                 to="/register" 
-                className="bg-espresso text-white px-6 sm:px-8 py-3.5 sm:py-4 rounded-full font-condensed text-xs tracking-widest flex items-center gap-3 hover:bg-orange transition-all group shadow-xl"
+                className="text-white px-6 sm:px-8 py-3.5 sm:py-4 rounded-full font-condensed text-xs tracking-widest flex items-center gap-3 transition-all group shadow-xl"
+                style={{ background: 'linear-gradient(135deg, #C1272D 0%, #a01e24 100%)', boxShadow: '0 8px 28px rgba(193,39,45,0.30)' }}
+                onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 12px 36px rgba(193,39,45,0.45)')}
+                onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 8px 28px rgba(193,39,45,0.30)')}
               >
                 BOOK CLASS
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -137,19 +140,19 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Right Col: Interactive Visual (Elite Light) */}
-        <div className="flex-[1.4] bg-ivory p-12 lg:p-20 pt-32 hidden md:flex flex-col relative overflow-hidden">
-          <div className="absolute inset-0 z-0 opacity-40" aria-hidden="true">
-            <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-orange/5 blur-[150px] rounded-full" />
-            <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-yellow/10 blur-[120px] rounded-full" />
+        {/* Right Col: Warm Ivory Premium */}
+        <div className="flex-[1.4] p-12 lg:p-20 pt-32 hidden md:flex flex-col relative overflow-hidden" style={{ background: 'linear-gradient(160deg, #fff8f0 0%, #fdf3ea 40%, #fff5f0 75%, #fef9f0 100%)' }}>
+          <div className="absolute inset-0 z-0 opacity-60" aria-hidden="true">
+            <div className="absolute top-1/4 right-0 w-[600px] h-[600px] rounded-full blur-[180px]" style={{ background: 'radial-gradient(circle, rgba(193,39,45,0.08) 0%, rgba(255,150,80,0.05) 60%, transparent 80%)' }} />
+            <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] rounded-full blur-[120px]" style={{ background: 'radial-gradient(circle, rgba(255,200,100,0.10) 0%, transparent 70%)' }} />
           </div>
 
           <div className="flex justify-between items-start mb-16 relative z-10">
             <div>
-              <div className="text-orange font-black text-[10px] mb-4 tracking-[0.4em] uppercase">PRO PERFORMANCE</div>
-              <h2 className="font-condensed text-6xl text-espresso uppercase leading-none tracking-tighter">
+              <div className="font-black text-[10px] mb-4 tracking-[0.4em] uppercase" style={{ color: '#C1272D' }}>PRO PERFORMANCE</div>
+              <h2 className="font-condensed text-6xl uppercase leading-none tracking-tighter" style={{ color: '#1a0800' }}>
                 ELEVATE <br />
-                <span className="font-serif-italic lowercase italic tracking-normal text-5xl text-orange">your game.</span>
+                <span className="font-serif-italic lowercase italic tracking-normal text-5xl" style={{ color: '#C1272D' }}>your game.</span>
               </h2>
             </div>
             <div className="flex flex-col items-end gap-6">
@@ -162,31 +165,29 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-10 flex-grow relative z-10">
-            <motion.div 
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              whileHover={{ y: -10 }}
-              className="group bg-white p-10 rounded-[3.5rem] flex flex-col justify-between shadow-xl shadow-espresso/5 border border-espresso/5 cursor-pointer transition-all duration-500"
+            <div className="group p-10 rounded-[3.5rem] flex flex-col justify-between shadow-lg cursor-pointer transition-all duration-500 border"
+              style={{ background: 'rgba(255,255,255,0.80)', borderColor: 'rgba(193,39,45,0.10)', boxShadow: '0 12px 40px rgba(180,60,0,0.08)' }}
               onClick={() => window.location.href = '/programs'}
+              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.97)'; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-10px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 20px 50px rgba(180,60,0,0.12)'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.80)'; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 12px 40px rgba(180,60,0,0.08)'; }}
             >
               <div className="relative">
                 <div className="flex justify-between items-start">
-                  <div className="w-12 h-12 bg-sand rounded-2xl flex items-center justify-center text-espresso group-hover:bg-orange group-hover:text-white transition-colors duration-500">
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center transition-colors duration-500" style={{ background: 'rgba(193,39,45,0.08)', color: '#C1272D' }}>
                     <span className="text-[10px] font-black tracking-widest">01</span>
                   </div>
                   <div className="w-2 h-2 bg-orange rounded-full animate-ping" />
                 </div>
-                <h3 className="font-serif-italic text-3xl mt-10 text-espresso group-hover:text-orange transition-colors">Setting Basics</h3>
-                <p className="text-[10px] uppercase tracking-[0.3em] text-espresso/40 mt-4 font-black">Technique Class</p>
-                <p className="text-espresso/60 text-xs mt-6 leading-relaxed max-w-[200px]">We break down the setting motion step by step - great for beginners and players looking to clean up their form.</p>
+                <h3 className="font-serif-italic text-3xl mt-10 transition-colors" style={{ color: '#1a0800' }}>Setting Basics</h3>
+                <p className="text-[10px] uppercase tracking-[0.3em] mt-4 font-black" style={{ color: 'rgba(80,40,0,0.40)' }}>Technique Class</p>
+                <p className="text-xs mt-6 leading-relaxed max-w-[200px]" style={{ color: 'rgba(80,40,0,0.60)' }}>We break down the setting motion step by step - great for beginners and players looking to clean up their form.</p>
               </div>
               
               <div className="mt-12 flex items-center gap-4">
-                <div className="h-px flex-grow bg-espresso/5" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-orange">Enroll</span>
+                <div className="h-px flex-grow" style={{ background: 'rgba(193,39,45,0.08)' }} />
+                <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: '#C1272D' }}>Enroll</span>
               </div>
-            </motion.div>
+            </div>
 
             <motion.div 
               initial={{ opacity: 0, y: 30 }}
@@ -234,13 +235,13 @@ export default function Home() {
           <div className="mt-16 flex items-center justify-between border-t border-espresso/5 pt-12 relative z-10">
             <div className="flex items-center gap-16">
               <div>
-                <div className="text-5xl font-condensed tracking-tighter text-espresso leading-none">1.2k</div>
-                <div className="text-[10px] uppercase tracking-[0.3em] text-espresso/30 font-black mt-3">Active Athletes</div>
+                <div className="text-5xl font-condensed tracking-tighter leading-none" style={{ color: '#1a0800' }}>1.2k</div>
+                <div className="text-[10px] uppercase tracking-[0.3em] font-black mt-3" style={{ color: 'rgba(80,40,0,0.35)' }}>Active Athletes</div>
               </div>
-              <div className="w-px h-10 bg-espresso/10" />
+              <div className="w-px h-10" style={{ background: 'rgba(193,39,45,0.12)' }} />
               <div>
-                <div className="text-5xl font-condensed tracking-tighter text-espresso leading-none">98%</div>
-                <div className="text-[10px] uppercase tracking-[0.3em] text-espresso/30 font-black mt-3">Success Rate</div>
+                <div className="text-5xl font-condensed tracking-tighter leading-none" style={{ color: '#1a0800' }}>98%</div>
+                <div className="text-[10px] uppercase tracking-[0.3em] font-black mt-3" style={{ color: 'rgba(80,40,0,0.35)' }}>Success Rate</div>
               </div>
             </div>
             
@@ -341,7 +342,7 @@ export default function Home() {
       </section>
 
       {/* Stats Section */}
-      <section className="relative py-12 sm:py-16 md:py-24 bg-[#FBF9F6] overflow-hidden gsap-reveal">
+      <section className="relative py-12 sm:py-16 md:py-24 overflow-hidden gsap-reveal" style={{ background: '#FBF9F6' }}>
         {/* Background Texture Overlay */}
         <div className="absolute inset-0 z-0 opacity-[0.04] pointer-events-none">
           <img 
@@ -355,17 +356,17 @@ export default function Home() {
         <div className="container mx-auto px-4 relative z-10">
           <div className="mb-10 md:mb-14 flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-8">
             <div className="max-w-xl">
-              <div className="text-orange font-black text-[10px] tracking-[0.4em] md:tracking-[0.5em] uppercase mb-3 md:mb-4 flex items-center gap-3 md:gap-4">
-                <span className="w-8 md:w-10 h-px bg-orange/30" />
+              <div className="text-[10px] font-black tracking-[0.4em] md:tracking-[0.5em] uppercase mb-3 md:mb-4 flex items-center gap-3 md:gap-4" style={{ color: '#C1272D' }}>
+                <span className="w-8 md:w-10 h-px" style={{ background: 'rgba(193,39,45,0.30)' }} />
                 Our Results
               </div>
-              <h2 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-condensed text-espresso uppercase leading-[0.9] md:leading-[0.85] tracking-tighter">
+              <h2 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-condensed uppercase leading-[0.9] md:leading-[0.85] tracking-tighter" style={{ color: '#1a0800' }}>
                 Real progress <br />
-                you can <span className="text-orange font-serif-italic normal-case italic">see.</span>
+                you can <span className="font-serif-italic normal-case italic" style={{ color: '#C1272D' }}>see.</span>
               </h2>
             </div>
             <div className="max-w-xs">
-              <p className="text-espresso/60 text-[11px] sm:text-xs font-medium leading-relaxed uppercase tracking-widest">
+              <p className="text-[11px] sm:text-xs font-medium leading-relaxed uppercase tracking-widest" style={{ color: 'rgba(80,40,0,0.50)' }}>
                 Numbers we're proud of - earned through hard work on the court, not marketing.
               </p>
             </div>

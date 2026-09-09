@@ -71,14 +71,14 @@ const ProgramCard: React.FC<ProgramCardProps> = ({ program, index }) => {
             <span className={`font-condensed text-xs font-black tracking-widest uppercase ${theme.text}`}>
               Phase 0{index + 1}
             </span>
-            <div className="h-px flex-1 bg-espresso/10" />
+            <div className="h-px flex-1 bg-espresso/15" />
           </div>
           
-          <h3 id={`program-title-${program.id}`} className="text-2xl font-condensed font-black text-espresso uppercase tracking-tight mb-2.5 leading-none">
+          <h3 id={`program-title-${program.id}`} className="text-xl sm:text-2xl font-condensed font-black text-espresso uppercase tracking-tight mb-2.5 leading-tight">
             {program.title}
           </h3>
           
-          <p className="text-espresso/70 text-xs font-bold leading-relaxed mb-5 italic">
+          <p className="text-espresso font-bold text-xs sm:text-sm leading-relaxed mb-5">
             {program.description}
           </p>
           
@@ -86,7 +86,7 @@ const ProgramCard: React.FC<ProgramCardProps> = ({ program, index }) => {
             {program.features.slice(0, 3).map((feature, i) => (
               <div key={i} className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md border ${theme.bg} ${theme.border}`}>
                 <div className={`w-1.5 h-1.5 rounded-full bg-current ${theme.text}`} />
-                <span className="text-[9px] font-black text-espresso/70 uppercase tracking-wider">
+                <span className="text-[9.5px] font-black text-espresso uppercase tracking-wider">
                   {feature}
                 </span>
               </div>
@@ -96,10 +96,12 @@ const ProgramCard: React.FC<ProgramCardProps> = ({ program, index }) => {
 
         <NavLink 
           to={`/register?program=${encodeURIComponent(program.id)}`} 
-          className={`relative inline-flex items-center justify-between w-full bg-espresso text-white px-6 py-3.5 rounded-xl font-bold uppercase tracking-widest text-[10px] overflow-hidden group/btn ${theme.btn} transition-all`}
+          className="relative inline-flex items-center justify-between w-full bg-gradient-to-r from-[#F3722C] via-[#FF6A00] to-[#E05200] text-white px-6 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl font-black uppercase tracking-[0.16em] text-[10px] sm:text-[11px] overflow-hidden group/btn shadow-[0_8px_22px_rgba(243,114,44,0.4)] hover:shadow-[0_16px_32px_rgba(243,114,44,0.6),0_4px_12px_rgba(0,0,0,0.15)] hover:-translate-y-1 hover:scale-[1.02] active:translate-y-0.5 active:scale-95 transition-all duration-300 border-t border-white/35"
         >
-          <span className="relative z-10">Enroll for Phase 0{index + 1}</span>
-          <ArrowRight className="relative z-10 w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-all" />
+          <span className="relative z-10 font-black">Enroll for Phase 0{index + 1}</span>
+          <div className="relative z-10 w-7 h-7 rounded-full bg-white/20 flex items-center justify-center group-hover/btn:bg-white group-hover/btn:text-[#F3722C] transition-all shadow-sm">
+            <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform" />
+          </div>
         </NavLink>
       </div>
     </motion.div>
