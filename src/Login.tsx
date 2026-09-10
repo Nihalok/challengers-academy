@@ -64,7 +64,7 @@ export default function Login() {
     });
     const btn = document.getElementById('google-signin-btn');
     if (btn) {
-      window.google.accounts.id.renderButton(btn, { theme: 'outline', size: 'large', width: '100%', text: 'continue_with' });
+      window.google.accounts.id.renderButton(btn, { theme: 'outline', size: 'large', width: 340, text: 'continue_with' });
     }
   }, [view]);
 

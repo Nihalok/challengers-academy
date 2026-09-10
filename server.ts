@@ -1276,9 +1276,8 @@ let galleryItems = [
   { id: '4', type: 'image', url: 'https://images.unsplash.com/photo-1504450758481-7338eba7524a', title: 'Outdoor Drills', description: 'Building endurance in natural environments.' }
 ];
 
-async function startServer() {
+export async function createApp() {
   const app = express();
-  const DEFAULT_PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
   // 1. Stripe Raw Webhook Endpoint (MUST be before express.json() for signature verification)
   app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
@@ -3027,6 +3026,13 @@ async function startServer() {
     }
   });
 
+  return app;
+}
+
+async function startServer() {
+  const app = await createApp();
+  const DEFAULT_PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
@@ -3071,8 +3077,12 @@ async function startServer() {
   }
 }
 
-startServer().catch(err => {
-  console.error('Failed to start server:', err);
-  process.exit(1);
-});
+// Only start standalone HTTP server when not running inside Vercel serverless environment
+if (process.env.VERCEL !== '1' && !process.env.VERCEL_ENV) {
+  startServer().catch(err => {
+    console.error('Failed to start server:', err);
+    process.exit(1);
+  });
+}
+
 

@@ -205,6 +205,75 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     description: 'One-on-one private coaching sessions at your preferred open park. Long distance travel included.',
     features: ['100% Focused 1-on-1', 'Long Distance Travel Included', 'Custom Progression', 'Personal Mechanics Coaching'],
     popular: false
+  },
+  {
+    id: 'summer-camp-7day',
+    name: '7-Day Intensive Summer Clinic',
+    category: 'Summer Camp',
+    students: 'Youth & Junior',
+    sessionDuration: '4 Hours Daily',
+    packageCount: '7 Days',
+    ageGroup: 'Youth & Junior',
+    skillLevel: 'Technique Refinement',
+    location: 'Fremont Arena / Regional Facility',
+    locationAddress: 'Bay Area Training Facility',
+    schedule: 'Mon - Fri (9:00 AM - 1:00 PM)',
+    dates: 'June & July 2026',
+    time: '9:00 AM - 1:00 PM',
+    price: 350,
+    priceNote: 'clinic fee',
+    capacity: 25,
+    filled: 14,
+    coach: 'Wilson Mathew & Coaching Staff',
+    description: 'Comprehensive 7-day clinic focused on rapid skill acceleration, positional mastery, and match play.',
+    features: ['7 Days Intensive Training', 'Technique Refinement', 'Match Play Scrimmages', 'Professional Mentorship'],
+    popular: false
+  },
+  {
+    id: 'summer-camp-10day',
+    name: '10-Day Elite Summer Intensive',
+    category: 'Summer Camp',
+    students: 'Youth & Junior',
+    sessionDuration: '4 Hours Daily',
+    packageCount: '10 Days',
+    ageGroup: 'Youth & Junior',
+    skillLevel: 'Game Strategy & Tactics',
+    location: 'Fremont Arena / Regional Facility',
+    locationAddress: 'Bay Area Training Facility',
+    schedule: 'Mon - Fri (9:00 AM - 1:00 PM)',
+    dates: 'June & July 2026',
+    time: '9:00 AM - 1:00 PM',
+    price: 480,
+    priceNote: 'intensive fee',
+    capacity: 25,
+    filled: 18,
+    coach: 'Wilson Mathew & Senior Staff',
+    description: 'Position-specific mastery, advanced rotational systems, high-rep scrimmage sets, and agility conditioning.',
+    features: ['10 Days Elite Bootcamp', 'Rotational Tactics (5-1)', 'Block & Defense Timing', 'Conditioning & Scrimmages'],
+    popular: true
+  },
+  {
+    id: 'summer-camp-15day',
+    name: '15-Day Masterclass Camp',
+    category: 'Summer Camp',
+    students: 'Youth & Junior',
+    sessionDuration: '4 Hours Daily',
+    packageCount: '15 Days',
+    ageGroup: 'Youth & Junior',
+    skillLevel: 'Competitive Club & High School Prep',
+    location: 'Fremont Arena / Regional Facility',
+    locationAddress: 'Bay Area Training Facility',
+    schedule: 'Mon - Fri (9:00 AM - 1:00 PM)',
+    dates: 'June & July 2026',
+    time: '9:00 AM - 1:00 PM',
+    price: 650,
+    priceNote: 'masterclass fee',
+    capacity: 25,
+    filled: 19,
+    coach: 'Wilson Mathew & Master Staff',
+    description: 'Full biomechanical breakdown, video analysis, college recruitment guidance, and high-speed match play.',
+    features: ['15 Days Full Masterclass', 'Biomechanical & Video Review', 'High-Speed Match Play', 'Tournament Showcase'],
+    popular: false
   }
 ];
 
@@ -370,12 +439,23 @@ export default function Register() {
             }
           });
 
-          // Order: Summer Camps first → Official Sessions → any extra server sessions
-          setSessions([...campSessions, ...OFFICIAL_SESSIONS, ...otherServerSessions]);
+          // Separate non-camps and summer camps from official list
+          const baseNonCamps = OFFICIAL_SESSIONS.filter(s => !s.id.includes('camp') && !s.category.toLowerCase().includes('camp'));
+          const baseCamps = OFFICIAL_SESSIONS.filter(s => s.id.includes('camp') || s.category.toLowerCase().includes('camp'));
+
+          const finalCamps = [...baseCamps];
+          campSessions.forEach(cs => {
+            const idx = finalCamps.findIndex(f => f.id === cs.id);
+            if (idx !== -1) finalCamps[idx] = cs;
+            else finalCamps.push(cs);
+          });
+
+          // Order: Regular Packages first → other custom server sessions → Summer Camps at the bottom
+          setSessions([...baseNonCamps, ...otherServerSessions, ...finalCamps]);
         }
       })
       .catch(() => {
-        // Fallback already initialized with OFFICIAL_SESSIONS
+        // Fallback already initialized with OFFICIAL_SESSIONS (with camps at bottom)
       });
   }, []);
 
@@ -425,6 +505,7 @@ export default function Register() {
     if (activeCategory === 'park') return s.category.includes('Park') || s.id.includes('park');
     if (activeCategory === 'private') return s.category.includes('Private') || s.id.includes('private') || s.id.includes('travel');
     if (activeCategory === 'tryout') return s.id.includes('tryout') || s.category.includes('Assessment');
+    if (activeCategory === 'camp') return s.category.toLowerCase().includes('camp') || s.id.includes('camp') || s.name.toLowerCase().includes('camp') || s.name.toLowerCase().includes('clinic');
     return true;
   });
 
@@ -804,6 +885,7 @@ export default function Register() {
               { id: 'park', label: 'Open Park Groups ($150)' },
               { id: 'private', label: 'Private 1-on-1 ($320 - $360)' },
               { id: 'tryout', label: 'Tryout Session ($30)' },
+              { id: 'camp', label: 'Summer Camps ($350 - $650)' },
             ].map(tab => {
               const isActive = activeCategory === tab.id;
               return (
