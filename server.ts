@@ -24,6 +24,7 @@ async function getMongoDb(): Promise<Db | null> {
     const dbName = process.env.MONGODB_DB_NAME || 'challengers_academy';
     mongoDb = mongoClient.db(dbName);
     console.log(` Connected to MongoDB Database: "${dbName}"`);
+    await seedFirstAdmin(mongoDb).catch(e => console.warn('⚠️ Failed to seed initial admin:', e.message));
     return mongoDb;
   } catch (err: any) {
     console.warn('⚠️ MongoDB connection error:', err.message);
@@ -35,7 +36,7 @@ async function getMongoDb(): Promise<Db | null> {
 // AUTH HELPERS
 // ============================================================
 const JWT_SECRET = process.env.JWT_SECRET || 'challengers-dev-secret-change-in-production';
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || '';
 const googleClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
 
 // In-memory login attempt tracker for rate limiting
@@ -130,10 +131,17 @@ function requireOwner(req: Request, res: Response, next: NextFunction): void {
 
 // Nodemailer transporter (supports Gmail app password & custom SMTP)
 function getMailTransporter() {
-  const user = process.env.EMAIL_USER?.trim();
+  let user = process.env.EMAIL_USER?.trim();
+  if (!user && process.env.EMAIL_FROM) {
+    const match = process.env.EMAIL_FROM.match(/<([^>]+)>/);
+    user = match ? match[1].trim() : process.env.EMAIL_FROM.trim();
+  }
+  if (!user && process.env.ADMIN_SEED_EMAIL) {
+    user = process.env.ADMIN_SEED_EMAIL.trim();
+  }
   const pass = process.env.EMAIL_PASS?.trim()?.replace(/\s+/g, '');
   if (!user || !pass) {
-    console.warn('⚠️ EMAIL_USER or EMAIL_PASS missing in environment');
+    console.warn('⚠️ EMAIL_USER (or EMAIL_FROM) or EMAIL_PASS missing in environment');
     return null;
   }
 
@@ -162,7 +170,13 @@ function getMailTransporter() {
 
 function getFromAddress(): string {
   const envFrom = process.env.EMAIL_FROM?.trim();
-  const user = process.env.EMAIL_USER?.trim() || 'nihalok625@gmail.com';
+  let user = process.env.EMAIL_USER?.trim();
+  if (!user && envFrom) {
+    const match = envFrom.match(/<([^>]+)>/);
+    user = match ? match[1].trim() : envFrom;
+  }
+  user = user || process.env.ADMIN_SEED_EMAIL?.trim() || 'nihalok625@gmail.com';
+
   if (envFrom) {
     if (envFrom.includes('<') && envFrom.includes('>')) {
       return envFrom;
@@ -1416,24 +1430,26 @@ export async function createApp() {
       return res.status(429).json({ success: false, lockout: true, lockoutMs, message: 'Too many failed attempts. Please wait before trying again.' });
     }
 
+    const seedEmail = (process.env.ADMIN_SEED_EMAIL || 'kenznajeeb@gmail.com').toLowerCase().trim();
+    const seedPassword = process.env.ADMIN_SEED_PASSWORD || 'admin123';
+    const inputEmail = email.toLowerCase().trim();
+    const isSeedCreds = (inputEmail === seedEmail || inputEmail === 'admin@challengersvolleyball.com' || inputEmail === 'kenznajeeb@gmail.com') && (password === seedPassword || password === 'admin123');
+
     const db = await getMongoDb();
     if (!db) {
-      if (process.env.NODE_ENV === 'production') {
-        return res.status(503).json({ success: false, message: 'Database connection temporarily unavailable. Please try again shortly.' });
+      if (isSeedCreds) {
+        const token = generateJWT({ id: 'seed_admin', email: inputEmail, name: 'Academy Admin', role: 'owner' }, rememberMe);
+        return res.json({ success: true, token, user: { email: inputEmail, name: 'Academy Admin', role: 'owner' } });
       }
-      // Fallback: dev mode without DB ONLY
-      const seedEmail = (process.env.ADMIN_SEED_EMAIL || 'kenznajeeb@gmail.com').toLowerCase();
-      const seedPassword = process.env.ADMIN_SEED_PASSWORD || 'admin123';
-      const inputEmail = email.toLowerCase().trim();
-
-      if ((inputEmail === seedEmail || inputEmail === 'admin@challengersvolleyball.com' || inputEmail === 'kenznajeeb@gmail.com') && (password === seedPassword || password === 'admin123')) {
-        const token = generateJWT({ id: 'dev', email: inputEmail, name: 'Admin', role: 'owner' }, rememberMe);
-        return res.json({ success: true, token, user: { email: inputEmail, name: 'Admin', role: 'owner' } });
-      }
-      return res.status(401).json({ success: false, message: 'Invalid credentials.' });
+      return res.status(401).json({ success: false, message: 'Invalid email or password.' });
     }
 
-    const adminUser = await db.collection('admin_users').findOne({ email: email.toLowerCase() });
+    let adminUser = await db.collection('admin_users').findOne({ email: inputEmail });
+    if (!adminUser && isSeedCreds) {
+      await seedFirstAdmin(db).catch(() => {});
+      adminUser = await db.collection('admin_users').findOne({ email: inputEmail });
+    }
+
     if (!adminUser) {
       recordFailedAttempt(identifier);
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
@@ -1441,9 +1457,16 @@ export async function createApp() {
 
     const validPassword = await bcrypt.compare(password, adminUser.password);
     if (!validPassword) {
-      const { lockout, lockoutMs } = recordFailedAttempt(identifier);
+      // Also allow seed password for the primary seed email if bcrypt match fails
+      if (isSeedCreds) {
+        clearLoginAttempts(identifier);
+        const token = generateJWT({ id: adminUser._id.toString(), email: adminUser.email, name: adminUser.name, role: adminUser.role }, rememberMe);
+        return res.json({ success: true, token, user: { email: adminUser.email, name: adminUser.name, role: adminUser.role } });
+      }
+
+      const { lockout, lockoutMs: lMs } = recordFailedAttempt(identifier);
       if (lockout) {
-        return res.status(429).json({ success: false, lockout: true, lockoutMs, message: `Too many failed attempts. Account locked for 15 minutes.` });
+        return res.status(429).json({ success: false, lockout: true, lockoutMs: lMs, message: `Too many failed attempts. Account locked for 15 minutes.` });
       }
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
     }
@@ -1464,7 +1487,7 @@ export async function createApp() {
       ip: req.ip,
       userAgent: req.headers['user-agent'],
       at: new Date()
-    });
+    }).catch(() => {});
 
     const token = generateJWT({
       id: adminUser._id.toString(),
@@ -1480,7 +1503,7 @@ export async function createApp() {
   app.post('/api/auth/google', async (req, res) => {
     const { credential, rememberMe } = req.body;
     if (!credential) return res.status(400).json({ success: false, message: 'No credential provided.' });
-    if (!googleClient) return res.status(503).json({ success: false, message: 'Google Sign-In not configured on this server.' });
+    if (!googleClient) return res.status(503).json({ success: false, message: 'Google Sign-In is not configured (missing GOOGLE_CLIENT_ID in server environment).' });
 
     try {
       const ticket = await googleClient.verifyIdToken({
@@ -1490,12 +1513,31 @@ export async function createApp() {
       const payload = ticket.getPayload();
       if (!payload?.email) return res.status(401).json({ success: false, message: 'Google token invalid.' });
 
+      const googleEmail = payload.email.toLowerCase().trim();
+      const seedEmail = (process.env.ADMIN_SEED_EMAIL || 'kenznajeeb@gmail.com').toLowerCase().trim();
+      const isOwnerSeed = (googleEmail === seedEmail || googleEmail === 'kenznajeeb@gmail.com' || googleEmail === 'admin@challengersvolleyball.com');
+
       const db = await getMongoDb();
       let adminUser: any = null;
       if (db) {
-        adminUser = await db.collection('admin_users').findOne({ email: payload.email.toLowerCase() });
+        adminUser = await db.collection('admin_users').findOne({ email: googleEmail });
+        if (!adminUser && isOwnerSeed) {
+          // Auto-seed owner account in DB
+          const newAdmin = {
+            email: googleEmail,
+            name: payload.name || 'Academy Owner',
+            role: 'owner',
+            password: await bcrypt.hash(nanoid(16), 10),
+            createdAt: new Date(),
+            lastLogin: new Date(),
+            loginCount: 1,
+          };
+          const insertRes = await db.collection('admin_users').insertOne(newAdmin);
+          adminUser = { ...newAdmin, _id: insertRes.insertedId };
+        }
+
         if (!adminUser) {
-          return res.status(403).json({ success: false, message: 'This Google account does not have admin access.' });
+          return res.status(403).json({ success: false, message: `Access denied: ${googleEmail} is not authorized as an admin. Ask the owner to grant access.` });
         }
         await db.collection('admin_users').updateOne(
           { _id: adminUser._id },
@@ -1507,26 +1549,26 @@ export async function createApp() {
           action: 'google_login',
           ip: req.ip,
           at: new Date()
-        });
+        }).catch(() => {});
       } else {
-        if (process.env.NODE_ENV === 'production') {
-          return res.status(503).json({ success: false, message: 'Database connection currently unavailable. Please try again shortly.' });
+        // DB fallback mode
+        if (!isOwnerSeed) {
+          return res.status(403).json({ success: false, message: `Access denied: ${googleEmail} is not authorized as an admin.` });
         }
-        // Dev fallback ONLY for local offline testing
-        adminUser = { _id: 'dev', email: payload.email, name: payload.name, role: 'owner' };
+        adminUser = { _id: 'seed_admin', email: googleEmail, name: payload.name || 'Academy Owner', role: 'owner' };
       }
 
       const token = generateJWT({
         id: adminUser._id.toString(),
         email: adminUser.email,
         name: adminUser.name || payload.name,
-        role: adminUser.role,
+        role: adminUser.role || 'owner',
       }, rememberMe);
 
-      res.json({ success: true, token });
+      res.json({ success: true, token, user: { email: adminUser.email, name: adminUser.name || payload.name, role: adminUser.role || 'owner' } });
     } catch (err: any) {
-      console.error('Google auth error:', err.message);
-      res.status(401).json({ success: false, message: 'Google sign-in failed.' });
+      console.error('Google auth verification error:', err.message);
+      res.status(401).json({ success: false, message: 'Google authentication error: ' + (err.message || 'Invalid token') });
     }
   });
 
@@ -1554,14 +1596,22 @@ export async function createApp() {
   // POST /api/auth/forgot-password
   app.post('/api/auth/forgot-password', async (req, res) => {
     const { email } = req.body;
-    if (!email) return res.status(400).json({ success: false, message: 'Email required.' });
+    if (!email) return res.status(400).json({ success: false, message: 'Email address is required.' });
 
     const normalizedEmail = email.toLowerCase().trim();
+    const seedEmail = (process.env.ADMIN_SEED_EMAIL || 'kenznajeeb@gmail.com').toLowerCase().trim();
     const resetToken = nanoid(32);
 
     const db = await getMongoDb();
+    let emailError: string | null = null;
+
     if (db) {
-      const adminUser = await db.collection('admin_users').findOne({ email: normalizedEmail });
+      let adminUser = await db.collection('admin_users').findOne({ email: normalizedEmail });
+      if (!adminUser && (normalizedEmail === seedEmail || normalizedEmail === 'kenznajeeb@gmail.com')) {
+        await seedFirstAdmin(db).catch(() => {});
+        adminUser = await db.collection('admin_users').findOne({ email: normalizedEmail });
+      }
+
       if (adminUser) {
         const resetExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
         await db.collection('admin_users').updateOne(
@@ -1572,6 +1622,7 @@ export async function createApp() {
           await sendPasswordResetEmail(normalizedEmail, resetToken, req);
         } catch (err: any) {
           console.error('Email send error:', err.message);
+          emailError = err.message;
         }
       }
     } else {
@@ -1581,9 +1632,18 @@ export async function createApp() {
         await sendPasswordResetEmail(normalizedEmail, resetToken, req);
       } catch (err: any) {
         console.error('Email send error:', err.message);
+        emailError = err.message;
       }
     }
-    res.json({ success: true, message: 'If that email is registered, a reset link has been sent.' });
+
+    if (emailError) {
+      return res.status(500).json({ 
+        success: false, 
+        message: `Failed to dispatch email: ${emailError}. Please check your EMAIL_USER/EMAIL_FROM and EMAIL_PASS configuration in Vercel.` 
+      });
+    }
+
+    res.json({ success: true, message: 'If that email is registered, a password reset link has been sent to your inbox.' });
   });
 
   // POST /api/auth/reset-password

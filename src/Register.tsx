@@ -15,8 +15,9 @@ import SEO from './components/SEO';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
-// Initialize Stripe with live publishable key
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
+// Initialize Stripe with live publishable key (safely check if provided)
+const stripePublishableKey = (import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '').trim();
+const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null;
 
 // Session Item Interface
 export interface SessionItem {
@@ -398,7 +399,10 @@ export default function Register() {
   // Fetch session catalog on mount and merge with official packages
   useEffect(() => {
     fetch('/api/sessions')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
       .then(data => {
         if (data.success && Array.isArray(data.sessions) && data.sessions.length > 0) {
           const campSessions: SessionItem[] = [];
@@ -771,15 +775,21 @@ export default function Register() {
         })
       });
 
-      const data = await res.json();
-      if (data.success) {
+      let data: any = null;
+      try {
+        data = await res.json();
+      } catch {
+        data = { success: false, message: `Server error (${res.status}). Please try Instant Mobile QR or Manual payment.` };
+      }
+
+      if (data && data.success) {
         setClientSecret(data.clientSecret);
         setLeadId(data.leadId);
         setStripeCheckoutUrl(data.checkoutUrl || null);
         setActiveRegistrationId(data.registrationId || null);
         setCurrentStep(2);
       } else {
-        alert(data.message || 'Unable to initialize payment checkout. Please try again.');
+        alert(data?.message || 'Unable to initialize payment checkout. Please try again or use Instant Mobile QR.');
       }
     } catch (err) {
       console.error(err);
@@ -1848,7 +1858,17 @@ export default function Register() {
 
                     {/* ── OPTION B: CREDIT / DEBIT CARD via Real Stripe Elements ── */}
                     {paymentOption === 'card' && (
-                      clientSecret ? (
+                      !stripePromise ? (
+                        <div className="bg-amber-50 border border-amber-200 text-amber-900 px-4 py-4 rounded-xl text-xs flex flex-col gap-2">
+                          <div className="flex items-center gap-2 font-bold">
+                            <AlertCircle className="w-4 h-4 shrink-0 text-amber-600" />
+                            <span>Stripe Card Checkout is currently not configured.</span>
+                          </div>
+                          <p className="text-amber-800">
+                            Please select <strong>Instant Mobile QR (Apple Pay, Google Pay, Cards)</strong> above or <strong>Manual Confirmation</strong> to complete enrollment.
+                          </p>
+                        </div>
+                      ) : clientSecret ? (
                         <Elements
                           stripe={stripePromise}
                           options={{

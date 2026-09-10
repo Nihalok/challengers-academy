@@ -55,17 +55,44 @@ export default function Login() {
     return () => clearInterval(interval);
   }, [lockoutTime]);
 
-  // Google OAuth init
+  // Google OAuth init with async script loading retry
   useEffect(() => {
-    if (!GOOGLE_CLIENT_ID || !window.google) return;
-    window.google.accounts.id.initialize({
-      client_id: GOOGLE_CLIENT_ID,
-      callback: handleGoogleCallback,
-    });
-    const btn = document.getElementById('google-signin-btn');
-    if (btn) {
-      window.google.accounts.id.renderButton(btn, { theme: 'outline', size: 'large', width: 340, text: 'continue_with' });
-    }
+    if (!GOOGLE_CLIENT_ID || view !== 'login') return;
+
+    let retries = 0;
+    const maxRetries = 25; // 25 * 200ms = 5 seconds retry window
+
+    const initGoogle = () => {
+      if (window.google?.accounts?.id) {
+        try {
+          window.google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: handleGoogleCallback,
+            auto_select: false,
+            cancel_on_tap_outside: true,
+          });
+          const btn = document.getElementById('google-signin-btn');
+          if (btn) {
+            btn.innerHTML = '';
+            window.google.accounts.id.renderButton(btn, { 
+              theme: 'outline', 
+              size: 'large', 
+              width: 340, 
+              text: 'continue_with',
+              shape: 'rectangular',
+              logo_alignment: 'left'
+            });
+          }
+        } catch (err: any) {
+          console.warn('Google GSI initialization notice:', err);
+        }
+      } else if (retries < maxRetries) {
+        retries++;
+        setTimeout(initGoogle, 200);
+      }
+    };
+
+    initGoogle();
   }, [view]);
 
   const handleGoogleCallback = async (response: any) => {
