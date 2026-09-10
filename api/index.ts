@@ -17,6 +17,13 @@ export default async function handler(req: any, res: any) {
     }
 
     return new Promise((resolve) => {
+      res.on('finish', () => resolve(true));
+      res.on('close', () => resolve(true));
+      res.on('error', (err: any) => {
+        console.error('Response stream error:', err);
+        resolve(err);
+      });
+
       cachedApp(req, res, (err: any) => {
         if (err) {
           console.error('Express serverless error:', err);
