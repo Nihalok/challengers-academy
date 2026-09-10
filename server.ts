@@ -20,8 +20,8 @@ async function getMongoDb(): Promise<Db | null> {
   if (mongoDb) return mongoDb;
   try {
     mongoClient = new MongoClient(uri, {
-      serverSelectionTimeoutMS: 2000,
-      connectTimeoutMS: 2000,
+      serverSelectionTimeoutMS: 7500,
+      connectTimeoutMS: 7500,
     });
     await mongoClient.connect();
     const dbName = process.env.MONGODB_DB_NAME || 'challengers_academy';
