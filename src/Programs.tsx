@@ -221,6 +221,12 @@ export default function Programs() {
           <p className="text-espresso/85 text-xs sm:text-sm font-medium leading-relaxed max-w-xl mx-auto italic">
             Whether your child is picking up a volleyball for the first time or training to compete, we have a program that fits.
           </p>
+
+          {/* Sibling Discount Callout */}
+          <div className="mt-6 inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-semibold shadow-sm">
+            <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-black">✓</span>
+            <span><strong>Sibling Discount:</strong> Add a brother or sister to any program and get an automatic <strong>$50 family discount</strong>!</span>
+          </div>
         </div>
 
         {/* Regular Coaching Packages - Sliding Carousel (ON TOP) */}

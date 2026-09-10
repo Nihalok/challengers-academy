@@ -179,7 +179,36 @@ export default function Pricing() {
           id="pricing-header"
         />
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mt-12 sm:mt-16">
+        {/* ── SIBLING FAMILY DISCOUNT HIGHLIGHT BANNER ── */}
+        <div className="mt-8 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-950 via-[#0B5D51] to-emerald-900 border border-emerald-400/30 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="w-12 h-12 rounded-xl bg-emerald-400/20 border border-emerald-400/40 flex items-center justify-center text-emerald-300 shrink-0 text-xl font-black">
+              -$50
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="bg-emerald-400 text-emerald-950 text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full">
+                  Family Discount
+                </span>
+                <span className="text-emerald-200 text-xs font-semibold">All Programs Included</span>
+              </div>
+              <h4 className="text-base sm:text-lg font-condensed font-black uppercase tracking-tight text-white mt-0.5">
+                Registering with a Sibling? Get an Instant $50 Total Discount!
+              </h4>
+              <p className="text-xs text-emerald-100/80">
+                Enroll 2 brothers or sisters together in any session and save $50 automatically during registration checkout.
+              </p>
+            </div>
+          </div>
+          <NavLink
+            to="/register"
+            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white text-[#0B5D51] font-condensed font-black text-xs uppercase tracking-wider hover:bg-emerald-100 transition-all shrink-0 text-center shadow"
+          >
+            Claim Sibling Deal &rarr;
+          </NavLink>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mt-10">
           {OFFICIAL_PACKAGES.map((plan, idx) => (
             <motion.div
               key={plan.id}

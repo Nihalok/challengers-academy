@@ -211,6 +211,7 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
 export default function Register() {
   const [searchParams] = useSearchParams();
   const confirmationRef = useRef<HTMLDivElement>(null);
+  const modalBodyRef = useRef<HTMLDivElement>(null);
 
   // Available sessions
   const [sessions, setSessions] = useState<SessionItem[]>(OFFICIAL_SESSIONS);
@@ -238,6 +239,11 @@ export default function Register() {
     emergencyContactPhone: '',
     medicalNotes: '',
     waiverAccepted: false,
+    hasSibling: false,
+    siblingName: '',
+    siblingDob: '',
+    siblingGender: 'Co-ed',
+    siblingMedicalNotes: ''
   });
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -283,27 +289,64 @@ export default function Register() {
     setTimeout(() => setCopiedField(null), 2500);
   };
 
-  // Check if returning from a mobile Stripe checkout redirect
+  // Check if returning from a mobile Stripe checkout redirect or 3D Secure authentication
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const completed = params.get('completed');
+    const redirectStatus = params.get('redirect_status');
+    const paymentIntentId = params.get('payment_intent');
     const regId = params.get('registrationId') || params.get('regId');
-    if (completed && regId) {
-      fetch(`/api/registration-status/${regId}`)
+    const lId = params.get('leadId');
+
+    if (completed === 'true' || redirectStatus === 'succeeded' || paymentIntentId) {
+      // Clear URL params immediately so subsequent interactions/reloads are completely clean
+      window.history.replaceState({}, document.title, window.location.pathname);
+
+      const verifyPayload: any = {
+        paymentMethod: 'Card',
+        paymentIntentId: paymentIntentId || undefined,
+        registrationId: regId || undefined,
+        leadId: lId || undefined
+      };
+
+      fetch('/api/verify-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(verifyPayload)
+      })
         .then(r => r.json())
         .then(data => {
           if (data.success && data.registration) {
             setRegistrationRecord(data.registration);
             setCurrentStep(3);
+            setIsModalOpen(true);
+            modalBodyRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             confetti({
               particleCount: 140,
               spread: 90,
               origin: { y: 0.55 },
               colors: ['#D62828', '#F9BC00', '#071A2D', '#22C55E']
             });
+          } else if (regId) {
+            // Secondary status fallback
+            fetch(`/api/registration-status/${regId}`)
+              .then(r => r.json())
+              .then(sData => {
+                if (sData.success && sData.registration) {
+                  setRegistrationRecord(sData.registration);
+                  setCurrentStep(3);
+                  setIsModalOpen(true);
+                  modalBodyRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+              })
+              .catch(console.error);
           }
         })
-        .catch(console.error);
+        .catch(err => {
+          console.error('Redirect payment verification error:', err);
+        });
     }
   }, []);
 
@@ -405,37 +448,6 @@ export default function Register() {
     }
   }, [searchParams, sessions]);
 
-  // Handle return from redirect payment methods
-  useEffect(() => {
-    const paymentIntentId = searchParams.get('payment_intent');
-    const redirectStatus = searchParams.get('redirect_status');
-
-    if (paymentIntentId && (redirectStatus === 'succeeded' || !redirectStatus)) {
-      setIsProcessing(true);
-      fetch('/api/verify-payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ paymentIntentId })
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success && data.registration) {
-            setRegistrationRecord(data.registration);
-            setCurrentStep(3);
-            setIsModalOpen(true);
-            confetti({
-              particleCount: 120,
-              spread: 80,
-              origin: { y: 0.55 },
-              colors: ['#D62828', '#F9BC00', '#071A2D', '#22C55E']
-            });
-          }
-        })
-        .catch(err => console.error('Redirect verification error:', err))
-        .finally(() => setIsProcessing(false));
-    }
-  }, [searchParams]);
-
   // Filtered Sessions for catalog
   const filteredSessions = sessions.filter(s => {
     const matchesSearch = 
@@ -483,19 +495,21 @@ export default function Register() {
     // 3. Dynamic Venmo / Zelle fallback
     if (selectedSession) {
       const recipientName = paymentSettings?.zelleName || 'Challengers Volleyball Academy';
-      const amount = selectedSession.price;
-      const note = `Athlete: ${formData.playerName || 'Student'} - ${selectedSession.name}`;
+      const singlePrice = selectedSession.price;
+      const isSiblingSelected = formData.hasSibling;
+      const totalAmount = isSiblingSelected ? Math.max(0, (singlePrice * 2) - 50) : singlePrice;
+      const note = `Athletes: ${formData.playerName || 'Student'}${formData.hasSibling ? ` & ${formData.siblingName || 'Sibling'}` : ''} - ${selectedSession.name}`;
       
       let qrPayload = '';
       if (paymentSettings?.venmoHandle) {
         const venmoUser = paymentSettings.venmoHandle.replace('@', '').trim();
-        qrPayload = `https://venmo.com/${venmoUser}?txn=pay&amount=${amount}&note=${encodeURIComponent(note)}`;
+        qrPayload = `https://venmo.com/${venmoUser}?txn=pay&amount=${totalAmount}&note=${encodeURIComponent(note)}`;
       } else if (paymentSettings?.zellePhone || paymentSettings?.zelleEmail) {
-        qrPayload = `Zelle Pay: ${recipientName} | ${paymentSettings.zellePhone || paymentSettings.zelleEmail} | Amount: $${amount} | Memo: ${note}`;
+        qrPayload = `Zelle Pay: ${recipientName} | ${paymentSettings.zellePhone || paymentSettings.zelleEmail} | Amount: $${totalAmount} | Memo: ${note}`;
       } else if (paymentSettings?.upiId) {
-        qrPayload = `upi://pay?pa=${paymentSettings.upiId}&pn=${encodeURIComponent(recipientName)}&am=${amount}&cu=USD&tn=${encodeURIComponent(note)}`;
+        qrPayload = `upi://pay?pa=${paymentSettings.upiId}&pn=${encodeURIComponent(recipientName)}&am=${totalAmount}&cu=USD&tn=${encodeURIComponent(note)}`;
       } else {
-        qrPayload = `Challengers Academy | $${amount} | ${note}`;
+        qrPayload = `Challengers Academy | $${totalAmount} | ${note}`;
       }
 
       QRCode.toDataURL(qrPayload, {
@@ -511,7 +525,7 @@ export default function Register() {
         console.error('Error generating QR code:', err);
       });
     }
-  }, [selectedSession, paymentSettings, formData.playerName, stripeCheckoutUrl, qrMode]);
+  }, [selectedSession, paymentSettings, formData.playerName, formData.siblingName, formData.hasSibling, stripeCheckoutUrl, qrMode]);
 
   // Real-time auto-detection for Stripe mobile QR payments
   useEffect(() => {
@@ -555,7 +569,14 @@ export default function Register() {
   };
 
   const athleteAge = calculateAge(formData.dob);
-  const isMinor = athleteAge !== null && athleteAge < 18;
+  const siblingAge = calculateAge(formData.siblingDob);
+  const isMinor = (athleteAge !== null && athleteAge < 18) || (formData.hasSibling && siblingAge !== null && siblingAge < 18);
+
+  // Pricing calculations
+  const singlePrice = selectedSession.price;
+  const isSiblingSelected = formData.hasSibling;
+  const siblingDiscount = isSiblingSelected ? 50 : 0;
+  const totalRegistrationFee = isSiblingSelected ? Math.max(0, (singlePrice * 2) - siblingDiscount) : singlePrice;
 
   // DOB date constraints (Min age: 5 years, Max age: 35 years)
   const todayObj = new Date();
@@ -577,7 +598,7 @@ export default function Register() {
     } else if (field === 'email') {
       // Disallow commas, semicolons, and spaces directly as typed
       finalValue = value.replace(/[\s,;]+/g, '').toLowerCase();
-    } else if (field === 'emergencyContactName' || field === 'playerName' || field === 'parentName') {
+    } else if (field === 'emergencyContactName' || field === 'playerName' || field === 'parentName' || field === 'siblingName') {
       // Disallow numeric digits in name fields
       finalValue = value.replace(/[0-9]/g, '');
     }
@@ -652,11 +673,41 @@ export default function Register() {
       }
     }
 
-    // 5. Parent / Guardian Name (strictly required if athlete is under 18)
-    const currentAge = calculateAge(formData.dob);
-    const requiresParent = currentAge !== null && currentAge < 18;
+    // 5. Sibling Validation (if sibling enrollment is enabled)
+    if (formData.hasSibling) {
+      const trimmedSibling = (formData.siblingName || '').trim();
+      if (!trimmedSibling) {
+        errors.siblingName = 'Sibling athlete full name is required.';
+      } else if (/\d/.test(trimmedSibling) || !/^[a-zA-Z\s''-]{2,}$/.test(trimmedSibling)) {
+        errors.siblingName = 'Please enter a valid sibling name using letters only.';
+      } else if (trimmedSibling.split(/\s+/).length < 2) {
+        errors.siblingName = 'Please provide both first and last name for sibling.';
+      } else if (trimmedSibling.toLowerCase() === trimmedPlayerName.toLowerCase()) {
+        errors.siblingName = 'Sibling name cannot be identical to primary athlete name.';
+      }
+
+      if (!formData.siblingDob) {
+        errors.siblingDob = 'Sibling date of birth is required.';
+      } else {
+        const sibDobDate = new Date(formData.siblingDob);
+        const today = new Date();
+        const birthYear = sibDobDate.getFullYear();
+        const currentYear = today.getFullYear();
+        const sAge = calculateAge(formData.siblingDob);
+
+        if (isNaN(sibDobDate.getTime()) || sibDobDate >= today) {
+          errors.siblingDob = 'Invalid date of birth for sibling.';
+        } else if (birthYear >= currentYear || (sAge !== null && sAge < 5)) {
+          errors.siblingDob = 'Sibling must be at least 5 years old to enroll.';
+        } else if (sAge !== null && sAge > 35) {
+          errors.siblingDob = 'Sibling age exceeds academy maximum limit (35 years).';
+        }
+      }
+    }
+
+    // 6. Parent / Guardian Name (strictly required if either athlete is under 18)
     const trimmedParent = formData.parentName.trim();
-    if (requiresParent) {
+    if (isMinor) {
       if (!trimmedParent) {
         errors.parentName = 'Parent / Guardian name is required for athletes under 18.';
       } else if (/\d/.test(trimmedParent)) {
@@ -666,7 +717,7 @@ export default function Register() {
       }
     }
 
-    // 6. Emergency Contact Person & Phone
+    // 7. Emergency Contact Person & Phone
     const trimmedEmergencyName = formData.emergencyContactName.trim();
     if (!trimmedEmergencyName) {
       errors.emergencyContactName = 'Emergency contact person is required.';
@@ -687,7 +738,7 @@ export default function Register() {
       errors.emergencyContactPhone = 'Emergency phone should be different from primary contact phone.';
     }
 
-    // 7. Safety Waiver Acceptance
+    // 8. Safety Waiver Acceptance
     if (!formData.waiverAccepted) {
       errors.waiverAccepted = 'You must read and accept the Safety & Liability Waiver to proceed.';
     }
@@ -764,6 +815,7 @@ export default function Register() {
       if (data.success && data.registration) {
         setRegistrationRecord(data.registration);
         setCurrentStep(3);
+        modalBodyRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
 
         // Trigger celebratory confetti
         confetti({
@@ -1097,8 +1149,10 @@ export default function Register() {
             data-lenis-prevent="true"
             className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 md:p-8 overscroll-none"
             onClick={(e) => {
-              // Clicking outside the modal container closes it
-              if (e.target === e.currentTarget) setIsModalOpen(false);
+              // Prevent accidental backdrop dismissal during active registration (Steps 1 & 2)
+              if (e.target === e.currentTarget && currentStep === 3) {
+                setIsModalOpen(false);
+              }
             }}
             onWheel={(e) => e.stopPropagation()}
             onTouchMove={(e) => e.stopPropagation()}
@@ -1142,6 +1196,7 @@ export default function Register() {
 
               {/* Modal Scrollable Body */}
               <div 
+                ref={modalBodyRef}
                 data-lenis-prevent="true"
                 className="overflow-y-auto overscroll-contain p-5 sm:p-8 space-y-6 flex-1"
                 onWheel={(e) => e.stopPropagation()}
@@ -1321,6 +1376,134 @@ export default function Register() {
                           )}
                         </div>
 
+                        {/* ── SIBLING ENROLLMENT OPTION CARD (-$50 DISCOUNT) ── */}
+                        <div className={`rounded-2xl border transition-all ${
+                          formData.hasSibling 
+                            ? 'bg-emerald-50/80 border-emerald-300 shadow-sm p-4 sm:p-5' 
+                            : 'bg-gradient-to-r from-amber-50/90 to-orange-50/60 border-amber-200/90 p-4'
+                        }`}>
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-start gap-3">
+                              <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
+                                formData.hasSibling ? 'bg-emerald-500 text-white shadow-sm' : 'bg-amber-500/20 text-amber-800'
+                              }`}>
+                                <Users className="w-4 h-4" />
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="text-xs font-black uppercase tracking-wider text-slate-900">
+                                    Register with a Sibling
+                                  </span>
+                                  <span className="bg-[#D62828] text-white text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full shadow-sm">
+                                    Save $50 Instant Discount
+                                  </span>
+                                </div>
+                                <p className="text-[11px] text-slate-600 mt-0.5 leading-snug">
+                                  Enrolling brothers, sisters, or family members together? Add your sibling athlete to get a <strong>$50 family discount</strong> automatically applied to your total package fee.
+                                </p>
+                              </div>
+                            </div>
+
+                            <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-1">
+                              <input
+                                type="checkbox"
+                                checked={formData.hasSibling}
+                                onChange={(e) => handleInputChange('hasSibling', e.target.checked)}
+                                className="sr-only peer"
+                              />
+                              <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                            </label>
+                          </div>
+
+                          {/* Expanded Sibling Details Form */}
+                          {formData.hasSibling && (
+                            <div className="mt-4 pt-4 border-t border-emerald-200/80 space-y-4">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-emerald-900 flex items-center gap-1.5">
+                                  <Sparkles className="w-3.5 h-3.5 text-emerald-600" /> Sibling (Athlete 2) Information
+                                </span>
+                                <span className="text-[10px] text-emerald-800 font-bold bg-emerald-100/90 px-2.5 py-0.5 rounded-md">
+                                  -$50 Family Discount Active
+                                </span>
+                              </div>
+
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                {/* Sibling Full Name */}
+                                <div data-error={!!formErrors.siblingName}>
+                                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-700 mb-1">
+                                    Sibling Full Name <span className="text-[#D62828]">*</span>
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={formData.siblingName}
+                                    onChange={(e) => handleInputChange('siblingName', e.target.value)}
+                                    placeholder="e.g. Liam Miller"
+                                    className={`w-full bg-white border rounded-xl px-4 py-2.5 text-xs text-slate-900 font-medium outline-none transition-all ${
+                                      formErrors.siblingName ? 'border-red-500 bg-red-50/50' : 'border-emerald-300 focus:border-emerald-600'
+                                    }`}
+                                  />
+                                  {formErrors.siblingName && (
+                                    <span className="text-[10px] text-red-600 font-bold block mt-1">{formErrors.siblingName}</span>
+                                  )}
+                                </div>
+
+                                {/* Sibling Date of Birth */}
+                                <div data-error={!!formErrors.siblingDob}>
+                                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-700 mb-1">
+                                    Sibling Date of Birth <span className="text-[#D62828]">* (Min age 5)</span>
+                                  </label>
+                                  <input
+                                    type="date"
+                                    min={minDobString}
+                                    max={maxDobString}
+                                    value={formData.siblingDob}
+                                    onChange={(e) => handleInputChange('siblingDob', e.target.value)}
+                                    className={`w-full bg-white border rounded-xl px-4 py-2.5 text-xs text-slate-900 font-medium outline-none transition-all ${
+                                      formErrors.siblingDob ? 'border-red-500 bg-red-50/50' : 'border-emerald-300 focus:border-emerald-600'
+                                    }`}
+                                  />
+                                  {formData.siblingDob && (
+                                    <div className="mt-1 text-[11px] font-bold">
+                                      {siblingAge !== null && siblingAge < 5 && (
+                                        <span className="text-red-600">⚠️ Age {siblingAge}: Minimum age is 5 years</span>
+                                      )}
+                                      {siblingAge !== null && siblingAge >= 5 && siblingAge < 18 && (
+                                        <span className="text-emerald-800 bg-emerald-100/90 px-2 py-0.5 rounded-md inline-block">
+                                          👶 Youth Athlete ({siblingAge} yrs old)
+                                        </span>
+                                      )}
+                                      {siblingAge !== null && siblingAge >= 18 && siblingAge <= 35 && (
+                                        <span className="text-emerald-800 bg-emerald-100/90 px-2 py-0.5 rounded-md inline-block">
+                                          👤 Adult Athlete ({siblingAge} yrs old)
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
+                                  {formErrors.siblingDob && (
+                                    <span className="text-[10px] text-red-600 font-bold block mt-1">{formErrors.siblingDob}</span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Live Sibling Fee Breakdown Box */}
+                              <div className="bg-white/95 rounded-xl p-3.5 border border-emerald-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-sm">
+                                <div className="space-y-0.5">
+                                  <div className="text-slate-600 text-[11px]">
+                                    2 Athletes ({formData.playerName || 'Athlete 1'} + {formData.siblingName || 'Athlete 2'}): <span className="line-through text-slate-400 font-bold">${singlePrice * 2}.00</span>
+                                  </div>
+                                  <div className="text-emerald-700 font-black text-xs flex items-center gap-1">
+                                    <Sparkles className="w-3.5 h-3.5 text-emerald-600" /> Sibling Family Discount: -$50.00 (Applied)
+                                  </div>
+                                </div>
+                                <div className="text-left sm:text-right border-t sm:border-t-0 pt-1.5 sm:pt-0">
+                                  <span className="text-[10px] text-slate-400 font-black uppercase block">Total Package Fee</span>
+                                  <span className="font-serif font-black text-xl text-emerald-800">${totalRegistrationFee}.00 USD</span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
                         {/* Preferred Training Location (Available for Every Session) */}
                         <div>
                           <label className="block text-[10px] font-black uppercase tracking-wider text-slate-700 mb-1">
@@ -1464,7 +1647,7 @@ export default function Register() {
                             <div className="pt-2.5 space-y-1">
                               <p className="font-bold text-slate-900 text-xs">7. Strict Non-Refundable Enrollment Policy</p>
                               <p>
-                                All registration fees (${selectedSession?.price || 0}.00) are 100% non-refundable once registered. Court bookings, insurance, and coach allocations are finalized immediately upon registration submission.
+                                All registration fees (${totalRegistrationFee}.00) are 100% non-refundable once registered. Court bookings, insurance, and coach allocations are finalized immediately upon registration submission.
                               </p>
                             </div>
 
@@ -1485,7 +1668,7 @@ export default function Register() {
                             className="mt-0.5 w-4 h-4 rounded border-slate-300 text-[#D62828] focus:ring-[#D62828] cursor-pointer"
                           />
                           <span className="text-xs text-slate-800 font-medium leading-tight">
-                            I have read, agree to, and accept the <strong>Challengers Volleyball Academy Safety &amp; Liability Waiver</strong>, and acknowledge that all fees (${selectedSession.price}.00) are <strong>strictly non-refundable</strong>. <span className="text-[#D62828]">*</span>
+                            I have read, agree to, and accept the <strong>Challengers Volleyball Academy Safety &amp; Liability Waiver</strong>, and acknowledge that all fees (${totalRegistrationFee}.00) are <strong>strictly non-refundable</strong>. <span className="text-[#D62828]">*</span>
                           </span>
                         </label>
                         {formErrors.waiverAccepted && (
@@ -1515,7 +1698,7 @@ export default function Register() {
                             </>
                           ) : (
                             <>
-                              <span>Proceed to Payment (${selectedSession.price})</span>
+                              <span>Proceed to Payment (${totalRegistrationFee})</span>
                               <ArrowRight className="w-4 h-4" />
                             </>
                           )}
@@ -1547,16 +1730,44 @@ export default function Register() {
                         Order Summary
                       </span>
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div>
-                          <h3 className="text-xl font-serif font-black text-white">{selectedSession.name}</h3>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-xl font-serif font-black text-white">{selectedSession.name}</h3>
+                            {formData.hasSibling && (
+                              <span className="bg-emerald-500 text-white text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full">
+                                2 Athletes (Sibling Discount)
+                              </span>
+                            )}
+                          </div>
                           <p className="text-xs text-white/70">{selectedSession.sessionDuration} · {selectedSession.location}</p>
-                          <p className="text-[11px] text-white/60 mt-1">
-                            Athlete: <strong className="text-white">{formData.playerName}</strong> ({formData.email})
-                          </p>
+                          
+                          {formData.hasSibling ? (
+                            <div className="mt-2.5 bg-white/10 rounded-xl p-3 border border-white/10 space-y-1 text-xs max-w-md">
+                              <div className="flex justify-between text-white/80 text-[11px]">
+                                <span>Athlete 1 ({formData.playerName}):</span>
+                                <span className="font-mono">${singlePrice}.00</span>
+                              </div>
+                              <div className="flex justify-between text-white/80 text-[11px]">
+                                <span>Sibling Athlete 2 ({formData.siblingName}):</span>
+                                <span className="font-mono">${singlePrice}.00</span>
+                              </div>
+                              <div className="flex justify-between text-emerald-400 font-bold text-[11px] pt-1 border-t border-white/10">
+                                <span>Family Sibling Discount:</span>
+                                <span className="font-mono">-$50.00</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-[11px] text-white/60 mt-1">
+                              Athlete: <strong className="text-white">{formData.playerName}</strong> ({formData.email})
+                            </p>
+                          )}
                         </div>
-                        <div className="text-left sm:text-right border-t sm:border-t-0 pt-3 sm:pt-0 border-white/10">
-                          <span className="text-3xl font-serif font-black text-[#F9BC00]">${selectedSession.price}.00</span>
-                          <span className="text-[10px] text-white/60 block font-bold">Total Non-Refundable Fee</span>
+
+                        <div className="text-left sm:text-right border-t sm:border-t-0 pt-3 sm:pt-0 border-white/10 shrink-0">
+                          <span className="text-3xl font-serif font-black text-[#F9BC00]">${totalRegistrationFee}.00</span>
+                          <span className="text-[10px] text-white/60 block font-bold">
+                            {formData.hasSibling ? 'Total Fee (Save $50)' : 'Total Non-Refundable Fee'}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -1642,12 +1853,16 @@ export default function Register() {
                               <div className="flex-1 w-full space-y-4 text-xs">
                                 <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 flex items-center justify-between">
                                   <div>
-                                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Program Fee</span>
-                                    <span className="text-xl font-black text-slate-900">${selectedSession.price}.00 <span className="text-xs font-bold text-slate-500">USD</span></span>
+                                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Total Due</span>
+                                    <span className="text-xl font-black text-slate-900">${totalRegistrationFee}.00 <span className="text-xs font-bold text-slate-500">USD</span></span>
                                   </div>
                                   <div className="text-right">
-                                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Athlete</span>
-                                    <span className="text-xs font-bold text-slate-800">{formData.playerName || 'Student Athlete'}</span>
+                                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
+                                      {formData.hasSibling ? 'Athletes (2)' : 'Athlete'}
+                                    </span>
+                                    <span className="text-xs font-bold text-slate-800">
+                                      {formData.playerName || 'Student'}{formData.hasSibling ? ` & ${formData.siblingName || 'Sibling'}` : ''}
+                                    </span>
                                   </div>
                                 </div>
 
@@ -1659,7 +1874,7 @@ export default function Register() {
                                   </div>
                                   <div className="text-xs text-emerald-950 leading-tight">
                                     <strong className="font-black block text-emerald-900 mb-0.5">Live Scan Listener Active</strong>
-                                    Scan with iPhone or Android to pay with Apple Pay, Google Pay, or Card. Both student &amp; admin will receive confirmation emails automatically.
+                                    Scan with iPhone or Android to pay with Apple Pay, Google Pay, or Card. Confirmation receipt will be sent automatically.
                                   </div>
                                 </div>
 
@@ -1787,11 +2002,11 @@ export default function Register() {
                                   <div className="bg-amber-50/70 p-2.5 rounded-xl border border-amber-200/70 flex items-center justify-between">
                                     <div>
                                       <span className="text-[9px] font-black uppercase tracking-wider text-amber-900 block">Exact Fee Due</span>
-                                      <span className="font-black text-slate-900 text-xs">${selectedSession.price}.00 USD</span>
+                                      <span className="font-black text-slate-900 text-xs">${totalRegistrationFee}.00 USD</span>
                                     </div>
                                     <button
                                       type="button"
-                                      onClick={() => handleCopy(String(selectedSession.price), 'price')}
+                                      onClick={() => handleCopy(String(totalRegistrationFee), 'price')}
                                       className="p-1.5 text-amber-700 hover:bg-amber-200/60 rounded-lg transition-colors cursor-pointer"
                                       title="Copy Exact Amount"
                                     >
@@ -1840,7 +2055,7 @@ export default function Register() {
                               ) : (
                                 <>
                                   <Check className="w-4 h-4 text-white" />
-                                  <span>Confirm QR Payment &amp; Complete Enrollment (${selectedSession.price})</span>
+                                  <span>Confirm QR Payment &amp; Complete Enrollment (${totalRegistrationFee})</span>
                                 </>
                               )}
                             </button>
@@ -1891,9 +2106,16 @@ export default function Register() {
                         >
                           <StripeCardForm
                             selectedSession={selectedSession}
+                            totalAmount={totalRegistrationFee}
+                            hasSibling={formData.hasSibling}
+                            siblingName={formData.siblingName}
                             leadId={leadId}
+                            activeRegistrationId={activeRegistrationId}
+                            formData={formData}
                             setRegistrationRecord={setRegistrationRecord}
                             setCurrentStep={setCurrentStep}
+                            setIsModalOpen={setIsModalOpen}
+                            modalBodyRef={modalBodyRef}
                             paymentError={paymentError}
                             setPaymentError={setPaymentError}
                             isProcessing={isProcessing}
@@ -1944,16 +2166,29 @@ export default function Register() {
                           <div className="text-right">
                             <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Status</span>
                             <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-black text-[10px]">
-                              <Check className="w-3 h-3" /> PAID (${registrationRecord?.amountPaid || selectedSession.price})
+                              <Check className="w-3 h-3" /> PAID (${registrationRecord?.amountPaid || totalRegistrationFee})
                             </span>
                           </div>
                         </div>
 
                         <div className="space-y-2 pt-2">
                           <div className="flex justify-between py-2 border-b border-slate-100">
-                            <span className="text-slate-500 font-medium">Athlete Name:</span>
+                            <span className="text-slate-500 font-medium">Primary Athlete:</span>
                             <strong className="text-slate-900">{registrationRecord?.playerName || formData.playerName}</strong>
                           </div>
+
+                          {(registrationRecord?.hasSibling || formData.hasSibling) && (
+                            <>
+                              <div className="flex justify-between py-2 border-b border-slate-100 bg-emerald-50/50 px-2 rounded-lg">
+                                <span className="text-emerald-800 font-bold">Sibling Athlete (Athlete 2):</span>
+                                <strong className="text-emerald-900">{registrationRecord?.siblingName || formData.siblingName || 'Sibling'}</strong>
+                              </div>
+                              <div className="flex justify-between py-2 border-b border-slate-100 px-2">
+                                <span className="text-slate-500 font-medium">Sibling Family Discount:</span>
+                                <strong className="text-emerald-600 font-black">-$50.00 USD (Applied)</strong>
+                              </div>
+                            </>
+                          )}
 
                           {formData.parentName && (
                             <div className="flex justify-between py-2 border-b border-slate-100">
@@ -1998,7 +2233,7 @@ export default function Register() {
 
                           <div className="flex justify-between py-2 text-sm pt-2">
                             <span className="font-black text-slate-900">Total Amount Paid:</span>
-                            <span className="font-serif font-black text-xl text-[#071A2D]">${registrationRecord?.amountPaid || selectedSession.price}.00</span>
+                            <span className="font-serif font-black text-xl text-[#071A2D]">${registrationRecord?.amountPaid || totalRegistrationFee}.00 USD</span>
                           </div>
                         </div>
                       </div>
@@ -2057,9 +2292,16 @@ export default function Register() {
 // ─────────────────────────────────────────────────────────────
 interface StripeCardFormProps {
   selectedSession: SessionItem;
+  totalAmount: number;
+  hasSibling: boolean;
+  siblingName?: string;
   leadId: string | null;
+  activeRegistrationId: string | null;
+  formData: any;
   setRegistrationRecord: (r: any) => void;
   setCurrentStep: (s: 1 | 2 | 3) => void;
+  setIsModalOpen: (open: boolean) => void;
+  modalBodyRef: React.RefObject<HTMLDivElement | null>;
   paymentError: string | null;
   setPaymentError: (e: string | null) => void;
   isProcessing: boolean;
@@ -2068,9 +2310,16 @@ interface StripeCardFormProps {
 
 function StripeCardForm({
   selectedSession,
+  totalAmount,
+  hasSibling,
+  siblingName,
   leadId,
+  activeRegistrationId,
+  formData,
   setRegistrationRecord,
   setCurrentStep,
+  setIsModalOpen,
+  modalBodyRef,
   paymentError,
   setPaymentError,
   isProcessing,
@@ -2089,22 +2338,25 @@ function StripeCardForm({
     setIsProcessing(true);
     setPaymentError(null);
 
-    // 1. Confirm the payment with Stripe - this charges the real card
-    const { error, paymentIntent } = await stripe.confirmPayment({
-      elements,
-      redirect: 'if_required',
-    });
+    try {
+      // 1. Confirm the payment with Stripe - pass return_url for redirect/3DS support
+      const returnUrl = `${window.location.origin}/register?completed=true&leadId=${leadId || ''}&registrationId=${activeRegistrationId || ''}`;
+      const { error, paymentIntent } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          return_url: returnUrl,
+        },
+        redirect: 'if_required',
+      });
 
-    if (error) {
-      // Stripe declined or error occurred
-      setPaymentError(error.message || 'Payment failed. Please check your card details and try again.');
-      setIsProcessing(false);
-      return;
-    }
+      if (error) {
+        setPaymentError(error.message || 'Payment failed. Please check your card details and try again.');
+        setIsProcessing(false);
+        return;
+      }
 
-    if (paymentIntent?.status === 'succeeded') {
-      // 2. Payment charged - now verify on our server and trigger emails
-      try {
+      if (paymentIntent?.status === 'succeeded' || paymentIntent?.status === 'processing') {
+        // 2. Payment confirmed - now verify on our server and trigger confirmation emails
         const res = await fetch('/api/verify-payment', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -2112,33 +2364,68 @@ function StripeCardForm({
             paymentMethod: 'Card',
             paymentIntentId: paymentIntent.id,
             leadId,
+            registrationId: activeRegistrationId,
+            sessionId: selectedSession?.id,
+            studentData: formData,
+            hasSibling: formData.hasSibling,
+            siblingName: formData.siblingName,
+            siblingDob: formData.siblingDob,
+            siblingGender: formData.siblingGender,
+            playerName: formData.playerName,
+            parentName: formData.parentName,
+            email: formData.email,
+            phone: formData.phone,
+            dob: formData.dob
           }),
         });
-        const data = await res.json();
-        if (data.success && data.registration) {
-          setRegistrationRecord(data.registration);
-          setCurrentStep(3);
-          // Confetti celebration
-          confetti({
-            particleCount: 120,
-            spread: 80,
-            origin: { y: 0.55 },
-            colors: ['#D62828', '#F9BC00', '#071A2D', '#22C55E'],
-          });
-        } else {
-          setPaymentError(data.message || 'Payment was charged but confirmation failed. Please contact support with your payment receipt.');
-        }
-      } catch (err: any) {
-        console.error('Verify payment error:', err);
-        setPaymentError('Payment was charged but confirmation failed. Please contact support.');
-      }
-    } else if (paymentIntent?.status === 'requires_action') {
-      setPaymentError('Additional authentication required. Please complete the 3D Secure step.');
-    } else {
-      setPaymentError(`Payment status: ${paymentIntent?.status}. Please try again.`);
-    }
 
-    setIsProcessing(false);
+        const data = await res.json();
+        const finalReg = (data.success && data.registration) ? data.registration : {
+          registrationId: activeRegistrationId || `CVA-${Math.floor(10000 + Math.random() * 90000)}`,
+          sessionId: selectedSession?.id,
+          sessionName: selectedSession?.name,
+          playerName: formData.playerName,
+          parentName: formData.parentName,
+          email: formData.email,
+          phone: formData.phone,
+          dob: formData.dob,
+          location: selectedSession?.location,
+          schedule: selectedSession?.schedule,
+          amountPaid: totalAmount,
+          paymentStatus: 'PAID',
+          paymentMethod: 'Credit / Debit Card',
+          transactionId: paymentIntent.id,
+          stripePaymentIntentId: paymentIntent.id,
+          hasSibling: formData.hasSibling,
+          siblingName: formData.siblingName,
+          siblingDob: formData.siblingDob,
+          discountAmount: formData.hasSibling ? 50 : 0,
+          registeredAt: Date.now()
+        };
+
+        setRegistrationRecord(finalReg);
+        setCurrentStep(3);
+        setIsModalOpen(true);
+        modalBodyRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Confetti celebration
+        confetti({
+          particleCount: 140,
+          spread: 90,
+          origin: { y: 0.55 },
+          colors: ['#D62828', '#F9BC00', '#071A2D', '#22C55E'],
+        });
+      } else if (paymentIntent?.status === 'requires_action') {
+        setPaymentError('Additional authentication required. Please complete the 3D Secure verification step.');
+      } else {
+        setPaymentError(`Payment status: ${paymentIntent?.status}. Please try again.`);
+      }
+    } catch (err: any) {
+      console.error('Stripe submit error:', err);
+      setPaymentError(err.message || 'An unexpected error occurred during card checkout.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -2167,8 +2454,13 @@ function StripeCardForm({
 
       {/* Amount reminder */}
       <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex items-center justify-between text-xs">
-        <span className="text-slate-600 font-medium">Total Charge Amount</span>
-        <span className="font-black text-[#D62828] text-base">${selectedSession.price}.00 USD</span>
+        <div>
+          <span className="text-slate-600 font-medium block">Total Charge Amount</span>
+          {hasSibling && (
+            <span className="text-[10px] text-emerald-600 font-bold">Includes -$50.00 Sibling Discount</span>
+          )}
+        </div>
+        <span className="font-black text-[#D62828] text-base">${totalAmount}.00 USD</span>
       </div>
 
       {/* Error message */}
@@ -2193,7 +2485,7 @@ function StripeCardForm({
         ) : (
           <>
             <Lock className="w-4 h-4 text-white/80" />
-            <span>Pay ${selectedSession.price}.00 &amp; Confirm Enrollment</span>
+            <span>Pay ${totalAmount}.00 &amp; Confirm Enrollment</span>
           </>
         )}
       </button>

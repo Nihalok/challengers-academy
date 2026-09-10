@@ -131,35 +131,74 @@ function requireOwner(req: Request, res: Response, next: NextFunction): void {
 
 // Nodemailer transporter (supports Gmail app password & custom SMTP)
 function getMailTransporter() {
-  const user = process.env.EMAIL_USER;
-  const pass = process.env.EMAIL_PASS;
-  if (!user || !pass) return null;
+  const user = process.env.EMAIL_USER?.trim();
+  const pass = process.env.EMAIL_PASS?.trim()?.replace(/\s+/g, '');
+  if (!user || !pass) {
+    console.warn('⚠️ EMAIL_USER or EMAIL_PASS missing in environment');
+    return null;
+  }
 
-  const host = process.env.EMAIL_HOST;
-  if (process.env.EMAIL_SERVICE === 'gmail' || user.includes('@gmail.com') || host === 'smtp.gmail.com') {
+  const host = process.env.EMAIL_HOST?.trim() || 'smtp.gmail.com';
+  const isGmail = process.env.EMAIL_SERVICE === 'gmail' || user.includes('@gmail.com') || host === 'smtp.gmail.com';
+
+  if (isGmail) {
     return nodemailer.createTransport({
-      service: 'gmail',
-      auth: { user, pass }
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
+      auth: { user, pass },
+      tls: { rejectUnauthorized: false }
     });
   }
 
+  const port = parseInt(process.env.EMAIL_PORT || '587');
   return nodemailer.createTransport({
-    host: host || 'smtp.gmail.com',
-    port: parseInt(process.env.EMAIL_PORT || '465'),
-    secure: process.env.EMAIL_PORT === '465',
+    host,
+    port,
+    secure: port === 465,
     auth: { user, pass },
+    tls: { rejectUnauthorized: false }
   });
 }
 
-async function sendPasswordResetEmail(email: string, resetToken: string) {
-  const appUrl = process.env.APP_URL || 'http://localhost:3000';
+function getFromAddress(): string {
+  const envFrom = process.env.EMAIL_FROM?.trim();
+  const user = process.env.EMAIL_USER?.trim() || 'nihalok625@gmail.com';
+  if (envFrom) {
+    if (envFrom.includes('<') && envFrom.includes('>')) {
+      return envFrom;
+    }
+    return `"Challengers Volleyball Academy" <${envFrom}>`;
+  }
+  return `"Challengers Volleyball Academy" <${user}>`;
+}
+
+async function sendPasswordResetEmail(email: string, resetToken: string, req?: any) {
+  let appUrl = process.env.APP_URL;
+  if (!appUrl || appUrl.includes('localhost')) {
+    if (req) {
+      const origin = req.get('origin') || req.get('referer');
+      if (origin) {
+        try {
+          const parsed = new URL(origin);
+          appUrl = `${parsed.protocol}//${parsed.host}`;
+        } catch {
+          appUrl = `${req.protocol}://${req.get('host')}`;
+        }
+      } else {
+        appUrl = `${req.protocol}://${req.get('host')}`;
+      }
+    } else {
+      appUrl = appUrl || 'http://localhost:3000';
+    }
+  }
   const resetUrl = `${appUrl}/login?reset=${resetToken}`;
   const transporter = getMailTransporter();
   if (!transporter) {
     console.log(`\n[PASSWORD RESET EMAIL]\nTo: ${email}\nReset URL: ${resetUrl}\n`);
     return;
   }
-  const from = process.env.EMAIL_FROM || process.env.EMAIL_USER;
+  const from = getFromAddress();
   await transporter.sendMail({
     from,
     to: email,
@@ -861,6 +900,14 @@ export interface RegistrationRecord {
   emergencyContactPhone?: string;
   waiverAccepted: boolean;
   registeredAt: number;
+  // Sibling Enrollment & Discount Details
+  hasSibling?: boolean;
+  siblingName?: string;
+  siblingDob?: string;
+  siblingGender?: string;
+  discountAmount?: number;
+  basePrice?: number;
+  totalAthletes?: number;
 }
 
 export interface AcademyPaymentSettings {
@@ -955,23 +1002,24 @@ async function sendAdminNotificationEmail(reg: RegistrationRecord) {
   const adminEmail = process.env.ACADEMY_ADMIN_EMAIL || process.env.ADMIN_SEED_EMAIL || process.env.EMAIL_USER || 'kenznajeeb@gmail.com';
   const appUrl = process.env.APP_URL || 'http://localhost:3000';
   const transporter = getMailTransporter();
-  const from = process.env.EMAIL_FROM || process.env.EMAIL_USER || 'no-reply@challengersvolleyball.com';
+  const from = getFromAddress();
 
   console.log(`\n======================================================`);
   console.log(`📧 [EMAIL DISPATCH] → ADMIN NOTIFICATION`);
   console.log(`To: ${adminEmail}`);
-  console.log(`Subject: New Registration: ${reg.playerName} ($${reg.amountPaid})`);
+  console.log(`From: ${from}`);
+  console.log(`Subject: New Registration: ${reg.playerName}${reg.hasSibling ? ` & ${reg.siblingName} (Sibling)` : ''} ($${reg.amountPaid})`);
   console.log(`======================================================\n`);
 
   const isQrTransfer = reg.paymentMethod === 'QR Code' || reg.paymentMethod === 'qr';
   const emailSubject = isQrTransfer
-    ? `🔔 [Zelle / QR Transfer] ${reg.playerName} - Ref: ${reg.transactionId || 'Pending'} ($${reg.amountPaid})`
-    : `🚨 [New Paid Registration] ${reg.playerName} - ${reg.sessionName} ($${reg.amountPaid})`;
+    ? `🔔 [Zelle / QR Transfer] ${reg.playerName}${reg.hasSibling ? ` + Sibling (${reg.siblingName})` : ''} - Ref: ${reg.transactionId || 'Pending'} ($${reg.amountPaid})`
+    : `🚨 [New Paid Registration] ${reg.playerName}${reg.hasSibling ? ` + Sibling (${reg.siblingName})` : ''} - ${reg.sessionName} ($${reg.amountPaid})`;
 
   if (transporter) {
     try {
       await transporter.sendMail({
-        from: `"Challengers Academy" <${from}>`,
+        from,
         to: adminEmail,
         subject: emailSubject,
         html: `
@@ -983,8 +1031,15 @@ async function sendAdminNotificationEmail(reg: RegistrationRecord) {
                 <div style="display: inline-block; background: ${isQrTransfer ? '#f59e0b' : '#ea580c'}; color: #ffffff; font-weight: 900; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; padding: 6px 14px; border-radius: 50px; margin-bottom: 12px;">
                   ${isQrTransfer ? 'Zelle / QR Transfer Submitted' : 'New Paid Registration'}
                 </div>
+                ${reg.hasSibling ? `
+                <div style="display: block; margin-bottom: 8px;">
+                  <span style="background: #22c55e; color: #ffffff; font-weight: 800; font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; padding: 4px 10px; border-radius: 20px;">
+                    ✨ 2 Athletes Enrolled (Sibling Discount -$50 Applied)
+                  </span>
+                </div>
+                ` : ''}
                 <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;">
-                  ${reg.playerName}
+                  ${reg.playerName}${reg.hasSibling ? ` & ${reg.siblingName}` : ''}
                 </h1>
                 <p style="color: #ea580c; margin: 4px 0 0 0; font-size: 16px; font-weight: bold;">
                   $${reg.amountPaid} USD - ${reg.sessionName}
@@ -1012,9 +1067,15 @@ async function sendAdminNotificationEmail(reg: RegistrationRecord) {
                     <td style="padding: 10px 0; color: #1B1B1D; font-weight: 900;">${reg.registrationId}</td>
                   </tr>
                   <tr style="border-bottom: 1px solid #f2ede4;">
-                    <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Player Name:</td>
-                    <td style="padding: 10px 0; color: #1B1B1D; font-weight: bold;">${reg.playerName}</td>
+                    <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Primary Athlete:</td>
+                    <td style="padding: 10px 0; color: #1B1B1D; font-weight: bold;">${reg.playerName} ${reg.dob ? `(DOB: ${reg.dob})` : ''}</td>
                   </tr>
+                  ${reg.hasSibling ? `
+                  <tr style="border-bottom: 1px solid #f2ede4; background-color: #f0fdf4;">
+                    <td style="padding: 10px 0; color: #166534; font-weight: 700;">Sibling Athlete (Athlete 2):</td>
+                    <td style="padding: 10px 0; color: #166534; font-weight: bold;">${reg.siblingName || 'Sibling'} ${reg.siblingDob ? `(DOB: ${reg.siblingDob})` : ''}</td>
+                  </tr>
+                  ` : ''}
                   <tr style="border-bottom: 1px solid #f2ede4;">
                     <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Parent/Guardian:</td>
                     <td style="padding: 10px 0; color: #1B1B1D;">${reg.parentName || 'N/A'}</td>
@@ -1038,6 +1099,10 @@ async function sendAdminNotificationEmail(reg: RegistrationRecord) {
                   <tr style="border-bottom: 1px solid #f2ede4;">
                     <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Payment Method:</td>
                     <td style="padding: 10px 0; color: #1B1B1D; font-weight: bold;">${reg.paymentMethod || 'Card'}</td>
+                  </tr>
+                  <tr style="border-bottom: 1px solid #f2ede4;">
+                    <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Total Amount Paid:</td>
+                    <td style="padding: 10px 0; color: #16a34a; font-weight: 900;">$${reg.amountPaid} USD ${reg.hasSibling ? '($50 Sibling Discount Deducted)' : ''}</td>
                   </tr>
                   <tr>
                     <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Payment / Ref ID:</td>
@@ -1065,19 +1130,20 @@ async function sendAdminNotificationEmail(reg: RegistrationRecord) {
 
 async function sendCustomerConfirmationEmail(reg: RegistrationRecord) {
   const transporter = getMailTransporter();
-  const from = process.env.EMAIL_FROM || process.env.EMAIL_USER || 'no-reply@challengersvolleyball.com';
+  const from = getFromAddress();
   const customerName = reg.parentName || reg.playerName;
 
   console.log(`\n======================================================`);
   console.log(`📧 [EMAIL DISPATCH] → CUSTOMER CONFIRMATION`);
   console.log(`To: ${reg.email}`);
+  console.log(`From: ${from}`);
   console.log(`Subject: Registration Confirmed! 🎉 - Challengers Volleyball Academy`);
   console.log(`======================================================\n`);
 
   if (transporter) {
     try {
       await transporter.sendMail({
-        from: `"Challengers Volleyball Academy" <${from}>`,
+        from,
         to: reg.email,
         subject: `🎉 Registration Confirmed: ${reg.sessionName} (${reg.registrationId})`,
         html: `
@@ -1120,9 +1186,19 @@ async function sendCustomerConfirmationEmail(reg: RegistrationRecord) {
                     <td style="padding: 10px 0; color: #1B1B1D; font-weight: bold;">${reg.sessionName}</td>
                   </tr>
                   <tr style="border-bottom: 1px solid #f2ede4;">
-                    <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Athlete Name:</td>
+                    <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Primary Athlete:</td>
                     <td style="padding: 10px 0; color: #1B1B1D; font-weight: bold;">${reg.playerName}</td>
                   </tr>
+                  ${reg.hasSibling ? `
+                  <tr style="border-bottom: 1px solid #f2ede4; background-color: #f0fdf4;">
+                    <td style="padding: 10px 0; color: #166534; font-weight: 700;">Sibling Athlete:</td>
+                    <td style="padding: 10px 0; color: #166534; font-weight: bold;">${reg.siblingName || 'Sibling'} (Enrolled)</td>
+                  </tr>
+                  <tr style="border-bottom: 1px solid #f2ede4;">
+                    <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Sibling Family Discount:</td>
+                    <td style="padding: 10px 0; color: #16a34a; font-weight: bold;">-$50.00 USD (Deducted)</td>
+                  </tr>
+                  ` : ''}
                   <tr style="border-bottom: 1px solid #f2ede4;">
                     <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Schedule & Timings:</td>
                     <td style="padding: 10px 0; color: #1B1B1D;">${reg.schedule}</td>
@@ -1142,7 +1218,7 @@ async function sendCustomerConfirmationEmail(reg: RegistrationRecord) {
                   </tr>
                   ` : ''}
                   <tr style="border-bottom: 1px solid #f2ede4;">
-                    <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Amount Paid:</td>
+                    <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Total Amount Paid:</td>
                     <td style="padding: 10px 0; color: #16a34a; font-weight: 900; font-size: 16px;">$${reg.amountPaid} USD (PAID)</td>
                   </tr>
                 </table>
@@ -1233,6 +1309,9 @@ async function startServer() {
         ? sessionOrIntent.amount_total / 100 
         : (sessionOrIntent.amount ? sessionOrIntent.amount / 100 : (sessionItem?.price || 200));
 
+      const isSiblingEnrolled = metadata.hasSibling === 'true' || metadata.hasSibling === true;
+      const discountAmount = Number(metadata.discountAmount) || (isSiblingEnrolled ? 50 : 0);
+
       const newRegistration: RegistrationRecord = {
         registrationId,
         sessionId,
@@ -1251,15 +1330,23 @@ async function startServer() {
         emergencyContactName: metadata.emergencyContactName || '',
         emergencyContactPhone: metadata.emergencyContactPhone || '',
         waiverAccepted: metadata.waiverAccepted === 'true' || metadata.waiverAccepted === true,
-        registeredAt: Date.now()
+        registeredAt: Date.now(),
+        // Sibling Details
+        hasSibling: isSiblingEnrolled,
+        siblingName: metadata.siblingName || '',
+        siblingDob: metadata.siblingDob || '',
+        siblingGender: metadata.siblingGender || '',
+        discountAmount,
+        basePrice: Number(metadata.basePrice) || (sessionItem?.price || 200),
+        totalAthletes: isSiblingEnrolled ? 2 : 1
       };
 
       // Save to database (memory + Firestore)
       await saveRegistrationToDb(newRegistration);
 
-      // Increment booked spots
+      // Increment booked spots (1 or 2 for sibling)
       if (sessionItem && sessionItem.filled < sessionItem.capacity) {
-        sessionItem.filled += 1;
+        sessionItem.filled = Math.min(sessionItem.capacity, sessionItem.filled + (isSiblingEnrolled ? 2 : 1));
       }
 
       // Update lead if linked
@@ -1456,7 +1543,7 @@ async function startServer() {
           { $set: { resetToken, resetExpiry } }
         );
         try {
-          await sendPasswordResetEmail(normalizedEmail, resetToken);
+          await sendPasswordResetEmail(normalizedEmail, resetToken, req);
         } catch (err: any) {
           console.error('Email send error:', err.message);
         }
@@ -1465,7 +1552,7 @@ async function startServer() {
       // Fallback dev mode without DB
       devResetTokens[resetToken] = { email: normalizedEmail, expires: Date.now() + 60 * 60 * 1000 };
       try {
-        await sendPasswordResetEmail(normalizedEmail, resetToken);
+        await sendPasswordResetEmail(normalizedEmail, resetToken, req);
       } catch (err: any) {
         console.error('Email send error:', err.message);
       }
@@ -1948,8 +2035,39 @@ async function startServer() {
       dob,
       emergencyContactName,
       emergencyContactPhone,
-      waiverAccepted
+      waiverAccepted,
+      hasSibling,
+      siblingName,
+      siblingDob,
+      siblingGender
     } = req.body;
+
+    // Strict Server-Side Validation: Disallow proceeding with empty or invalid form
+    if (!playerName || !String(playerName).trim()) {
+      return res.status(400).json({ success: false, message: 'Athlete full name is required.' });
+    }
+    if (!email || !String(email).trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim())) {
+      return res.status(400).json({ success: false, message: 'A valid email address is required.' });
+    }
+    if (!phone || String(phone).replace(/\D/g, '').length !== 10) {
+      return res.status(400).json({ success: false, message: 'A valid 10-digit phone number is required.' });
+    }
+    if (!dob) {
+      return res.status(400).json({ success: false, message: 'Athlete date of birth is required.' });
+    }
+    if (waiverAccepted !== true && waiverAccepted !== 'true') {
+      return res.status(400).json({ success: false, message: 'Safety & Liability Waiver must be accepted to proceed.' });
+    }
+
+    const isSibling = hasSibling === true || hasSibling === 'true';
+    if (isSibling) {
+      if (!siblingName || !String(siblingName).trim()) {
+        return res.status(400).json({ success: false, message: 'Sibling athlete full name is required.' });
+      }
+      if (!siblingDob) {
+        return res.status(400).json({ success: false, message: 'Sibling date of birth is required.' });
+      }
+    }
 
     let session: any = null;
     const db = await getMongoDb();
@@ -1989,13 +2107,19 @@ async function startServer() {
       return res.status(400).json({ success: false, message: 'Invalid session selected' });
     }
 
-    if (session.filled >= session.capacity) {
-      return res.status(400).json({ success: false, message: 'This session is currently at full capacity.' });
+    const requiredSpots = isSibling ? 2 : 1;
+
+    if (session.filled + requiredSpots > session.capacity) {
+      return res.status(400).json({ success: false, message: 'This session does not have enough open spots available.' });
     }
+
+    const singlePrice = session.price;
+    const siblingDiscount = isSibling ? 50 : 0;
+    const finalAmount = isSibling ? Math.max(0, (singlePrice * 2) - siblingDiscount) : singlePrice;
+    const amountInCents = Math.round(finalAmount * 100);
 
     const registrationId = generateRegistrationId();
     const leadId = nanoid();
-    const amountInCents = Math.round(session.price * 100);
 
     const metadata: Record<string, string> = {
       registrationId,
@@ -2011,18 +2135,34 @@ async function startServer() {
       schedule: session.schedule,
       emergencyContactName: emergencyContactName || '',
       emergencyContactPhone: emergencyContactPhone || '',
-      waiverAccepted: String(waiverAccepted)
+      waiverAccepted: String(waiverAccepted),
+      hasSibling: String(isSibling),
+      siblingName: siblingName || '',
+      siblingDob: siblingDob || '',
+      siblingGender: siblingGender || '',
+      discountAmount: String(siblingDiscount),
+      totalAthletes: isSibling ? '2' : '1',
+      basePrice: String(singlePrice),
+      finalAmount: String(finalAmount)
     };
 
-    // Pre-save lead in memory
+    // Pre-save lead in memory & MongoDB
     leads[leadId] = {
       id: leadId,
       registrationId,
       ...metadata,
-      amount: session.price,
+      amount: finalAmount,
+      basePrice: singlePrice,
+      hasSibling: isSibling,
+      siblingName: siblingName || '',
+      siblingDob: siblingDob || '',
+      siblingGender: siblingGender || '',
+      discountAmount: siblingDiscount,
+      totalAthletes: isSibling ? 2 : 1,
       status: 'pending_payment',
       createdAt: Date.now()
     };
+    await saveLeadToDb(leads[leadId]);
 
     const stripe = getStripe();
 
@@ -2036,13 +2176,16 @@ async function startServer() {
         checkoutUrl: `${appUrl}/register?completed=true&registrationId=${registrationId}`,
         registrationId,
         leadId,
-        amount: session.price,
+        amount: finalAmount,
+        basePrice: singlePrice,
+        hasSibling: isSibling,
+        discountAmount: siblingDiscount,
         session
       });
     }
 
-    // Live mode: charge the actual session price
-    const chargeAmount = amountInCents; // Full session price in cents
+    // Live mode: charge final amount in cents
+    const chargeAmount = amountInCents;
     const chargeCurrency = 'usd';
 
     try {
@@ -2051,9 +2194,15 @@ async function startServer() {
         currency: chargeCurrency,
         automatic_payment_methods: { enabled: true },
         receipt_email: email,
-        description: `Challengers Academy - ${session.name} - Athlete: ${playerName || 'Student'}`,
+        description: isSibling
+          ? `Challengers Academy - ${session.name} (2 Athletes: ${playerName || 'Student'} & ${siblingName || 'Sibling'} - $50 Sibling Discount)`
+          : `Challengers Academy - ${session.name} - Athlete: ${playerName || 'Student'}`,
         metadata
       });
+
+      // Link paymentIntentId to lead and save to MongoDB
+      leads[leadId].paymentIntentId = paymentIntent.id;
+      await saveLeadToDb(leads[leadId]);
 
       let checkoutUrl: string | null = null;
       try {
@@ -2063,8 +2212,12 @@ async function startServer() {
             price_data: {
               currency: chargeCurrency,
               product_data: {
-                name: `Challengers Academy - ${session.name}`,
-                description: `Athlete: ${playerName || 'Student Athlete'} | Schedule: ${session.schedule} | Location: ${session.location}`,
+                name: isSibling
+                  ? `Challengers Academy - ${session.name} (2 Athletes with $50 Sibling Discount)`
+                  : `Challengers Academy - ${session.name}`,
+                description: isSibling
+                  ? `Athletes: ${playerName} & ${siblingName} | Location: ${session.location} (Includes -$50 Sibling Family Discount)`
+                  : `Athlete: ${playerName || 'Student Athlete'} | Schedule: ${session.schedule} | Location: ${session.location}`,
               },
               unit_amount: chargeAmount,
             },
@@ -2088,7 +2241,10 @@ async function startServer() {
         checkoutUrl,
         registrationId,
         leadId,
-        amount: session.price,
+        amount: finalAmount,
+        basePrice: singlePrice,
+        hasSibling: isSibling,
+        discountAmount: siblingDiscount,
         session
       });
     } catch (err: any) {
@@ -2097,16 +2253,20 @@ async function startServer() {
     }
   });
 
-  // Check registration status (used for real-time Stripe QR mobile payments)
+  // Check registration status (used for real-time Stripe QR mobile payments & checkout returns)
   app.get('/api/registration-status/:registrationId', async (req, res) => {
     const { registrationId } = req.params;
-    if (registrations[registrationId]) {
+    
+    // 1. Check in-memory confirmed registrations
+    if (registrations[registrationId] && registrations[registrationId].paymentStatus === 'PAID') {
       return res.json({ success: true, confirmed: true, registration: registrations[registrationId] });
     }
+
+    // 2. Check MongoDB registrations
     const db = await getMongoDb();
     if (db) {
       try {
-        const found = await db.collection('registrations').findOne({ registrationId });
+        const found = await db.collection('registrations').findOne({ registrationId, paymentStatus: 'PAID' });
         if (found) {
           registrations[registrationId] = found as any;
           return res.json({ success: true, confirmed: true, registration: found });
@@ -2115,25 +2275,97 @@ async function startServer() {
         console.error('Registration status query error:', e.message);
       }
     }
+
+    // 3. Check if there is an active Stripe PaymentIntent that genuinely completed
+    let matchedLead = Object.values(leads).find(l => l.registrationId === registrationId);
+    if (!matchedLead && db) {
+      try {
+        matchedLead = await db.collection('leads').findOne({ registrationId }) as any;
+      } catch (e: any) {
+        console.error('Lead lookup error:', e.message);
+      }
+    }
+
+    if (matchedLead && matchedLead.paymentIntentId) {
+      const stripe = getStripe();
+      if (stripe) {
+        try {
+          const intent = await stripe.paymentIntents.retrieve(matchedLead.paymentIntentId);
+          if (intent && (intent.status === 'succeeded' || intent.status === 'processing')) {
+            const isSibling = matchedLead.hasSibling === true || matchedLead.hasSibling === 'true';
+            const basePrice = Number(matchedLead.basePrice) || 200;
+            const discountAmount = isSibling ? 50 : 0;
+            const amountPaid = intent.amount / 100;
+            const totalAthletes = isSibling ? 2 : 1;
+
+            const confirmedReg: RegistrationRecord = {
+              registrationId,
+              sessionId: matchedLead.sessionId || 'starter-pack',
+              sessionName: matchedLead.sessionName || 'Challengers Coaching Session',
+              playerName: matchedLead.playerName || 'Student Athlete',
+              parentName: matchedLead.parentName || '',
+              email: matchedLead.email || intent.receipt_email || 'customer@example.com',
+              phone: matchedLead.phone || 'N/A',
+              dob: matchedLead.dob || '',
+              location: matchedLead.location || 'Fremont Arena',
+              schedule: matchedLead.schedule || 'Weekend Sessions',
+              amountPaid,
+              paymentStatus: 'PAID',
+              paymentMethod: 'Card',
+              transactionId: intent.id,
+              stripePaymentIntentId: intent.id,
+              emergencyContactName: matchedLead.emergencyContactName || '',
+              emergencyContactPhone: matchedLead.emergencyContactPhone || '',
+              waiverAccepted: true,
+              registeredAt: Date.now(),
+              hasSibling: isSibling,
+              siblingName: matchedLead.siblingName || '',
+              siblingDob: matchedLead.siblingDob || '',
+              siblingGender: matchedLead.siblingGender || '',
+              discountAmount,
+              basePrice,
+              totalAthletes
+            };
+
+            await saveRegistrationToDb(confirmedReg);
+            matchedLead.status = 'confirmed';
+
+            // Non-blocking email dispatch
+            sendAdminNotificationEmail(confirmedReg).catch(err => console.error('Admin email error:', err.message));
+            sendCustomerConfirmationEmail(confirmedReg).catch(err => console.error('Customer email error:', err.message));
+
+            return res.json({ success: true, confirmed: true, registration: confirmedReg });
+          }
+        } catch (stripeErr: any) {
+          // Intent not yet succeeded
+        }
+      }
+    }
+
+    // Not confirmed yet — user must actually complete payment
     res.json({ success: true, confirmed: false });
   });
 
   // Verify and finalize payment (supports QR scanning, instant webhook fallback, and Stripe/mock confirmations)
   app.post('/api/verify-payment', async (req, res) => {
-    const { paymentIntentId, registrationId, leadId, paymentMethod, transactionId, studentData } = req.body;
+    const { paymentIntentId, registrationId, leadId, paymentMethod, transactionId, studentData, sessionId: reqSessionId } = req.body;
 
-    // Check if webhook already confirmed this registration
+    // Check if registration is already confirmed
     if (registrationId && registrations[registrationId]) {
       return res.json({ success: true, registration: registrations[registrationId] });
     }
 
     let lead = leadId ? leads[leadId] : null;
-    if (!lead && leadId) {
+    if (!lead && (leadId || registrationId)) {
       const db = await getMongoDb();
       if (db) {
         try {
-          lead = await db.collection('leads').findOne({ id: leadId });
-          if (lead) leads[leadId] = lead;
+          if (leadId) {
+            lead = await db.collection('leads').findOne({ id: leadId });
+          } else if (registrationId) {
+            lead = await db.collection('leads').findOne({ registrationId });
+          }
+          if (lead && lead.id) leads[lead.id] = lead;
         } catch (e: any) {
           console.error('Failed to lookup lead from DB:', e.message);
         }
@@ -2142,32 +2374,51 @@ async function startServer() {
 
     const student = studentData || {};
     const regId = registrationId || lead?.registrationId || generateRegistrationId();
-    const sessionId = lead?.sessionId || req.body.sessionId || student.sessionId || 'starter-pack';
+    const sessionId = lead?.sessionId || reqSessionId || student.sessionId || 'starter-pack';
     const session = SESSIONS_CATALOG[sessionId];
 
-    const playerName = lead?.playerName || student.playerName || 'Student Athlete';
-    const parentName = lead?.parentName || student.parentName || '';
-    const email = lead?.email || student.email || 'customer@example.com';
-    const phone = lead?.phone || student.phone || 'N/A';
-    const dob = lead?.dob || student.dob || '';
-    const emergencyContactName = lead?.emergencyContactName || student.emergencyContactName || '';
-    const emergencyContactPhone = lead?.emergencyContactPhone || student.emergencyContactPhone || '';
+    const isSibling = Boolean(
+      student.hasSibling || 
+      student.hasSibling === 'true' || 
+      lead?.hasSibling === 'true' || 
+      lead?.hasSibling === true || 
+      req.body.hasSibling === true ||
+      req.body.hasSibling === 'true'
+    );
+    const siblingName = student.siblingName || lead?.siblingName || req.body.siblingName || '';
+    const siblingDob = student.siblingDob || lead?.siblingDob || req.body.siblingDob || '';
+    const siblingGender = student.siblingGender || lead?.siblingGender || req.body.siblingGender || '';
+    const discountAmount = isSibling ? 50 : 0;
+    const basePrice = session?.price || Number(lead?.basePrice) || 200;
+    const totalAthletes = isSibling ? 2 : 1;
+
+    let computedAmountPaid = lead?.amount !== undefined 
+      ? Number(lead.amount) 
+      : (isSibling ? Math.max(0, (basePrice * 2) - 50) : basePrice);
+
+    const playerName = lead?.playerName || student.playerName || req.body.playerName || 'Student Athlete';
+    const parentName = lead?.parentName || student.parentName || req.body.parentName || '';
+    const email = lead?.email || student.email || req.body.email || 'customer@example.com';
+    const phone = lead?.phone || student.phone || req.body.phone || 'N/A';
+    const dob = lead?.dob || student.dob || req.body.dob || '';
+    const emergencyContactName = lead?.emergencyContactName || student.emergencyContactName || req.body.emergencyContactName || '';
+    const emergencyContactPhone = lead?.emergencyContactPhone || student.emergencyContactPhone || req.body.emergencyContactPhone || '';
 
     // 1. QR Code / Direct Instant Transfer
     if (paymentMethod === 'QR Code' || paymentMethod === 'qr') {
       const cleanTx = String(transactionId || '').trim() || `QR-${nanoid(8).toUpperCase()}`;
       const confirmedReg: RegistrationRecord = {
         registrationId: regId,
-        sessionId: session?.id || 'starter-pack',
-        sessionName: session?.name || 'Challengers Coaching Session',
+        sessionId: session?.id || sessionId,
+        sessionName: session?.name || lead?.sessionName || 'Challengers Coaching Session',
         playerName,
         parentName,
         email,
         phone,
         dob,
-        location: session?.location || 'Fremont Arena',
-        schedule: session?.schedule || 'Weekend Sessions',
-        amountPaid: session?.price || 200,
+        location: session?.location || lead?.location || 'Fremont Arena',
+        schedule: session?.schedule || lead?.schedule || 'Weekend Sessions',
+        amountPaid: computedAmountPaid,
         paymentStatus: 'PAID',
         paymentMethod: 'QR Code',
         transactionId: cleanTx,
@@ -2175,39 +2426,47 @@ async function startServer() {
         emergencyContactName,
         emergencyContactPhone,
         waiverAccepted: true,
-        registeredAt: Date.now()
+        registeredAt: Date.now(),
+        // Sibling Details
+        hasSibling: isSibling,
+        siblingName,
+        siblingDob,
+        siblingGender,
+        discountAmount,
+        basePrice,
+        totalAthletes
       };
 
       await saveRegistrationToDb(confirmedReg);
       if (session && session.filled < session.capacity) {
-        session.filled += 1;
+        session.filled = Math.min(session.capacity, session.filled + totalAthletes);
       }
       if (lead) {
         lead.status = 'confirmed';
       }
 
-      await sendAdminNotificationEmail(confirmedReg);
-      await sendCustomerConfirmationEmail(confirmedReg);
+      sendAdminNotificationEmail(confirmedReg).catch(e => console.error('Admin email error:', e.message));
+      sendCustomerConfirmationEmail(confirmedReg).catch(e => console.error('Customer email error:', e.message));
 
       return res.json({ success: true, registration: confirmedReg });
     }
 
     const stripe = getStripe();
 
+    // 2. Mock mode or missing Stripe secret key
     if (!stripe || (paymentIntentId && paymentIntentId.startsWith('mock_'))) {
-      // Confirmed in development / mock mode
       const confirmedReg: RegistrationRecord = {
         registrationId: regId,
-        sessionId: session?.id || 'starter-pack',
-        sessionName: session?.name || 'Challengers Coaching Session',
+        sessionId: session?.id || sessionId,
+        sessionName: session?.name || lead?.sessionName || 'Challengers Coaching Session',
         playerName,
         parentName,
         email,
         phone,
         dob,
-        location: session?.location || 'Fremont Arena',
-        schedule: session?.schedule || 'Weekend Sessions',
-        amountPaid: session?.price || 200,
+        location: session?.location || lead?.location || 'Fremont Arena',
+        schedule: session?.schedule || lead?.schedule || 'Weekend Sessions',
+        amountPaid: computedAmountPaid,
         paymentStatus: 'PAID',
         paymentMethod: paymentMethod || 'Card',
         transactionId: transactionId || paymentIntentId || `mock_pi_${regId}`,
@@ -2215,82 +2474,150 @@ async function startServer() {
         emergencyContactName,
         emergencyContactPhone,
         waiverAccepted: true,
-        registeredAt: Date.now()
+        registeredAt: Date.now(),
+        // Sibling Details
+        hasSibling: isSibling,
+        siblingName,
+        siblingDob,
+        siblingGender,
+        discountAmount,
+        basePrice,
+        totalAthletes
       };
 
       await saveRegistrationToDb(confirmedReg);
       if (session && session.filled < session.capacity) {
-        session.filled += 1;
+        session.filled = Math.min(session.capacity, session.filled + totalAthletes);
       }
       if (lead) {
         lead.status = 'confirmed';
       }
 
-      await sendAdminNotificationEmail(confirmedReg);
-      await sendCustomerConfirmationEmail(confirmedReg);
+      sendAdminNotificationEmail(confirmedReg).catch(e => console.error('Admin email error:', e.message));
+      sendCustomerConfirmationEmail(confirmedReg).catch(e => console.error('Customer email error:', e.message));
 
       return res.json({ success: true, registration: confirmedReg });
     }
 
+    // 3. Live Stripe Payment Intent Verification
     try {
-      const intent = await stripe.paymentIntents.retrieve(paymentIntentId);
-      if (intent.status === 'succeeded') {
-        // Idempotency check: prevent duplicate registration or seat count if already processed
-        let existingReg = Object.values(registrations).find(r => r.stripePaymentIntentId === intent.id);
-        if (!existingReg) {
-          const db = await getMongoDb();
-          if (db) {
-            try {
-              const doc = await db.collection('registrations').findOne({ stripePaymentIntentId: intent.id });
-              if (doc) existingReg = doc as any;
-            } catch (err: any) {
-              console.error('MongoDB duplicate check error:', err.message);
-            }
-          }
-        }
+      const targetPaymentIntentId = paymentIntentId || lead?.paymentIntentId || req.body.stripePaymentIntentId;
+      if (!targetPaymentIntentId) {
+        return res.status(400).json({ success: false, message: 'Payment Intent ID is required for card checkout.' });
+      }
 
-        if (existingReg) {
-          return res.json({ success: true, registration: existingReg });
-        }
+      const intent = await stripe.paymentIntents.retrieve(targetPaymentIntentId);
+      if (!intent) {
+        return res.status(400).json({ success: false, message: 'Payment Intent not found on Stripe.' });
+      }
 
+      const isSuccessful = intent.status === 'succeeded' || intent.status === 'processing' || intent.status === 'requires_capture';
+
+      if (isSuccessful) {
         const metadata = intent.metadata || {};
+        const intentSibling = metadata.hasSibling === 'true' || metadata.hasSibling === true || isSibling;
+        const intentSiblingName = metadata.siblingName || siblingName || student.siblingName || req.body.siblingName || '';
+        const intentSiblingDob = metadata.siblingDob || siblingDob || student.siblingDob || req.body.siblingDob || '';
+        const intentSiblingGender = metadata.siblingGender || siblingGender || student.siblingGender || req.body.siblingGender || 'Co-ed';
+        const intentDiscount = Number(metadata.discountAmount) || (intentSibling ? 50 : 0);
+        const intentTotalAthletes = intentSibling ? 2 : 1;
+        const intentAmountPaid = intent.amount ? intent.amount / 100 : computedAmountPaid;
+
+        const resolvedEmail = (
+          metadata.email || 
+          req.body.email || 
+          student.email || 
+          lead?.email || 
+          intent.receipt_email || 
+          (intent as any).customer_details?.email || 
+          process.env.EMAIL_USER || 
+          'nihalok625@gmail.com'
+        ).trim();
+
+        const resolvedPlayerName = metadata.playerName || req.body.playerName || student.playerName || lead?.playerName || 'Student Athlete';
+        const resolvedParentName = metadata.parentName || req.body.parentName || student.parentName || lead?.parentName || '';
+        const resolvedPhone = metadata.phone || req.body.phone || student.phone || lead?.phone || 'N/A';
+        const resolvedDob = metadata.dob || req.body.dob || student.dob || lead?.dob || '';
+        const resolvedEmergencyName = metadata.emergencyContactName || req.body.emergencyContactName || student.emergencyContactName || lead?.emergencyContactName || '';
+        const resolvedEmergencyPhone = metadata.emergencyContactPhone || req.body.emergencyContactPhone || student.emergencyContactPhone || lead?.emergencyContactPhone || '';
+
         const confirmedReg: RegistrationRecord = {
-          registrationId: regId,
-          sessionId: metadata.sessionId || session?.id || 'starter-pack',
-          sessionName: metadata.sessionName || session?.name || 'Challengers Coaching Session',
-          playerName: metadata.playerName || lead?.playerName || 'Student Athlete',
-          parentName: metadata.parentName || lead?.parentName || '',
-          email: metadata.email || lead?.email || intent.receipt_email || 'customer@example.com',
-          phone: metadata.phone || lead?.phone || 'N/A',
-          dob: metadata.dob || lead?.dob || '',
-          location: metadata.location || session?.location || 'Fremont Arena',
-          schedule: metadata.schedule || session?.schedule || 'Weekend Sessions',
-          amountPaid: intent.amount / 100,
+          registrationId: metadata.registrationId || regId,
+          sessionId: metadata.sessionId || session?.id || sessionId,
+          sessionName: metadata.sessionName || session?.name || lead?.sessionName || 'Challengers Coaching Session',
+          playerName: resolvedPlayerName,
+          parentName: resolvedParentName,
+          email: resolvedEmail,
+          phone: resolvedPhone,
+          dob: resolvedDob,
+          location: metadata.location || session?.location || lead?.location || 'Fremont Arena',
+          schedule: metadata.schedule || session?.schedule || lead?.schedule || 'Weekend Sessions',
+          amountPaid: intentAmountPaid,
           paymentStatus: 'PAID',
           paymentMethod: paymentMethod || 'Card',
-          transactionId: transactionId || intent.id,
+          transactionId: transactionId || intent.id || `TX-${regId}`,
           stripePaymentIntentId: intent.id,
-          emergencyContactName: metadata.emergencyContactName || '',
-          emergencyContactPhone: metadata.emergencyContactPhone || '',
+          emergencyContactName: resolvedEmergencyName,
+          emergencyContactPhone: resolvedEmergencyPhone,
           waiverAccepted: true,
-          registeredAt: Date.now()
+          registeredAt: Date.now(),
+          // Sibling Details
+          hasSibling: intentSibling,
+          siblingName: intentSiblingName,
+          siblingDob: intentSiblingDob,
+          siblingGender: intentSiblingGender,
+          discountAmount: intentDiscount,
+          basePrice: Number(metadata.basePrice) || basePrice,
+          totalAthletes: intentTotalAthletes
         };
 
         await saveRegistrationToDb(confirmedReg);
         if (session && session.filled < session.capacity) {
-          session.filled += 1;
+          session.filled = Math.min(session.capacity, session.filled + intentTotalAthletes);
+        }
+        if (lead) {
+          lead.status = 'confirmed';
+          await saveLeadToDb(lead);
         }
 
-        await sendAdminNotificationEmail(confirmedReg);
-        await sendCustomerConfirmationEmail(confirmedReg);
+        // Send notifications
+        sendAdminNotificationEmail(confirmedReg).catch(e => console.error('Admin email error:', e.message));
+        sendCustomerConfirmationEmail(confirmedReg).catch(e => console.error('Customer email error:', e.message));
 
-        res.json({ success: true, registration: confirmedReg });
+        return res.json({ success: true, registration: confirmedReg });
       } else {
-        res.status(400).json({ success: false, message: `Payment status: ${intent.status}` });
+        return res.status(400).json({ success: false, message: `Payment is not completed. Stripe status: ${intent.status}` });
       }
     } catch (err: any) {
       console.error('Payment verification failed:', err);
-      res.status(500).json({ success: false, message: 'Verification error' });
+      res.status(500).json({ success: false, message: err.message || 'Payment verification failed' });
+    }
+  });
+
+  // Diagnostic Test Email Endpoint
+  app.get('/api/test-email', async (req, res) => {
+    try {
+      const transporter = getMailTransporter();
+      if (!transporter) {
+        return res.status(500).json({ success: false, message: 'Email transporter not initialized. Check EMAIL_USER and EMAIL_PASS.' });
+      }
+      const adminEmail = process.env.ACADEMY_ADMIN_EMAIL || process.env.EMAIL_USER || 'nihalok625@gmail.com';
+      const from = getFromAddress();
+      const info = await transporter.sendMail({
+        from,
+        to: adminEmail,
+        subject: '🏐 Challengers Academy - Email Test Successful!',
+        html: `
+          <div style="font-family:sans-serif;padding:24px;background:#ffffff;border-radius:12px;border:1px solid #e2e8f0;max-width:500px;margin:0 auto;">
+            <h2 style="color:#D62828;">🏐 Email Delivery Verified!</h2>
+            <p>Your Challengers Academy automated email system is active and functioning properly.</p>
+            <p>All student registration confirmation passes and admin payment alerts will be delivered smoothly.</p>
+          </div>
+        `
+      });
+      res.json({ success: true, message: `Test email dispatched to ${adminEmail}`, messageId: info.messageId });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
     }
   });
 
