@@ -98,7 +98,7 @@ const MILESTONES = [
   {
     period: 'Current Era',
     title: 'Challengers Academy Expansion',
-    location: 'SF Bay Area, CA',
+    location: 'SFO Bay Area, CA',
     desc: 'Bringing international FIVB training standards to young athletes across Fremont, Manteca, Mountain House, and San Jose.'
   }
 ];
@@ -130,7 +130,7 @@ const CREDENTIALS = [
   { 
     code: 'FIVB', 
     name: 'FIVB Level 1 & 2', 
-    subtitle: 'International Volleyball Federation', 
+     
     badge: 'Certified',
     logo: ASSETS.LOGOS.FIVB,
     color: '#F9BC00',
@@ -141,7 +141,7 @@ const CREDENTIALS = [
   { 
     code: 'USAV', 
     name: 'USA Volleyball', 
-    subtitle: 'Registered Member & Coach', 
+    subtitle: 'Member', 
     badge: 'Active',
     logo: ASSETS.LOGOS.USAV,
     color: '#1B1B1D',
@@ -152,8 +152,8 @@ const CREDENTIALS = [
   { 
     code: 'AAU', 
     name: 'AAU Volleyball', 
-    subtitle: 'Amateur Athletic Union Partner', 
-    badge: 'Member',
+    subtitle: 'Member', 
+    badge: 'Active',
     logo: ASSETS.LOGOS.AAU,
     color: '#D62828',
     bg: 'bg-white',
@@ -193,7 +193,7 @@ export default function About() {
     <div className="bg-white text-[#1B1B1D] w-full overflow-x-hidden font-sans selection:bg-[#D62828] selection:text-white">
       <SEO
         title="About Us | Challengers Volleyball Academy"
-        description="Learn about Challengers Volleyball Academy, founded by Head Coach Wilson Mathew (FIVB Level 1 & 2). Professional youth volleyball training across the SF Bay Area."
+        description="Learn about Challengers Volleyball Academy, founded by Head Coach Wilson Mathew (FIVB Level 1 & 2). Professional youth volleyball training across the SOF Bay Area."
       />
 
       {/* ── TOP EDITORIAL MARQUEE TICKER ───────────────────────── */}
@@ -237,7 +237,7 @@ export default function About() {
         <div data-anim="hero-info" className="absolute bottom-6 right-6 sm:right-12 z-10 hidden sm:block">
           <div className="flex flex-col font-sans text-[#1B1B1D] uppercase items-end text-right">
             <p className="text-[11px] font-black text-[#D62828] tracking-widest">LOCATION</p>
-            <p className="text-[16px] font-bold">SF Bay Area, CA</p>
+            <p className="text-[16px] font-bold">SFO Bay Area, CA</p>
           </div>
         </div>
 
@@ -256,7 +256,7 @@ export default function About() {
               Elite
             </span>
             <span data-anim="hero-decor" className="font-hand text-[#D62828] absolute leading-none whitespace-nowrap" style={{ bottom: '-0.32em', left: '0%', transform: 'rotate(-18deg)', fontSize: 'clamp(12px, 2.6vw, 34px)' }}>
-              SF Bay Area
+              SFO Bay Area
             </span>
             <span data-anim="hero-decor" className="font-sans font-black text-[#1B1B1D]/30 absolute leading-none hidden sm:block" style={{ top: '-0.02em', right: '-0.15em', fontSize: '0.12em' }}>
               ©
@@ -338,7 +338,7 @@ export default function About() {
         <div className="my-12 sm:my-16 flex-1 flex items-center justify-center relative max-w-[1600px] mx-auto w-full">
           <div className="relative max-w-[920px] w-full text-center">
             <h2 data-anim="reveal" className="font-display font-bold uppercase text-[42px] sm:text-[68px] md:text-[88px] leading-[0.95] tracking-[-0.04em] text-[#1B1B1D]">
-              Independent volleyball academy in SF Bay Area, creating clean, modern athletic form
+              Independent volleyball academy in SFO Bay Area, creating clean, modern athletic form
             </h2>
             
             {/* Floating Script Accents */}
@@ -394,7 +394,7 @@ export default function About() {
             <div className="lg:col-span-5 bg-white/5 border border-white/10 rounded-3xl p-6 sm:p-8 flex flex-col justify-between backdrop-blur-md">
               <div>
                 <div className="relative aspect-[4/5] rounded-2xl overflow-hidden mb-6 border border-white/20 shadow-2xl">
-                  <img src={ASSETS.ABOUT.COACH_PORTRAIT} alt="Coach Wilson Mathew" className="w-full h-full object-cover object-top" />
+                  <img src={ASSETS.ABOUT.COACH_WILSON_ABOUT} alt="Coach Wilson Mathew" className="w-full h-full object-cover object-top" />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#1B1B1D] via-transparent to-transparent" />
                   <div className="absolute bottom-4 left-4 right-4 text-white">
                     <span className="inline-block px-3 py-1 rounded-md bg-[#F9BC00] text-[#1B1B1D] text-[10px] font-black uppercase tracking-wider mb-2">
@@ -421,7 +421,7 @@ export default function About() {
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[#F9BC00] shrink-0" />
-                  <span>Junior Indian National Camp Selection</span>
+                  <span>Junior Indian National Camp attended at Aurangabad(1997)</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[#F9BC00] shrink-0" />

@@ -834,7 +834,7 @@ export default function Register() {
             <span className="font-bold uppercase tracking-wider text-[11px] block text-amber-800 mb-1">
               ⚠️ IMPORTANT ENROLLMENT POLICY:
             </span>
-            ALL COACHING PROGRAM FEES AND REGISTRATIONS ARE <strong className="bg-red-600 text-white px-2 py-0.5 rounded-md font-black tracking-wider shadow-sm inline-block mx-1">STRICTLY NON-REFUNDABLE</strong> ONCE ENROLLED TO GUARANTEE COURT BOOKINGS, EQUIPMENT RESERVATIONS, AND MASTER COACH ALLOCATIONS.
+            All coaching program fees and registrations are <strong className="bg-red-600 text-white px-2 py-0.5 rounded-md font-bold shadow-sm inline-block mx-1">non-refundable</strong> once enrolled to guarantee court bookings, equipment reservations, and master coach allocations.
           </div>
         </div>
 

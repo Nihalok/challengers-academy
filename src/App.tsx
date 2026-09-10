@@ -32,6 +32,7 @@ const Terms = lazy(() => import('./Terms'));
 const Performance = lazy(() => import('./Performance'));
 const Waiver = lazy(() => import('./Waiver'));
 const Login = lazy(() => import('./Login'));
+const Blog = lazy(() => import('./Blog'));
 
 function Loading() {
   return (
@@ -137,6 +138,8 @@ function MainLayout() {
             <Route path="/performance" element={<Performance />} />
             <Route path="/waiver" element={<Waiver />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/insights" element={<Blog />} />
             <Route path="*" element={<Home />} />
           </Routes>
         </Suspense>

@@ -10,67 +10,67 @@ export const PROGRAMS: Program[] = [
     image: ASSETS.HERO.ACTION_CARD_4,
     ageRange: '5 - 18',
     ageGroups: ['5-10', '11-14', '15-18'],
-    features: ['1 Court Evaluation', '2-Hour Session', 'Individual / Group', 'Certified Coaches']
+    features: ['1 Court Evaluation ($30)', '2-Hour Session', 'Individual / Group', 'Roster Recommendation']
   },
   {
-    id: 'gym-training-4',
-    title: 'Gym Training (4 Sessions)',
-    description: 'Core indoor academy training with structured drills, rotations, and scrimmages.',
-    longDescription: 'Comprehensive 4-session indoor program focusing on fundamentals, ball control, positional awareness, and competitive scrimmage play in a professional gym facility.',
+    id: 'gym-training-1hr',
+    title: 'Gym Training (4 Sessions – 1 Hour)',
+    description: 'Indoor gym training covering foundational volleyball mechanics and passing precision.',
+    longDescription: 'Indoor gym training with 4 focused 1-hour sessions covering volleyball mechanics, passing precision, agility, and fundamental drill repetitions.',
     image: ASSETS.EXPERTISE.FOUNDATIONAL,
     ageRange: '5 - 18',
     ageGroups: ['5-10', '11-14', '15-18'],
-    features: ['4 x 2-Hour Sessions', 'Group Format', 'Indoor Gym Facility', 'Certified Coaches']
+    features: ['4 x 1-Hour Sessions ($100)', 'Group Format', 'Indoor Gym Facility', 'Skill Progression']
+  },
+  {
+    id: 'gym-training-4',
+    title: 'Gym Training (4 Sessions – 2 Hours)',
+    description: 'Core indoor academy training with structured drills, rotations, and scrimmages.',
+    longDescription: 'Comprehensive 4-session indoor program focusing on fundamentals, ball control, positional awareness, rotations, and competitive scrimmage play in a professional gym facility.',
+    image: ASSETS.HERO.ACTION_CARD_1,
+    ageRange: '5 - 18',
+    ageGroups: ['5-10', '11-14', '15-18'],
+    features: ['4 x 2-Hour Sessions ($200)', 'Indoor Gym Facility', 'Rotations & Tactics', 'Scrimmage Play']
   },
   {
     id: 'gym-training-12',
-    title: 'Gym Training (12 Sessions - Best Value)',
+    title: 'Gym Training (12 Sessions – Best Value)',
     description: 'Comprehensive 12-session indoor program for accelerated player development.',
     longDescription: 'Our flagship 12-session intensive program designed for maximum skill growth. Players master advanced footwork, attack timing, tactical rotations, and match execution.',
-    image: 'https://images.unsplash.com/photo-1592656631147-f1aa2112bf7c?auto=format&fit=crop&w=800&q=80',
+    image: ASSETS.HERO.ACTION_CARD_2,
     ageRange: '5 - 18',
     ageGroups: ['5-10', '11-14', '15-18'],
-    features: ['12 x 2-Hour Sessions', 'Best Value Package', 'Save $50 vs 4-Pack', 'Group Format']
-  },
-  {
-    id: 'open-park-private',
-    title: 'Open Park (Private Coaching 1-on-1)',
-    description: 'Dedicated 1-on-1 private coaching tailored entirely to your personal mechanics.',
-    longDescription: 'Personalized 1-on-1 coaching focusing exclusively on your mechanics—serving accuracy, spike power, setter hand positioning, or libero defense.',
-    image: ASSETS.EXPERTISE.ELITE,
-    ageRange: '5 - 18',
-    ageGroups: ['5-10', '11-14', '15-18'],
-    features: ['4 x 1-Hour Sessions', '100% 1-on-1 Focus', 'Custom Mechanics', 'Dedicated Coach']
+    features: ['12 x 2-Hour Sessions ($550)', 'Save $50 vs 4-Pack', 'Position Specialization', 'School & Club Prep']
   },
   {
     id: 'open-park-group',
-    title: 'Open Park Group Training',
+    title: 'Open Park – Group Training',
     description: 'High-repetition outdoor group training building agility, ball control, and match readiness.',
-    longDescription: 'Outdoor park group training with high repetitions. Great for developing quick footwork, stamina, outdoor ball control, and team communication.',
-    image: 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?auto=format&fit=crop&w=800&q=80',
+    longDescription: 'High-repetition group training sessions in an open park atmosphere building stamina, passing control, and team communication with up to 12 students.',
+    image: ASSETS.HERO.ACTION_CARD_3,
     ageRange: '5 - 18',
     ageGroups: ['5-10', '11-14', '15-18'],
-    features: ['4 x 2-Hour Sessions', 'Outdoor Park Court', '12 Members Max', 'High Repetition Drills']
+    features: ['4 x 2-Hour Sessions ($150)', 'Outdoor Park Court', '12 Members Max', 'High Rep Drills']
   },
   {
     id: 'open-park-travel',
-    title: 'Open Park (Short Distance Travel)',
+    title: 'Private Coaching – Open Park (Short Distance)',
     description: 'Personalized 1-on-1 coaching with coach travel to your local designated park court.',
-    longDescription: 'Private 1-on-1 coaching with the convenience of coach travel to a designated park court near you. Customized drill progression for individual growth.',
-    image: 'https://images.unsplash.com/photo-1593787467001-7394837e5814?auto=format&fit=crop&w=800&q=80',
+    longDescription: 'Personalized 1-on-1 private coaching with the convenience of coach travel to a designated park court near you. Customized drill progression for individual growth.',
+    image: ASSETS.EXPERTISE.ELITE,
     ageRange: '5 - 18',
     ageGroups: ['5-10', '11-14', '15-18'],
-    features: ['4 x 1-Hour Sessions', 'Coach Travels To You', 'Personalized Drills', 'Flexible Schedule']
+    features: ['4 Private Sessions ($320)', '1-on-1 Dedicated Coach', 'Coach Travels Near You', 'Custom Mechanics']
   },
   {
-    id: 'large-group-training',
-    title: 'Large Group (13+ Students Team Squad)',
-    description: 'Team squad training focusing on rotation tactics, scrimmage plays, and match strategy.',
-    longDescription: 'Large group team squad development for middle and high school athletes. High-energy scrimmage sessions focusing on serve receive, transitions, and defense.',
+    id: 'open-park-private',
+    title: 'Private Coaching – Open Park (Long Distance)',
+    description: 'Dedicated 1-on-1 private coaching tailored entirely to your personal mechanics with extended travel.',
+    longDescription: 'Dedicated 1-on-1 private coaching sessions with coach traveling to your preferred location, focusing intensively on player mechanics, hitting power, and match readiness.',
     image: ASSETS.EXPERTISE.TACTICAL,
-    ageRange: '11 - 18',
-    ageGroups: ['11-14', '15-18'],
-    features: ['4 x 2-Hour Sessions', '13+ Student Squad', 'Team Dynamics', 'Certified Coaches']
+    ageRange: '5 - 18',
+    ageGroups: ['5-10', '11-14', '15-18'],
+    features: ['4 x 2-Hour Sessions ($360)', '1-on-1 Dedicated Coach', 'Extended Travel Service', 'Rapid Progression']
   }
 ];
 

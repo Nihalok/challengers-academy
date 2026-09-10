@@ -38,7 +38,7 @@ export default function Footer() {
 
           {/* Column 2: Quick Links */}
           <nav className="space-y-6" aria-label="Footer Navigation">
-            <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-orange">Training</h4>
+            <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-yellow">Training</h4>
             <ul className="space-y-3 text-sm font-bold">
               <li><NavLink to="/programs" className="hover:text-yellow transition-colors">Programs</NavLink></li>
               <li><NavLink to="/performance" className="hover:text-yellow transition-colors">Performance</NavLink></li>
@@ -51,7 +51,7 @@ export default function Footer() {
 
           {/* Column 3: Locations */}
           <div className="space-y-5">
-            <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-orange">Training Locations</h4>
+            <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-yellow">Training Locations</h4>
             <div className="space-y-4 text-xs font-medium leading-relaxed">
 
               {/* Mountain House */}
@@ -86,7 +86,7 @@ export default function Footer() {
 
           {/* Column 4: Newsletter */}
           <div className="space-y-6">
-            <h4 id="newsletter-label" className="text-[10px] font-black uppercase tracking-[0.4em] text-orange">Our Newsletter</h4>
+            <h4 id="newsletter-label" className="text-[10px] font-black uppercase tracking-[0.4em] text-yellow">Our Newsletter</h4>
             {subscribed ? (
               <div className="flex items-center gap-3 bg-white/10 border border-green-500/30 text-green-400 rounded-full px-6 py-4 text-xs font-bold">
                 <Check className="w-4 h-4 text-green-400 shrink-0" />

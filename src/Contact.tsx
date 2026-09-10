@@ -59,7 +59,7 @@ export default function Contact() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               {[
-                { icon: Phone, label: 'Phone', value: '+1 (510) 555-0123', sub: 'Mon-Fri 9am - 6pm', color: 'bg-[#F9BC00]' },
+               
                 { icon: Mail, label: 'Email', value: 'challengersacademy@gmail.com', sub: 'Response within 24 hours', color: 'bg-[#D62828]' },
                 { icon: MessageCircle, label: 'WhatsApp', value: '+1 863-845-9913', sub: 'Fastest for quick questions', color: 'bg-[#1A1A1A]' },
                 { icon: MapPin, label: 'Training Locations', value: 'Fremont · Manteca · MH · SJ', sub: 'Hansen Elem, Courtside & more', color: 'bg-[#F3722C]' }

@@ -8,66 +8,15 @@ const COACH_SECTIONS = [
     role: 'FOUNDER & HEAD COACH',
     name: 'Head Coach Wilson Mathew',
     description: 'I started this academy because I believe every player deserves a real coach - someone who shows up, pays attention, and helps them get better in a real way. Over 30 years on the court taught me everything I know.',
-    image: ASSETS.ABOUT.COACH_PORTRAIT,
+    image: ASSETS.ABOUT.COACH_WILSON_ABOUT,
     bgTexture: ASSETS.HERO.ACTION_CARD_4,
     gradient: 'from-[#C1272D] via-[#D62828] to-[#990D0D]',
     badgeBg: '#F9BC00',
     badgeText: '#1A1A1A',
-    stats: 'FIVB Level 1 & 2 • Junior India National • 30+ Yrs Exp',
+    stats: 'FIVB Level 1 & 2 • Junior India National • 35+ Yrs Exp',
     statPills: [
       { label: 'Athletes Mentored', value: '500+' },
       { label: 'National Honor', value: 'MVP 2026' }
-    ]
-  },
-  {
-    id: 'section2',
-    number: '02',
-    role: 'DEFENSE & LIBERO SPECIALIST',
-    name: 'Sarah Jenkins',
-    description: 'Stanford-trained and NCAA D1 experienced - Sarah brings sharp defensive skills and a training style that pushes players to react faster, move smarter, and compete at a higher level.',
-    image: ASSETS.ABOUT.COACH_SARAH,
-    bgTexture: ASSETS.HERO.ACTION_CARD_2,
-    gradient: 'from-[#F26627] via-[#F3722C] to-[#D64500]',
-    badgeBg: '#FBF9F6',
-    badgeText: '#D62828',
-    stats: 'NCAA Division I • USAV CAP I Certified',
-    statPills: [
-      { label: 'Stanford Alumna', value: 'NCAA D1' },
-      { label: 'Specialty', value: 'Libero / Defense' }
-    ]
-  },
-  {
-    id: 'section3',
-    number: '03',
-    role: 'SETTING & OFFENSE COORDINATOR',
-    name: 'Michael Chen',
-    description: 'Michael spent 15+ years playing professional volleyball across Asia. He now puts all of that experience into coaching setters and offense - helping players read the court and make smarter decisions.',
-    image: ASSETS.ABOUT.COACH_MICHAEL,
-    bgTexture: ASSETS.HERO.ACTION_CARD_3,
-    gradient: 'from-[#F9BC00] via-[#E5AB00] to-[#C79300]',
-    badgeBg: '#1B1B1D',
-    badgeText: '#FFFFFF',
-    stats: 'FIVB Level 1 • Former Pro Player (Asia)',
-    statPills: [
-      { label: 'Pro Experience', value: '15+ Years' },
-      { label: 'Focus', value: 'Setting & Offense' }
-    ]
-  },
-  {
-    id: 'section4',
-    number: '04',
-    role: 'YOUTH DEVELOPMENT COACH',
-    name: 'Elena Rodriguez',
-    description: 'Elena works with our youngest players and loves it. She makes practice fun while building the right habits from day one - footwork, ball control, and a love for the game.',
-    image: ASSETS.ABOUT.COACH_ELENA,
-    bgTexture: ASSETS.HERO.ACTION_CARD_1,
-    gradient: 'from-[#E63946] via-[#D62828] to-[#A01A24]',
-    badgeBg: '#F9BC00',
-    badgeText: '#1A1A1A',
-    stats: 'NFHS Certified • 10+ Years Club Coaching',
-    statPills: [
-      { label: 'Club Coaching', value: '10+ Years' },
-      { label: 'Focus', value: 'Youth Foundations' }
     ]
   }
 ];
@@ -177,11 +126,11 @@ export default function CoachesSection() {
                   transition={{ duration: 0.8, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
                   className="w-full md:w-auto flex justify-center md:justify-end pb-8 sm:pb-12 md:pb-0 shrink-0"
                 >
-                  <div className="relative w-[220px] sm:w-[280px] md:w-[440px] lg:w-[480px] h-[240px] sm:h-[280px] md:h-[440px] lg:h-[480px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.35)] border-4 border-white/40 group bg-white">
+                  <div className="relative w-[240px] sm:w-[320px] md:w-[420px] lg:w-[460px] aspect-[4/5] max-h-[72vh] rounded-2xl sm:rounded-3xl overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.35)] border-4 border-white/40 group bg-slate-900">
                     <img
                       src={section.image}
                       alt={section.name}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
                     />
                     {/* Gradient Overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />

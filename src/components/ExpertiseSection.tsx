@@ -1,4 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
+import { NavLink } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { PROGRAMS } from '../data';
@@ -7,8 +9,8 @@ import OptimizedImage from './OptimizedImage';
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Updated vibrant background color palette (Orange, Blue, Green, Purple, Rose)
-const BG_COLORS = ['#F97316', '#3B82F6', '#10B981', '#8B5CF6', '#F43F5E'];
+// Vibrant background color palette for all 7 training programs
+const BG_COLORS = ['#F97316', '#D62828', '#B91C1C', '#990D0D', '#0B5D51', '#D97706', '#7C3AED'];
 
 export default function ExpertiseSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -183,6 +185,16 @@ export default function ExpertiseSection() {
                         </span>
                       </div>
                     ))}
+                  </div>
+
+                  <div className="mt-8">
+                    <NavLink
+                      to={`/register?package=${program.id}`}
+                      className="inline-flex items-center gap-2.5 px-6 py-3 rounded-full bg-white text-espresso font-condensed font-black text-xs sm:text-sm uppercase tracking-wider shadow-xl hover:bg-yellow hover:scale-105 transition-all duration-300"
+                    >
+                      <span>Enroll in Package</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </NavLink>
                   </div>
                 </div>
 

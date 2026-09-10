@@ -461,46 +461,51 @@ export default function Home() {
             title="A few things we've learned."
             italicWord="learned"
             ctaLabel="Read More"
-            ctaPath="/about"
+            ctaPath="/blog"
             dark
           />
           
           <div className="grid md:grid-cols-3 gap-6 sm:gap-8 mt-8 sm:mt-12">
             {[
-              { title: 'How to Improve Your Jump Float', date: 'Oct 12, 2024', image: ASSETS.EXPERTISE.FOUNDATIONAL, tag: 'Technical' },
-              { title: 'What to Eat Before a Game', date: 'Oct 08, 2024', image: ASSETS.EXPERTISE.ELITE, tag: 'Fitness' },
-              { title: 'Staying Calm When You\'re Down by Two Sets', date: 'Sep 28, 2024', image: ASSETS.EXPERTISE.TACTICAL, tag: 'Mental Game' },
+              { slug: 'how-to-improve-your-jump-float', title: 'How to Improve Your Jump Float', date: 'Oct 12, 2024', image: ASSETS.EXPERTISE.FOUNDATIONAL, tag: 'Technical' },
+              { slug: 'what-to-eat-before-a-game', title: 'What to Eat Before a Game', date: 'Oct 08, 2024', image: ASSETS.EXPERTISE.ELITE, tag: 'Fitness' },
+              { slug: 'staying-calm-when-youre-down-by-two-sets', title: 'Staying Calm When You\'re Down by Two Sets', date: 'Sep 28, 2024', image: ASSETS.EXPERTISE.TACTICAL, tag: 'Mental Game' },
             ].map((post, idx) => (
-              <motion.div
+              <NavLink
+                to={`/blog?post=${post.slug}`}
                 key={idx}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                whileHover={{ y: -10 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.1 }}
-                className="group relative cursor-pointer"
+                className="block"
               >
-                <div className="relative rounded-2xl overflow-hidden aspect-[4/3] mb-4 sm:mb-5 shadow-xl">
-                  <img src={post.image} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" loading="lazy" />
-                  <div className="absolute inset-0 bg-espresso/20 group-hover:bg-espresso/0 transition-all" />
-                  
-                  {/* Sticker/Staged Badge */}
-                  <div className="absolute top-3 sm:top-4 left-3 sm:left-4 -rotate-12 bg-white text-espresso px-2.5 sm:px-3 py-1 rounded-sm font-black text-[8px] sm:text-[9px] uppercase tracking-widest shadow-xl">
-                    {post.tag}
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  whileHover={{ y: -10 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                  className="group relative cursor-pointer"
+                >
+                  <div className="relative rounded-2xl overflow-hidden aspect-[4/3] mb-4 sm:mb-5 shadow-xl">
+                    <img src={post.image} alt={post.title} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" loading="lazy" />
+                    <div className="absolute inset-0 bg-espresso/20 group-hover:bg-espresso/0 transition-all" />
+                    
+                    {/* Sticker/Staged Badge */}
+                    <div className="absolute top-3 sm:top-4 left-3 sm:left-4 -rotate-12 bg-white text-espresso px-2.5 sm:px-3 py-1 rounded-sm font-black text-[8px] sm:text-[9px] uppercase tracking-widest shadow-xl">
+                      {post.tag}
+                    </div>
+                    
+                    {/* Marker overlay */}
+                    <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-4 group-hover:translate-y-0">
+                      <p className="text-white text-[10px] font-bold bg-orange px-2.5 py-1 inline-block rotate-1">READ ARTICLE →</p>
+                    </div>
                   </div>
-                  
-                  {/* Marker overlay */}
-                  <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-4 group-hover:translate-y-0">
-                    <p className="text-white text-[10px] font-bold bg-orange px-2.5 py-1 inline-block rotate-1">READ MORE →</p>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <p className="text-orange font-condensed text-[10px] tracking-[0.2em]">{post.date}</p>
+                    <h3 className="text-lg sm:text-xl font-serif text-white group-hover:text-orange transition-colors leading-tight">
+                      {post.title}
+                    </h3>
                   </div>
-                </div>
-                <div className="space-y-1.5 sm:space-y-2">
-                  <p className="text-orange font-condensed text-[10px] tracking-[0.2em]">{post.date}</p>
-                  <h3 className="text-lg sm:text-xl font-serif text-white group-hover:text-orange transition-colors leading-tight">
-                    {post.title}
-                  </h3>
-                </div>
-              </motion.div>
+                </motion.div>
+              </NavLink>
             ))}
           </div>
         </div>

@@ -37,7 +37,7 @@ export const ASSETS = {
     COACH_PORTRAIT: new URL('./images/coach_wilson_portrait_1783920268527.jpg', import.meta.url).href,
     COACH_SARAH: new URL('./images/coach_sarah_jenkins_headshot_1784039862809.jpg', import.meta.url).href,
     COACH_MICHAEL: new URL('./images/coach_michael_chen_headshot_1784039879618.jpg', import.meta.url).href,
-    COACH_ELENA: new URL('./images/coach_elena_rodriguez_headshot_1784039895655.jpg', import.meta.url).href,
+    COACH_WILSON_ABOUT: new URL('./images/wilson about.jpg', import.meta.url).href,
   },
   PERFORMANCE: {
     ANALYTICS_HERO: new URL('./images/performance_analytics_visual_1785509230519.jpg', import.meta.url).href,

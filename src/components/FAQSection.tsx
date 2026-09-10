@@ -26,7 +26,7 @@ const faqs: FAQ[] = [
   },
   {
     question: "What should my child bring to practice?",
-    answer: "Indoor court shoes (non-marking soles), comfortable workout clothes, knee pads, and a water bottle. We have all the volleyballs and other training gear - you don't need to bring any of that."
+    answer: "Indoor court shoes (non-marking soles), comfortable workout clothes, knee pads, and a water bottle. We have all the Volleyballs and other training gear - you don't need to bring any of that."
   },
   {
     question: "How does moving up to a higher level work?",
