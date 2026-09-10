@@ -55,7 +55,7 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     ageGroup: 'All Ages / Prospective Athletes',
     skillLevel: 'Placement Evaluation',
     location: 'Fremont · Manteca · Mountain House · San Jose',
-    locationAddress: 'Fremont (Kerala House) · Manteca (Courtside Sports) · Mountain House · San Jose',
+    locationAddress: 'Fremont (Kerala House) · Manteca (Courtside Sports) · Mountain House (Hansen Elementary) · San Jose',
     schedule: 'Weekly Tryout Batches',
     dates: 'Upcoming Weekend Batch',
     time: '2 Hours Assessment',
@@ -78,7 +78,7 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     ageGroup: 'All Ages / Group',
     skillLevel: 'Beginner to Advanced',
     location: 'Fremont · Manteca · Mountain House · San Jose',
-    locationAddress: 'Fremont (Kerala House) · Manteca (Courtside Sports) · Mountain House · San Jose',
+    locationAddress: 'Fremont (Kerala House) · Manteca (Courtside Sports) · Mountain House (Hansen Elementary) · San Jose',
     schedule: 'Weekly Batches',
     dates: 'Starting Next Weekend',
     time: '1 Hour per Session',
@@ -101,7 +101,7 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     ageGroup: 'All Ages / Group',
     skillLevel: 'Beginner to Advanced',
     location: 'Fremont · Manteca · Mountain House · San Jose',
-    locationAddress: 'Fremont (Kerala House) · Manteca (Courtside Sports) · Mountain House · San Jose',
+    locationAddress: 'Fremont (Kerala House) · Manteca (Courtside Sports) · Mountain House (Hansen Elementary) · San Jose',
     schedule: 'Weekly Batches',
     dates: 'Starting Next Weekend',
     time: '2 Hours per Session',
@@ -124,7 +124,7 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     ageGroup: 'All Ages / Group',
     skillLevel: 'All Skill Levels (Best Value)',
     location: 'Fremont · Manteca · Mountain House · San Jose',
-    locationAddress: 'Fremont (Kerala House) · Manteca (Courtside Sports) · Mountain House · San Jose',
+    locationAddress: 'Fremont (Kerala House) · Manteca (Courtside Sports) · Mountain House (Hansen Elementary) · San Jose',
     schedule: '3 Days / Week Batches',
     dates: 'Rolling Monthly Batches',
     time: '2 Hours per Session',
@@ -233,7 +233,7 @@ export default function Register() {
     email: '',
     phone: '',
     dob: '',
-    preferredLocation: 'Fremont (Hansen Elementary / Kerala House)',
+    preferredLocation: 'Fremont (Kerala House)',
     emergencyContactName: '',
     emergencyContactPhone: '',
     medicalNotes: '',
@@ -1331,9 +1331,9 @@ export default function Register() {
                             onChange={(e) => handleInputChange('preferredLocation', e.target.value)}
                             className="w-full bg-[#F8FAFC] border border-slate-200 focus:border-[#D62828] focus:bg-white rounded-xl px-4 py-2.5 text-xs text-slate-900 font-medium outline-none transition-all cursor-pointer font-bold"
                           >
-                            <option value="Fremont (Hansen Elementary / Kerala House)">Fremont (Hansen Elementary / Kerala House)</option>
+                            <option value="Fremont (Kerala House)">Fremont (Kerala House)</option>
                             <option value="Manteca (Courtside Sports)">Manteca (Courtside Sports)</option>
-                            <option value="Mountain House">Mountain House</option>
+                            <option value="Mountain House (Hansen Elementary)">Mountain House (Hansen Elementary)</option>
                             <option value="San Jose">San Jose</option>
                           </select>
                           <span className="text-[10px] text-slate-500 font-medium block mt-1">Select your primary court location</span>
@@ -1414,15 +1414,66 @@ export default function Register() {
 
                         {/* Collapsible Full Waiver Agreement */}
                         {showWaiverDetails && (
-                          <div className="bg-white p-4 rounded-xl border border-slate-200 text-[11px] text-slate-600 space-y-2 max-h-48 overflow-y-auto">
-                            <p className="font-bold text-slate-900">1. Assumption of Risk &amp; Physical Activity</p>
-                            <p>I acknowledge that volleyball and athletic conditioning carry inherent physical risks including sprains, fractures, and collisions. The athlete is physically cleared to engage in rigorous training.</p>
-                            <p className="font-bold text-slate-900">2. Emergency Medical Release</p>
-                            <p>I authorize Challengers Volleyball Academy coaches to secure emergency medical treatment or paramedic care if I cannot be reached promptly.</p>
-                            <p className="font-bold text-slate-900">3. Strict Non-Refundable Enrollment Policy</p>
-                            <p>All fees are 100% non-refundable once registered. Court bookings and coach assignments are finalized upon registration submission.</p>
-                            <p className="font-bold text-slate-900">4. Attendance &amp; Makeup Class Policy</p>
-                            <p>Students who miss regular training classes will be eligible for 1 makeup class quarterly, subject to academy scheduling and availability.</p>
+                          <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 text-[11px] text-slate-600 space-y-3 max-h-64 overflow-y-auto leading-relaxed divide-y divide-slate-100">
+                            <div className="space-y-1">
+                              <p className="font-bold text-slate-900 text-xs">1. General Waiver &amp; Risk Assumption</p>
+                              <p>
+                                I understand that observation of or physical activity in, including but not limited to hitting, passing, jumping and blocking can be a dangerous activity and that, by participating in those activities like (&ldquo;Volleyball Coaching&rdquo;), I am taking a risk that my child may be injured. I hereby assume all the risk described above, even if the Challengers Volleyball Coaching Center like Clinics, Camps and training activities organized by Wilson Mathew Challengers Volleyball Coaching Center program at any Gym, School, Park or facility in California. Any of the aforementioned Parties, Owners, Members, Coaches, Employees or Agents, through negligence or otherwise, are deemed liable. I hereby release, waive, discharge covenant not to sue Challengers Volleyball Coaching Center, California or any of the aforementioned Parties&rsquo; Owners, Members, Coaches, Employees or Agents (individually and together herein referred to as &ldquo;Released Parties&rdquo;).
+                              </p>
+                            </div>
+
+                            <div className="pt-2.5 space-y-1">
+                              <p className="font-bold text-slate-900 text-xs">2. Consent to Use of Likeness (Photo &amp; Video Release)</p>
+                              <p>
+                                I understand and agree that photographs, Videos and other recordings of participants may be taken, and that such pictures or videos of me and/or my child may be used for promotional purposes. I hereby consent to the publication and use of my and/or my child&rsquo;s name or likeness for the purpose for the promotion, publicity, advertising, or other manner or media by the city or any other representative authorized to act on behalf of the aforementioned entities. I agree that the actual material involved is and shall continue to the property of the city and that neither I, nor my child, shall have any right of review or approval regarding the use of me and/or my child&rsquo;s likeness in such material.
+                              </p>
+                            </div>
+
+                            <div className="pt-2.5 space-y-1">
+                              <p className="font-bold text-slate-900 text-xs">3. Premises, Equipment &amp; Facility Liability Release</p>
+                              <p>
+                                Owners and tenants of premises used to conduct the Volleyball Activities, from any and all liability arising out of my or my child&rsquo;s observation of and participation in the Volleyball Activities and/or event, even if the liability arises out of negligence that may not be foreseeable at this time. I understand that by signing this Waiver and Release, I expressly and willingly agree to assume complete responsibility for any risk of injury or damages that may arise from the related activity. On behalf of myself, my children, heirs, assigns and next of kin, I waive all claims for damages, injuries, and death sustained to me, my children or my property, that I may have against the above-named Released Parties, any of its owners, employees or representatives relating to such activity. I understand that the activities that I or my child will participate in are inherently dangerous and may cause serious injuries, including body injury, damage to personal property and/or death. By this waiver, I assume any and all risk, and take full responsibility and waive any and all claims of personal injury upon myself or my child, including severe body injury, damage to personal property and death relating to all activities associated with the activity, including but not limited to practice, receiving lessons at the facility, using the facility and its equipment and related activities on and off the activity premises.
+                              </p>
+                            </div>
+
+                            <div className="pt-2.5 space-y-1">
+                              <p className="font-bold text-slate-900 text-xs">4. Physical Condition &amp; Negligence Disclaimer</p>
+                              <p>
+                                If I or my children are injured from said activity, I will not hold the above named Released Parties responsible even if the injuries were caused by negligence on my part or the Released Parties, any of its owners, employees or representatives, or any other party under or affiliated with the above named Released Parties. I represent that my minor child or I are in sufficiently good physical condition to participate in the programs and activities without jeopardizing our health.
+                              </p>
+                            </div>
+
+                            <div className="pt-2.5 space-y-1">
+                              <p className="font-bold text-slate-900 text-xs">5. Voluntary Agreement &amp; Binding Effect</p>
+                              <p>
+                                I understand that I have given up substantial rights by signing this waiver and release, and sign it voluntarily. This waiver and release also binds my heirs and assigners. The undersigned, my parent or legal guardian, and I if I am a minor, in consideration of being allowed participating in the activity, and all related events and activities.
+                              </p>
+                            </div>
+
+                            <div className="pt-2.5 p-3 bg-amber-50 rounded-lg border border-amber-200 text-amber-950 font-bold text-[10.5px]">
+                              *HOLD HARMLESS MEDICAL RELEASE: DUE TO THE NATURE OF ACTIVITY, IT IS UNDERSTOOD THAT I RELEASE THE RELEASED PARTIES (DEFINED ABOVE) FROM ALL LIABILITY OF ANY SORT, AND THAT THEY BE HELD HARMLESS AND INDEMNIFIED FOR ANY ACCIDENT OR INJURIES SUSTAINED BY ME/MY CHILDREN WHILE INVOLVED IN THE VOLLEYBALL ACTIVITY.
+                            </div>
+
+                            <div className="pt-2.5 space-y-1">
+                              <p className="font-bold text-slate-900 text-xs">6. Emergency Medical Treatment Release</p>
+                              <p>
+                                I authorize Challengers Volleyball Academy coaches and staff to secure emergency medical treatment, hospitalization, or paramedic care if I cannot be reached promptly in an emergency.
+                              </p>
+                            </div>
+
+                            <div className="pt-2.5 space-y-1">
+                              <p className="font-bold text-slate-900 text-xs">7. Strict Non-Refundable Enrollment Policy</p>
+                              <p>
+                                All registration fees (${selectedSession?.price || 0}.00) are 100% non-refundable once registered. Court bookings, insurance, and coach allocations are finalized immediately upon registration submission.
+                              </p>
+                            </div>
+
+                            <div className="pt-2.5 space-y-1">
+                              <p className="font-bold text-slate-900 text-xs">8. Attendance &amp; Makeup Class Policy</p>
+                              <p>
+                                Students who miss regular training classes will be eligible for 1 makeup class quarterly, subject to academy scheduling and court availability.
+                              </p>
+                            </div>
                           </div>
                         )}
 

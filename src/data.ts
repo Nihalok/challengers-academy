@@ -116,13 +116,13 @@ export const TESTIMONIALS: Testimonial[] = [
 export const LOCATIONS: Location[] = [
   {
     id: 'mountain-house',
-    name: 'Mountain House',
-    address: 'Mountain House Training Center',
+    name: 'Hansen Elementary - Mountain House',
+    address: '400 S. Duran Terrace',
     city: 'Mountain House',
     zip: '95391',
     coords: { lat: 37.7846, lng: -121.5438 },
     schedule: 'Saturdays | 9:00 am - 11:00 am',
-    description: 'Saturday morning sessions in Mountain House. Open to all skill levels for fundamental and advanced volleyball training.'
+    description: 'Hansen Elementary School facility in Mountain House. Saturday morning sessions for fundamental and advanced volleyball training.'
   },
   {
     id: 'fremont',
