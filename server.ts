@@ -1325,7 +1325,7 @@ export async function createApp() {
         ? sessionOrIntent.amount_total / 100 
         : (sessionOrIntent.amount ? sessionOrIntent.amount / 100 : (sessionItem?.price || 200));
 
-      const isSiblingEnrolled = metadata.hasSibling === 'true' || metadata.hasSibling === true;
+      const isSiblingEnrolled = metadata.hasSibling === 'true' || (metadata.hasSibling as any) === true;
       const discountAmount = Number(metadata.discountAmount) || (isSiblingEnrolled ? 50 : 0);
 
       const newRegistration: RegistrationRecord = {
@@ -2530,7 +2530,7 @@ export async function createApp() {
       const isSuccessful = intent.status === 'succeeded' || intent.status === 'processing' || intent.status === 'requires_capture';
 
       if (isSuccessful) {
-        const metadata = intent.metadata || {};
+        const metadata = (intent.metadata || {}) as Record<string, any>;
         const intentSibling = metadata.hasSibling === 'true' || metadata.hasSibling === true || isSibling;
         const intentSiblingName = metadata.siblingName || siblingName || student.siblingName || req.body.siblingName || '';
         const intentSiblingDob = metadata.siblingDob || siblingDob || student.siblingDob || req.body.siblingDob || '';
