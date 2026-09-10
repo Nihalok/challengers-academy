@@ -207,6 +207,25 @@ async function seedFirstAdmin(db: Db) {
 // Official Academy Training Packages (The 7 Official Packages)
 export const DEFAULT_PROGRAMS = [
   {
+    id: 'gym-training-1hr',
+    title: 'Gym Training (4 Sessions - 1 Hour)',
+    phase: 'GROUP INDOOR',
+    description: 'Indoor gym training — 4 focused 1-hour sessions covering volleyball mechanics, passing precision, and drills.',
+    longDescription: 'Indoor gym training with 4 focused 1-hour sessions covering volleyball mechanics, passing precision, agility, and fundamental drill repetitions ($100).',
+    image: 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?q=80&w=1200&auto=format&fit=crop',
+    ageRange: 'All Ages / Group',
+    ageGroups: ['5-10', '11-14', '15-18'],
+    features: ['4 x 1-Hour Sessions', 'Group Format', 'Indoor Gym Facility', 'Drills & Rotations'],
+    price: 100,
+    schedule: 'Weekly Batches (1 Hour / Session)',
+    location: 'Fremont Arena / Tracy Gym',
+    capacity: 25,
+    filled: 10,
+    coach: 'Wilson Mathew & Coaching Team',
+    isActive: true,
+    order: 1
+  },
+  {
     id: 'gym-training-4',
     title: 'Gym Training (4 Sessions)',
     phase: 'GROUP INDOOR',
@@ -612,6 +631,23 @@ export interface SessionCatalogItem {
 }
 
 export const SESSIONS_CATALOG: Record<string, SessionCatalogItem> = {
+  'gym-training-1hr': {
+    id: 'gym-training-1hr',
+    name: 'Gym Training (Group - 4 Sessions, 1 Hour)',
+    category: 'Gym Training',
+    ageGroup: 'All Ages / Group',
+    skillLevel: 'Beginner to Advanced',
+    location: 'Fremont / Tracy Facility',
+    locationAddress: '43575 Mission Blvd, Fremont, CA',
+    schedule: 'Weekly Batches (1 Hour / Session)',
+    dates: 'Starting Next Weekend',
+    time: '1 Hour per Session',
+    price: 100,
+    capacity: 25,
+    filled: 10,
+    coach: 'Wilson Mathew & Coaching Team',
+    description: '4 group training sessions in our indoor gym facility. 1 hour per session covering mechanics, passing precision, and drills.'
+  },
   'gym-training-4': {
     id: 'gym-training-4',
     name: 'Gym Training (Group - 4 Sessions)',
