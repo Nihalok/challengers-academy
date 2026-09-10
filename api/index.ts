@@ -21,28 +21,7 @@ export default async function handler(req: any, res: any) {
       }
     }
 
-    return new Promise((resolve) => {
-      res.on('finish', () => resolve(true));
-      res.on('close', () => resolve(true));
-      res.on('error', (err: any) => {
-        console.error('Response stream error:', err);
-        resolve(err);
-      });
-
-      cachedApp(req, res, (err: any) => {
-        if (err) {
-          console.error('Express serverless error:', err);
-          if (!res.headersSent) {
-            res.status(500).json({ success: false, message: err.message || 'Internal Server Error' });
-          }
-          return resolve(err);
-        }
-        if (!res.headersSent) {
-          res.status(404).json({ success: false, message: `Route not found: ${req.method} ${req.url}` });
-        }
-        resolve(true);
-      });
-    });
+    return cachedApp(req, res);
   } catch (err: any) {
     console.error('API serverless handler fatal error:', err);
     if (!res.headersSent) {
