@@ -49,111 +49,132 @@ export default function Programs() {
   });
 
   const REGULAR_PACKAGES = [
-    { 
+    {
       id: 'tryout-session',
-      title: 'Tryout Session', 
-      fee: '$30', 
-      sessions: '1 Court Evaluation', 
+      title: 'Tryout Session',
+      fee: '$30',
+      sessions: '1 Court Evaluation',
       duration: '2 Hours Duration',
       students: 'Individual / Group',
       popular: false,
       tag: 'EVALUATION',
-      bgImage: ASSETS.HERO.ACTION_CARD_4,
-      badgeStyle: 'bg-[#F9BC00] text-espresso font-black',
-      btnStyle: 'bg-espresso text-white hover:bg-[#F9BC00] hover:text-espresso',
+      bgImage: '/vb_tryout.jpg',
+      badgeStyle: 'bg-[#F3722C] text-white font-black',
+      btnBg: '#F3722C',
+      btnShadow: '#A84308',
+      btnTextColor: '#FFFFFF',
+      btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#F3722C]',
       ageRange: '5 - 18',
       ageGroups: ['5-10', '11-14', '15-18']
     },
-    { 
+    {
+      id: 'gym-training-1hr',
+      title: 'Gym Training Package',
+      fee: '$100',
+      sessions: '4 Gym Sessions',
+      duration: '1 Hour per Session',
+      students: 'Group Training',
+      popular: false,
+      tag: 'INDOOR GYM',
+      bgImage: '/vb_gym.jpg',
+      badgeStyle: 'bg-[#D62828] text-white font-black',
+      btnBg: '#D62828',
+      btnShadow: '#851010',
+      btnTextColor: '#FFFFFF',
+      btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#D62828]',
+      ageRange: '5 - 18',
+      ageGroups: ['5-10', '11-14', '15-18']
+    },
+    {
       id: 'gym-training-4',
-      title: 'Gym Training (4 Sessions)', 
-      fee: '$200', 
-      sessions: '4 Gym Sessions', 
+      title: 'Gym Training Package',
+      fee: '$200',
+      sessions: '4 Gym Sessions',
       duration: '2 Hours per Session',
       students: 'Group Training',
       popular: false,
       tag: 'INDOOR GYM',
-      bgImage: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=800&q=80',
-      badgeStyle: 'bg-[#F9BC00] text-espresso font-black',
-      btnStyle: 'bg-espresso text-white hover:bg-[#F9BC00] hover:text-espresso',
+      bgImage: '/vb_gym.jpg',
+      badgeStyle: 'bg-[#D62828] text-white font-black',
+      btnBg: '#D62828',
+      btnShadow: '#851010',
+      btnTextColor: '#FFFFFF',
+      btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#D62828]',
       ageRange: '5 - 18',
       ageGroups: ['5-10', '11-14', '15-18']
     },
-    { 
+    {
       id: 'gym-training-12',
-      title: 'Gym Training (12 Sessions)', 
-      fee: '$550', 
-      sessions: '12 Intensive Gym Sessions', 
+      title: 'Gym Training Package',
+      fee: '$550',
+      sessions: '12 Intensive Gym Sessions',
       duration: '2 Hours per Session',
       students: 'Group Training',
       popular: true,
       tag: 'POPULAR INTENSIVE',
-      bgImage: 'https://images.unsplash.com/photo-1592656631147-f1aa2112bf7c?auto=format&fit=crop&w=800&q=80',
+      bgImage: '/vb_intensive.jpg',
       badgeStyle: 'bg-[#D62828] text-white font-black',
-      btnStyle: 'bg-[#D62828] text-white hover:bg-espresso',
+      btnBg: '#D62828',
+      btnShadow: '#851010',
+      btnTextColor: '#FFFFFF',
+      btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#D62828]',
       ageRange: '5 - 18',
       ageGroups: ['5-10', '11-14', '15-18']
     },
-    { 
-      id: 'open-park-private',
-      title: 'Open Park (Private 1-on-1)', 
-      fee: '$360', 
-      sessions: '4 Private Sessions', 
-      duration: '1 Hour per Session',
-      students: '1 Student Dedicated',
-      popular: false,
-      tag: 'PRIVATE 1-ON-1',
-      bgImage: ASSETS.EXPERTISE.ELITE,
-      badgeStyle: 'bg-[#F9BC00] text-espresso font-black',
-      btnStyle: 'bg-espresso text-white hover:bg-[#F9BC00] hover:text-espresso',
-      ageRange: '5 - 18',
-      ageGroups: ['5-10', '11-14', '15-18']
-    },
-    { 
+    {
       id: 'open-park-group',
-      title: 'Open Park Group Training', 
-      fee: '$150', 
-      sessions: '4 Outdoor Sessions', 
+      title: 'Open Park – Group Training',
+      fee: '$150',
+      sessions: '4 Outdoor Sessions',
       duration: '2 Hours per Session',
-      students: '12 Members',
+      students: 'Group (up to 12)',
       popular: false,
       tag: 'OUTDOOR PARK',
-      bgImage: 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?auto=format&fit=crop&w=800&q=80',
+      bgImage: '/vb_park.jpg',
       badgeStyle: 'bg-[#0B5D51] text-white font-black',
-      btnStyle: 'bg-espresso text-white hover:bg-[#0B5D51]',
+      btnBg: '#0B5D51',
+      btnShadow: '#063A32',
+      btnTextColor: '#FFFFFF',
+      btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#0B5D51]',
       ageRange: '5 - 18',
       ageGroups: ['5-10', '11-14', '15-18']
     },
-    { 
+    {
       id: 'open-park-travel',
-      title: 'Open Park (Travel Coaching)', 
-      fee: '$320', 
-      sessions: '4 Private Sessions', 
-      duration: '1 Hour per Session',
+      title: 'Private Coaching – Open Park',
+      fee: '$320',
+      sessions: '4 Private Sessions',
+      duration: 'Short Distance',
+      students: '1 Student',
+      popular: false,
+      tag: 'PRIVATE SHORT',
+      bgImage: '/vb_private.jpg',
+      badgeStyle: 'bg-[#F9BC00] text-espresso font-black',
+      btnBg: '#F9BC00',
+      btnShadow: '#B88500',
+      btnTextColor: '#1B1B1D',
+      btnIconClass: 'bg-espresso/15 text-espresso group-hover/btn:bg-espresso group-hover/btn:text-white',
+      ageRange: '5 - 18',
+      ageGroups: ['5-10', '11-14', '15-18']
+    },
+    {
+      id: 'open-park-private',
+      title: 'Private Coaching – Open Park',
+      fee: '$360',
+      sessions: '4 Private Sessions',
+      duration: '2 Hours per Session',
       students: '1 Student (Long Distance)',
       popular: false,
-      tag: 'TRAVEL COACHING',
-      bgImage: 'https://images.unsplash.com/photo-1593787467001-7394837e5814?auto=format&fit=crop&w=800&q=80',
-      badgeStyle: 'bg-[#F3722C] text-white font-black',
-      btnStyle: 'bg-espresso text-white hover:bg-[#F3722C]',
+      tag: 'PRIVATE LONG',
+      bgImage: '/vb_private.jpg',
+      badgeStyle: 'bg-[#F9BC00] text-espresso font-black',
+      btnBg: '#F9BC00',
+      btnShadow: '#B88500',
+      btnTextColor: '#1B1B1D',
+      btnIconClass: 'bg-espresso/15 text-espresso group-hover/btn:bg-espresso group-hover/btn:text-white',
       ageRange: '5 - 18',
       ageGroups: ['5-10', '11-14', '15-18']
     },
-    { 
-      id: 'large-group-training',
-      title: 'Large Group (13+ Students)', 
-      fee: '$120', 
-      sessions: '4 Team Sessions', 
-      duration: '2 Hours per Session',
-      students: '13+ Students (Per Student)',
-      popular: false,
-      tag: 'TEAM SQUAD',
-      bgImage: ASSETS.EXPERTISE.TACTICAL,
-      badgeStyle: 'bg-blue-600 text-white font-black',
-      btnStyle: 'bg-espresso text-white hover:bg-blue-600',
-      ageRange: '11 - 18',
-      ageGroups: ['11-14', '15-18']
-    }
   ];
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -204,8 +225,8 @@ export default function Programs() {
         </div>
 
         {/* Regular Coaching Packages - Sliding Carousel (ON TOP) */}
-        <div className="mb-12 sm:mb-16 relative overflow-hidden py-2">
-          <div className="flex items-end justify-between mb-6 sm:mb-8 gsap-reveal">
+        <div className="mb-12 sm:mb-16 relative py-2">
+          <div className="flex items-center justify-between mb-6 sm:mb-8 gsap-reveal">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-[#F3722C]/10 rounded-xl flex items-center justify-center text-[#F3722C]">
                 <Package className="w-5 h-5" />
@@ -217,17 +238,17 @@ export default function Programs() {
                 <p className="text-espresso/60 text-[10px] font-black uppercase tracking-widest">Our regular coaching programs</p>
               </div>
             </div>
-            
-            {/* Carousel Controls */}
-            <div className="hidden md:flex gap-3">
-              <button 
+
+            {/* Carousel Controls — always visible inline on the right */}
+            <div className="flex gap-3 shrink-0">
+              <button
                 onClick={() => scroll('left', scrollRef)}
                 className="w-12 h-12 rounded-full bg-[#F9BC00] text-espresso flex items-center justify-center hover:bg-espresso hover:text-white hover:scale-105 transition-all shadow-md group"
                 aria-label="Scroll left"
               >
                 <ChevronLeft className="w-6 h-6 group-hover:-translate-x-0.5 transition-transform" />
               </button>
-              <button 
+              <button
                 onClick={() => scroll('right', scrollRef)}
                 className="w-12 h-12 rounded-full bg-[#F9BC00] text-espresso flex items-center justify-center hover:bg-espresso hover:text-white hover:scale-105 transition-all shadow-md group"
                 aria-label="Scroll right"
@@ -238,7 +259,7 @@ export default function Programs() {
           </div>
 
           {/* Carousel Viewport */}
-          <div 
+          <div
             ref={scrollRef}
             className="relative -mx-4 px-4 overflow-x-auto pt-2 pb-6 no-scrollbar snap-x snap-mandatory flex gap-6"
           >
@@ -310,71 +331,18 @@ export default function Programs() {
 
                   <NavLink 
                     to={`/register?session=${pkg.id}`}
-                    className="relative z-10 flex items-center justify-between w-full bg-gradient-to-r from-[#F3722C] via-[#FF6A00] to-[#E05200] text-white px-6 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl font-black uppercase tracking-[0.16em] text-[10px] sm:text-[11px] shadow-[0_8px_22px_rgba(243,114,44,0.4)] hover:shadow-[0_16px_32px_rgba(243,114,44,0.6),0_4px_12px_rgba(0,0,0,0.15)] hover:-translate-y-1 hover:scale-[1.02] active:translate-y-0.5 active:scale-95 transition-all duration-300 border-t border-white/35 group/btn"
+                    style={{
+                      '--btn-bg': pkg.btnBg,
+                      '--btn-shadow': pkg.btnShadow,
+                      '--btn-text': pkg.btnTextColor
+                    } as React.CSSProperties}
+                    className="btn-3d relative z-10 flex items-center justify-between w-full px-6 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl font-black uppercase tracking-[0.16em] text-[10px] sm:text-[11px] group/btn cursor-pointer"
                   >
                     <span>Enroll Now</span>
-                    <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center group-hover/btn:bg-white group-hover/btn:text-[#F3722C] transition-all shadow-sm">
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all shadow-sm ${pkg.btnIconClass}`}>
                       <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-0.5 transition-transform" />
                     </div>
                   </NavLink>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-        </div>
-
-        {/* Dynamic Programs Carousel - Foundational Framework (BELOW) */}
-        <div className="relative mb-12 sm:mb-16 gsap-reveal overflow-hidden py-2">
-          <div className="flex items-end justify-between mb-6 sm:mb-8">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#D62828]/10 rounded-xl flex items-center justify-center text-[#D62828]">
-                <Sparkles className="w-5 h-5" />
-              </div>
-              <div>
-                <h2 className="text-2xl sm:text-3xl font-condensed font-black uppercase text-espresso drop-shadow-sm">
-                  Foundational Framework
-                </h2>
-                <p className="text-espresso/70 text-[10px] font-black uppercase tracking-widest">Structured player progression levels</p>
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <button 
-                onClick={() => scroll('left', programScrollRef)}
-                className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#D62828] text-white flex items-center justify-center hover:bg-espresso hover:scale-105 transition-all shadow-md group"
-                aria-label="Scroll left"
-              >
-                <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 group-hover:-translate-x-0.5 transition-transform" />
-              </button>
-              <button 
-                onClick={() => scroll('right', programScrollRef)}
-                className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#D62828] text-white flex items-center justify-center hover:bg-espresso hover:scale-105 transition-all shadow-md group"
-                aria-label="Scroll right"
-              >
-                <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 group-hover:translate-x-0.5 transition-transform" />
-              </button>
-            </div>
-          </div>
-          
-          <div 
-            ref={programScrollRef}
-            className="flex gap-5 overflow-x-auto pt-2 pb-6 no-scrollbar snap-x snap-mandatory -mx-4 px-4"
-          >
-            <AnimatePresence mode="popLayout">
-              {sortedFrameworkPrograms.map((program, idx) => (
-                <motion.div
-                  key={program.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                  transition={{ duration: 0.4, ease: "easeOut" }}
-                  className="shrink-0 w-[78vw] sm:w-[320px] md:w-[340px] snap-center"
-                >
-                  <ProgramCard 
-                    program={program}
-                    index={idx}
-                  />
                 </motion.div>
               ))}
             </AnimatePresence>

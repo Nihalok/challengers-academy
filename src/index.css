@@ -63,6 +63,24 @@
     @apply font-serif italic;
   }
 
+  .btn-3d {
+    background-color: var(--btn-bg);
+    color: var(--btn-text, #ffffff);
+    box-shadow: 0 5px 0 0 var(--btn-shadow), 0 8px 16px rgba(0, 0, 0, 0.12);
+    border-top: 1px solid rgba(255, 255, 255, 0.35);
+    transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s ease, filter 0.15s ease;
+  }
+  .btn-3d:hover {
+    transform: translateY(2px);
+    box-shadow: 0 3px 0 0 var(--btn-shadow), 0 4px 8px rgba(0, 0, 0, 0.1);
+    filter: brightness(1.03);
+  }
+  .btn-3d:active {
+    transform: translateY(5px);
+    box-shadow: 0 0 0 0 var(--btn-shadow), 0 1px 2px rgba(0, 0, 0, 0.05);
+    filter: brightness(0.97);
+  }
+
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }

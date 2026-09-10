@@ -49,14 +49,39 @@ export default function Footer() {
             </ul>
           </nav>
 
-          {/* Column 3: Contact */}
-          <div className="space-y-6">
-            <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-orange">Contact Us</h4>
-            <address className="text-sm font-medium leading-relaxed not-italic">
-              Fremont · Manteca · Mountain House · San Jose<br />
-              California, USA<br />
-              <a href="mailto:challengersacademy@gmail.com" className="text-white/60 text-xs hover:text-white transition-colors">challengersacademy@gmail.com</a>
-            </address>
+          {/* Column 3: Locations */}
+          <div className="space-y-5">
+            <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-orange">Training Locations</h4>
+            <div className="space-y-4 text-xs font-medium leading-relaxed">
+
+              {/* Mountain House */}
+              <div>
+                <p className="text-white font-bold text-[11px] uppercase tracking-wider">Mountain House</p>
+                <p className="text-white/50 mt-0.5">Saturdays · 9:00 am – 11:00 am</p>
+              </div>
+
+              {/* Fremont */}
+              <div>
+                <p className="text-white font-bold text-[11px] uppercase tracking-wider">Kerala House · Fremont</p>
+                <p className="text-white/60 text-[10px]">4037 Fremont Blvd, Fremont CA 94538</p>
+                <p className="text-white/50 mt-0.5">Sundays · 6:30 pm – 8:30 pm</p>
+              </div>
+
+              {/* Manteca */}
+              <div>
+                <p className="text-white font-bold text-[11px] uppercase tracking-wider">Courtside Sports · Manteca</p>
+                <p className="text-white/60 text-[10px]">450 Commerce CT, Manteca CA 95336</p>
+                <p className="text-white/50 mt-0.5">Fridays · 5:00 pm – 7:00 pm</p>
+              </div>
+
+              {/* San Jose */}
+              <div>
+                <p className="text-white font-bold text-[11px] uppercase tracking-wider">San Jose</p>
+                <p className="text-white/50 mt-0.5">Starting September — details coming soon</p>
+              </div>
+
+              <a href="mailto:challengersacademy@gmail.com" className="block text-white/50 hover:text-white transition-colors pt-1">challengersacademy@gmail.com</a>
+            </div>
           </div>
 
           {/* Column 4: Newsletter */}
@@ -106,33 +131,45 @@ export default function Footer() {
           <div className="flex items-center gap-8 text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">
             <NavLink to="/privacy" className="hover:text-white transition-colors">Privacy</NavLink>
             <NavLink to="/terms" className="hover:text-white transition-colors">Terms</NavLink>
-            <div className="flex items-center gap-4 ml-4">
-              <a 
-                href="https://www.instagram.com/challengers_volleyball_academy" 
-                target="_blank" 
-                rel="noopener noreferrer" 
+            <div className="flex items-center gap-3 ml-4">
+              {/* Instagram */}
+              <a
+                href="https://www.instagram.com/challengers_volleyball_academy"
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label="Visit Challengers Academy on Instagram"
-                className="text-white/40 hover:text-white transition-colors"
+                className="group flex items-center justify-center w-11 h-11 rounded-full transition-all duration-300 hover:scale-110"
+                style={{ background: 'linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)', boxShadow: '0 0 0 0 rgba(220,39,67,0)' }}
+                onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 18px 4px rgba(220,39,67,0.55)')}
+                onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 0 0 rgba(220,39,67,0)')}
               >
-                <Instagram className="w-4 h-4 cursor-pointer" />
+                <Instagram className="w-6 h-6 text-white" />
               </a>
-              <a 
-                href="https://www.facebook.com/share/1CFx15eApf/?mibextid=wwXIfr" 
-                target="_blank" 
-                rel="noopener noreferrer" 
+              {/* Facebook */}
+              <a
+                href="https://www.facebook.com/share/1CFx15eApf/?mibextid=wwXIfr"
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label="Visit Challengers Academy on Facebook"
-                className="text-white/40 hover:text-white transition-colors"
+                className="group flex items-center justify-center w-11 h-11 rounded-full transition-all duration-300 hover:scale-110"
+                style={{ background: '#1877F2', boxShadow: '0 0 0 0 rgba(24,119,242,0)' }}
+                onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 18px 4px rgba(24,119,242,0.55)')}
+                onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 0 0 rgba(24,119,242,0)')}
               >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
               </a>
-              <a 
-                href="https://youtube.com/@challengersflorida?si=v4WMitdB1xMj9Q44" 
-                target="_blank" 
-                rel="noopener noreferrer" 
+              {/* YouTube */}
+              <a
+                href="https://youtube.com/@challengersflorida?si=v4WMitdB1xMj9Q44"
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label="Visit Challengers Academy on YouTube"
-                className="text-white/40 hover:text-white transition-colors"
+                className="group flex items-center justify-center w-11 h-11 rounded-full transition-all duration-300 hover:scale-110"
+                style={{ background: '#FF0000', boxShadow: '0 0 0 0 rgba(255,0,0,0)' }}
+                onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 18px 4px rgba(255,0,0,0.55)')}
+                onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 0 0 rgba(255,0,0,0)')}
               >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
               </a>
             </div>
           </div>

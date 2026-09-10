@@ -115,40 +115,44 @@ export const TESTIMONIALS: Testimonial[] = [
 
 export const LOCATIONS: Location[] = [
   {
-    id: 'fremont',
-    name: 'Fremont - Hansen Elementary / Kerala House',
-    address: '4037 Fremont Blvd',
-    city: 'Fremont',
-    zip: '94538',
-    coords: { lat: 37.5342, lng: -121.9682 },
-    description: 'Hansen Elementary & Kerala House facility in Fremont. Indoor court space for fundamental and advanced volleyball training.'
-  },
-  {
-    id: 'manteca',
-    name: 'Manteca - Courtside Sports',
-    address: '450 Commerce Ct',
-    city: 'Manteca',
-    zip: '95336',
-    coords: { lat: 37.7972, lng: -121.2161 },
-    description: 'Courtside Sports facility in Manteca. High quality courts equipped for team drills, skills development, and game play.'
-  },
-  {
     id: 'mountain-house',
     name: 'Mountain House',
     address: 'Mountain House Training Center',
     city: 'Mountain House',
     zip: '95391',
     coords: { lat: 37.7846, lng: -121.5438 },
-    description: 'Dedicated volleyball coaching and skill-building sessions for athletes in Mountain House.'
+    schedule: 'Saturdays · 9:00 am – 11:00 am',
+    description: 'Saturday morning sessions in Mountain House. Open to all skill levels for fundamental and advanced volleyball training.'
+  },
+  {
+    id: 'fremont',
+    name: 'Kerala House – Fremont',
+    address: '4037 Fremont Blvd',
+    city: 'Fremont',
+    zip: '94538',
+    coords: { lat: 37.5342, lng: -121.9682 },
+    schedule: 'Sundays · 6:30 pm – 8:30 pm',
+    description: 'Kerala House facility in Fremont. Sunday evening sessions covering fundamentals and advanced volleyball training.'
+  },
+  {
+    id: 'manteca',
+    name: 'Courtside Sports – Manteca',
+    address: '450 Commerce CT',
+    city: 'Manteca',
+    zip: '95336',
+    coords: { lat: 37.7972, lng: -121.2161 },
+    schedule: 'Fridays · 5:00 pm – 7:00 pm',
+    description: 'Courtside Sports facility in Manteca. Friday evening sessions — high quality courts for team drills, skills development, and game play.'
   },
   {
     id: 'san-jose',
     name: 'San Jose',
-    address: 'San Jose Training Center',
+    address: 'Coming Soon',
     city: 'San Jose',
     zip: '95112',
     coords: { lat: 37.3382, lng: -121.8863 },
-    description: 'Convenient training location serving young athletes and competitive players in San Jose.'
+    schedule: 'Starting September — details coming soon',
+    description: 'New training location launching September 2026. Serving young athletes and competitive players in San Jose.'
   }
 ];
 

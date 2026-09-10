@@ -79,9 +79,9 @@ const MILESTONES = [
   },
   {
     period: 'National Camps',
-    title: 'National-Level Volleyball Camps',
+    title: 'National-Level Volleyball achievements',
     location: 'All-India Centers',
-    desc: 'Participated in numerous National-level Volleyball camps throughout playing career.'
+    desc: 'Earned medals at numerous National-level championships and Tournaments, along with extensive participation in National-level Volleyball camps throughout my playing career.'
   },
   {
     period: 'Competition',
