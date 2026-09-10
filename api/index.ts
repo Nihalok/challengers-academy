@@ -7,7 +7,15 @@ export default async function handler(req: any, res: any) {
     if (!app) {
       app = await createApp();
     }
-    return app(req, res);
+    return new Promise<void>((resolve, reject) => {
+      res.on('finish', () => resolve());
+      res.on('close', () => resolve());
+      res.on('error', (err: any) => reject(err));
+      app(req, res, (err: any) => {
+        if (err) return reject(err);
+        resolve();
+      });
+    });
   } catch (err: any) {
     console.error('Vercel API handler error:', err);
     if (!res.headersSent) {
@@ -18,5 +26,6 @@ export default async function handler(req: any, res: any) {
     }
   }
 }
+
 
 
