@@ -56,7 +56,7 @@ export default function Footer() {
 
               {/* Mountain House */}
               <div>
-                <p className="text-white font-bold text-[11px] uppercase tracking-wider">Mountain House</p>
+                <p className="text-white font-bold text-[11px] uppercase tracking-wider">Hansen Elementary School 400 S. Duran Terrace, Mountain House CA</p>
                 <p className="text-white/50 mt-0.5">Saturdays · 9:00 am – 11:00 am</p>
               </div>
 
@@ -71,7 +71,7 @@ export default function Footer() {
               <div>
                 <p className="text-white font-bold text-[11px] uppercase tracking-wider">Courtside Sports · Manteca</p>
                 <p className="text-white/60 text-[10px]">450 Commerce CT, Manteca CA 95336</p>
-                <p className="text-white/50 mt-0.5">Fridays · 5:00 pm – 7:00 pm</p>
+                <p className="text-white/50 mt-0.5">Fridays · 5:00 pm – 6:30 pm</p>
               </div>
 
               {/* San Jose */}

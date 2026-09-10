@@ -140,7 +140,7 @@ export default function Programs() {
     },
     {
       id: 'open-park-travel',
-      title: 'Private Coaching – Open Park',
+      title: 'Private Coaching – Open Park (Short Distance)',
       fee: '$320',
       sessions: '4 Private Sessions',
       duration: 'Short Distance',
@@ -158,7 +158,7 @@ export default function Programs() {
     },
     {
       id: 'open-park-private',
-      title: 'Private Coaching – Open Park',
+      title: 'Private Coaching – Open Park (Long Distance)',
       fee: '$360',
       sessions: '4 Private Sessions',
       duration: '2 Hours per Session',
