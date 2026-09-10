@@ -121,28 +121,28 @@ export const LOCATIONS: Location[] = [
     city: 'Mountain House',
     zip: '95391',
     coords: { lat: 37.7846, lng: -121.5438 },
-    schedule: 'Saturdays · 9:00 am – 11:00 am',
+    schedule: 'Saturdays | 9:00 am - 11:00 am',
     description: 'Saturday morning sessions in Mountain House. Open to all skill levels for fundamental and advanced volleyball training.'
   },
   {
     id: 'fremont',
-    name: 'Kerala House – Fremont',
+    name: 'Kerala House - Fremont',
     address: '4037 Fremont Blvd',
     city: 'Fremont',
     zip: '94538',
     coords: { lat: 37.5342, lng: -121.9682 },
-    schedule: 'Sundays · 6:30 pm – 8:30 pm',
+    schedule: 'Sundays | 6:30 pm - 8:30 pm',
     description: 'Kerala House facility in Fremont. Sunday evening sessions covering fundamentals and advanced volleyball training.'
   },
   {
     id: 'manteca',
-    name: 'Courtside Sports – Manteca',
+    name: 'Courtside Sports - Manteca',
     address: '450 Commerce CT',
     city: 'Manteca',
     zip: '95336',
     coords: { lat: 37.7972, lng: -121.2161 },
-    schedule: 'Fridays · 5:00 pm – 7:00 pm',
-    description: 'Courtside Sports facility in Manteca. Friday evening sessions — high quality courts for team drills, skills development, and game play.'
+    schedule: 'Fridays | 5:00 pm - 7:00 pm',
+    description: 'Courtside Sports facility in Manteca. Friday evening sessions - high quality courts for team drills, skills development, and game play.'
   },
   {
     id: 'san-jose',
@@ -151,7 +151,7 @@ export const LOCATIONS: Location[] = [
     city: 'San Jose',
     zip: '95112',
     coords: { lat: 37.3382, lng: -121.8863 },
-    schedule: 'Starting September — details coming soon',
+    schedule: 'Starting September - details coming soon',
     description: 'New training location launching September 2026. Serving young athletes and competitive players in San Jose.'
   }
 ];

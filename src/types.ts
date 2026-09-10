@@ -16,6 +16,7 @@ export interface Location {
   city: string;
   zip: string;
   coords: { lat: number; lng: number };
+  schedule?: string;
   description: string;
 }
 

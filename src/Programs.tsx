@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useRef, RefObject, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { PROGRAMS } from './data';
@@ -7,7 +7,6 @@ import SectionHeader from './components/SectionHeader';
 import ProgramCard from './components/ProgramCard';
 import { useGsapReveal } from './hooks/useGsapReveal';
 import { Package, User, Users, CheckCircle2, ChevronRight, ChevronLeft, MapPin, Sparkles } from 'lucide-react';
-import { useRef, RefObject, useEffect } from 'react';
 import SEO from './components/SEO';
 
 export default function Programs() {
