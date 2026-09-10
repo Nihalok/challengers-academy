@@ -3,8 +3,13 @@ import { createApp } from '../server';
 let cachedApp: any = null;
 
 export default async function handler(req: any, res: any) {
-  if (!cachedApp) {
-    cachedApp = await createApp();
+  try {
+    if (!cachedApp) {
+      cachedApp = await createApp();
+    }
+    return cachedApp(req, res);
+  } catch (err: any) {
+    console.error('API serverless handler error:', err);
+    return res.status(500).json({ success: false, message: err.message || 'Internal Server Error' });
   }
-  return cachedApp(req, res);
 }
