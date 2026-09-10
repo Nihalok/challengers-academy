@@ -5,7 +5,7 @@ import {
   CheckCircle2, ChevronRight, ChevronLeft, CreditCard, Shield,
   Calendar, Download, Loader2, Info, FileText,
   MapPin, Clock, Users, Lock, Sparkles, Check, AlertCircle, ArrowRight,
-  Search, X, HelpCircle, ChevronDown, ChevronUp, QrCode, Smartphone, Copy, ExternalLink
+  Search, X, HelpCircle, ChevronDown, ChevronUp, QrCode, Smartphone, ExternalLink
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { domToCanvas } from 'modern-screenshot';
@@ -59,7 +59,7 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     schedule: 'Weekly Tryout Batches',
     dates: 'Upcoming Weekend Batch',
     time: '2 Hours Assessment',
-    price: 30,
+    price: 0.50,
     priceNote: 'evaluation fee',
     capacity: 20,
     filled: 9,
@@ -255,39 +255,13 @@ export default function Register() {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [leadId, setLeadId] = useState<string | null>(null);
   const [registrationRecord, setRegistrationRecord] = useState<any>(null);
-  const [cardHolderName, setCardHolderName] = useState('');
-  const [cardNumber, setCardNumber] = useState('');
-  const [cardExp, setCardExp] = useState('');
-  const [cardCvc, setCardCvc] = useState('');
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
-  // QR Code & Multi-Payment Options State
-  const [paymentOption, setPaymentOption] = useState<'qr' | 'card'>('qr');
-  const [qrReferenceId, setQrReferenceId] = useState('');
+  // Stripe Payment State
+  const [paymentOption, setPaymentOption] = useState<'card' | 'qr'>('card');
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
-  const [copiedField, setCopiedField] = useState<string | null>(null);
-  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
   const [stripeCheckoutUrl, setStripeCheckoutUrl] = useState<string | null>(null);
   const [activeRegistrationId, setActiveRegistrationId] = useState<string | null>(null);
-  const [qrMode, setQrMode] = useState<'stripe' | 'zelle'>('stripe');
-  const [paymentSettings, setPaymentSettings] = useState<any>({
-    zellePhone: '+1 (863) 845-9913',
-    zelleEmail: 'kenznajeeb@gmail.com',
-    zelleName: 'Head Coach Wilson Mathew / Challengers Academy',
-    venmoHandle: '@Challengers-Academy',
-    cashAppHandle: '$ChallengersAcademy',
-    upiId: '18638459913@upi',
-    qrCustomImageUrl: '',
-    paymentInstructions: 'Scan the official Academy QR Code with your Banking App, Zelle, Venmo, Cash App, or UPI. Enter your transaction/reference ID below to complete enrollment.',
-    enableQrPayment: true,
-    enableCardPayment: true
-  });
-
-  const handleCopy = (text: string, fieldId: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedField(fieldId);
-    setTimeout(() => setCopiedField(null), 2500);
-  };
 
   // Check if returning from a mobile Stripe checkout redirect or 3D Secure authentication
   useEffect(() => {
@@ -350,17 +324,7 @@ export default function Register() {
     }
   }, []);
 
-  // Fetch dynamic payment settings from server
-  useEffect(() => {
-    fetch('/api/payment-settings')
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && data.settings) {
-          setPaymentSettings((prev: any) => ({ ...prev, ...data.settings }));
-        }
-      })
-      .catch(err => console.error('Error fetching payment settings:', err));
-  }, []);
+
 
   // Fetch session catalog on mount and merge with official packages
   useEffect(() => {
@@ -467,10 +431,9 @@ export default function Register() {
   const selectedSession = sessions.find(s => s.id === selectedSessionId) || sessions[0] || OFFICIAL_SESSIONS[0];
   const spotsLeft = Math.max(0, selectedSession.capacity - selectedSession.filled);
 
-  // Generate dynamic QR Code data URL when session is selected or mode changes
+  // Generate dynamic Stripe QR Code data URL when checkout URL is available
   useEffect(() => {
-    // 1. If in Stripe QR mode and checkout URL is available, generate Stripe QR!
-    if (qrMode === 'stripe' && stripeCheckoutUrl) {
+    if (stripeCheckoutUrl) {
       QRCode.toDataURL(stripeCheckoutUrl, {
         width: 320,
         margin: 2,
@@ -483,49 +446,8 @@ export default function Register() {
       }).catch(err => {
         console.error('Error generating Stripe QR code:', err);
       });
-      return;
     }
-
-    // 2. Custom uploaded QR image for Zelle
-    if (paymentSettings?.qrCustomImageUrl) {
-      setQrDataUrl(paymentSettings.qrCustomImageUrl);
-      return;
-    }
-
-    // 3. Dynamic Venmo / Zelle fallback
-    if (selectedSession) {
-      const recipientName = paymentSettings?.zelleName || 'Challengers Volleyball Academy';
-      const singlePrice = selectedSession.price;
-      const isSiblingSelected = formData.hasSibling;
-      const totalAmount = isSiblingSelected ? Math.max(0, (singlePrice * 2) - 50) : singlePrice;
-      const note = `Athletes: ${formData.playerName || 'Student'}${formData.hasSibling ? ` & ${formData.siblingName || 'Sibling'}` : ''} - ${selectedSession.name}`;
-      
-      let qrPayload = '';
-      if (paymentSettings?.venmoHandle) {
-        const venmoUser = paymentSettings.venmoHandle.replace('@', '').trim();
-        qrPayload = `https://venmo.com/${venmoUser}?txn=pay&amount=${totalAmount}&note=${encodeURIComponent(note)}`;
-      } else if (paymentSettings?.zellePhone || paymentSettings?.zelleEmail) {
-        qrPayload = `Zelle Pay: ${recipientName} | ${paymentSettings.zellePhone || paymentSettings.zelleEmail} | Amount: $${totalAmount} | Memo: ${note}`;
-      } else if (paymentSettings?.upiId) {
-        qrPayload = `upi://pay?pa=${paymentSettings.upiId}&pn=${encodeURIComponent(recipientName)}&am=${totalAmount}&cu=USD&tn=${encodeURIComponent(note)}`;
-      } else {
-        qrPayload = `Challengers Academy | $${totalAmount} | ${note}`;
-      }
-
-      QRCode.toDataURL(qrPayload, {
-        width: 320,
-        margin: 2,
-        color: {
-          dark: '#071A2D',
-          light: '#FFFFFF'
-        }
-      }).then(url => {
-        setQrDataUrl(url);
-      }).catch(err => {
-        console.error('Error generating QR code:', err);
-      });
-    }
-  }, [selectedSession, paymentSettings, formData.playerName, formData.siblingName, formData.hasSibling, stripeCheckoutUrl, qrMode]);
+  }, [stripeCheckoutUrl]);
 
   // Real-time auto-detection for Stripe mobile QR payments
   useEffect(() => {
@@ -772,10 +694,8 @@ export default function Register() {
       if (data.success) {
         setClientSecret(data.clientSecret);
         setLeadId(data.leadId);
-        setPaymentIntentId(data.paymentIntentId || null);
         setStripeCheckoutUrl(data.checkoutUrl || null);
         setActiveRegistrationId(data.registrationId || null);
-        setCardHolderName(formData.parentName || formData.playerName);
         setCurrentStep(2);
       } else {
         alert(data.message || 'Unable to initialize payment checkout. Please try again.');
@@ -788,52 +708,6 @@ export default function Register() {
     }
   };
 
-  const handleConfirmQrPayment = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!qrReferenceId.trim() || qrReferenceId.trim().length < 3) {
-      setPaymentError('Please enter a valid Transaction ID, UTR, or Reference Number from your payment receipt.');
-      return;
-    }
-
-    setIsProcessing(true);
-    setPaymentError(null);
-
-    try {
-      const res = await fetch('/api/verify-payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          paymentMethod: 'QR Code',
-          transactionId: qrReferenceId.trim(),
-          leadId,
-          sessionId: selectedSession?.id,
-          studentData: formData
-        })
-      });
-
-      const data = await res.json();
-      if (data.success && data.registration) {
-        setRegistrationRecord(data.registration);
-        setCurrentStep(3);
-        modalBodyRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
-
-        // Trigger celebratory confetti
-        confetti({
-          particleCount: 120,
-          spread: 80,
-          origin: { y: 0.55 },
-          colors: ['#D62828', '#F9BC00', '#071A2D', '#22C55E']
-        });
-      } else {
-        setPaymentError(data.message || 'Unable to confirm QR payment. Please check your reference ID.');
-      }
-    } catch (err: any) {
-      console.error(err);
-      setPaymentError('Network error confirming payment. Please try again.');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
 
   const handleDownloadReceipt = async () => {
     if (!confirmationRef.current) return;
@@ -1776,22 +1650,6 @@ export default function Register() {
                     <div className="grid grid-cols-2 gap-3 p-1.5 bg-slate-100 rounded-2xl border border-slate-200">
                       <button
                         type="button"
-                        onClick={() => { setPaymentOption('qr'); setPaymentError(null); }}
-                        className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                          paymentOption === 'qr'
-                            ? 'bg-[#071A2D] text-white shadow-md'
-                            : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
-                        }`}
-                      >
-                        <QrCode className={`w-4 h-4 ${paymentOption === 'qr' ? 'text-[#F9BC00]' : 'text-slate-500'}`} />
-                        <span>Scan &amp; Pay (QR Code)</span>
-                        <span className="hidden sm:inline-block text-[9px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full">
-                          Direct
-                        </span>
-                      </button>
-
-                      <button
-                        type="button"
                         onClick={() => { setPaymentOption('card'); setPaymentError(null); }}
                         className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-black transition-all cursor-pointer ${
                           paymentOption === 'card'
@@ -1802,265 +1660,107 @@ export default function Register() {
                         <CreditCard className={`w-4 h-4 ${paymentOption === 'card' ? 'text-[#D62828]' : 'text-slate-500'}`} />
                         <span>Credit / Debit Card</span>
                       </button>
+
+                      <button
+                        type="button"
+                        onClick={() => { setPaymentOption('qr'); setPaymentError(null); }}
+                        className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                          paymentOption === 'qr'
+                            ? 'bg-[#071A2D] text-white shadow-md'
+                            : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+                        }`}
+                      >
+                        <QrCode className={`w-4 h-4 ${paymentOption === 'qr' ? 'text-[#F9BC00]' : 'text-slate-500'}`} />
+                        <span>Mobile QR &amp; Wallets</span>
+                      </button>
                     </div>
 
-                    {/* ── OPTION A: SCAN & PAY VIA QR CODE ── */}
+                    {/* ── OPTION A: SCAN & PAY VIA STRIPE INSTANT MOBILE QR ── */}
                     {paymentOption === 'qr' && (
                       <div className="space-y-5">
-                        {qrMode === 'stripe' ? (
-                          /* ───────── SUB-OPTION A1: STRIPE INSTANT MOBILE QR ───────── */
-                          <div className="bg-[#F8FAFC] p-5 sm:p-6 rounded-2xl border border-slate-200 space-y-5">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-200">
-                              <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
-                                <QrCode className="w-4 h-4 text-[#D62828]" />
-                                <span>Instant Mobile QR Checkout (Stripe Powered)</span>
-                              </div>
-                              <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-bold">
-                                <span className="bg-black text-white px-2.5 py-0.5 rounded-full font-bold"> Apple Pay</span>
-                                <span className="bg-blue-600 text-white px-2.5 py-0.5 rounded-full font-bold">G Pay</span>
-                                <span className="bg-emerald-600 text-white px-2.5 py-0.5 rounded-full font-bold">Cards</span>
-                              </div>
+                        <div className="bg-[#F8FAFC] p-5 sm:p-6 rounded-2xl border border-slate-200 space-y-5">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-200">
+                            <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
+                              <QrCode className="w-4 h-4 text-[#D62828]" />
+                              <span>Instant Mobile QR Checkout (Stripe Secure)</span>
                             </div>
-
-                            {/* QR Card + Instructions */}
-                            <div className="flex flex-col md:flex-row items-center gap-6 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                              {/* Stripe QR Code Visual */}
-                              <div className="shrink-0 flex flex-col items-center">
-                                <div className="relative p-3 bg-white border-2 border-[#D62828]/30 rounded-2xl shadow-md flex items-center justify-center group">
-                                  {qrDataUrl ? (
-                                    <img 
-                                      src={qrDataUrl} 
-                                      alt="Scan to Pay via Phone" 
-                                      className="w-48 h-48 sm:w-52 sm:h-52 object-contain rounded-xl"
-                                    />
-                                  ) : (
-                                    <div className="w-48 h-48 flex items-center justify-center">
-                                      <Loader2 className="w-8 h-8 animate-spin text-[#D62828]" />
-                                    </div>
-                                  )}
-                                  {/* Scan corner targets */}
-                                  <div className="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 border-[#D62828] rounded-tl" />
-                                  <div className="absolute -top-1 -right-1 w-4 h-4 border-t-2 border-r-2 border-[#D62828] rounded-tr" />
-                                  <div className="absolute -bottom-1 -left-1 w-4 h-4 border-b-2 border-l-2 border-[#D62828] rounded-bl" />
-                                  <div className="absolute -bottom-1 -right-1 w-4 h-4 border-b-2 border-r-2 border-[#D62828] rounded-br" />
-                                </div>
-                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-2 text-center">
-                                  Point Phone Camera at QR
-                                </span>
-                              </div>
-
-                              {/* Pay Info + Auto Detection State */}
-                              <div className="flex-1 w-full space-y-4 text-xs">
-                                <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 flex items-center justify-between">
-                                  <div>
-                                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Total Due</span>
-                                    <span className="text-xl font-black text-slate-900">${totalRegistrationFee}.00 <span className="text-xs font-bold text-slate-500">USD</span></span>
-                                  </div>
-                                  <div className="text-right">
-                                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
-                                      {formData.hasSibling ? 'Athletes (2)' : 'Athlete'}
-                                    </span>
-                                    <span className="text-xs font-bold text-slate-800">
-                                      {formData.playerName || 'Student'}{formData.hasSibling ? ` & ${formData.siblingName || 'Sibling'}` : ''}
-                                    </span>
-                                  </div>
-                                </div>
-
-                                {/* Live Auto-Detector Banner */}
-                                <div className="bg-emerald-50 border border-emerald-200/80 rounded-xl p-3.5 flex items-center gap-3">
-                                  <div className="relative flex h-3.5 w-3.5 shrink-0">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500"></span>
-                                  </div>
-                                  <div className="text-xs text-emerald-950 leading-tight">
-                                    <strong className="font-black block text-emerald-900 mb-0.5">Live Scan Listener Active</strong>
-                                    Scan with iPhone or Android to pay with Apple Pay, Google Pay, or Card. Confirmation receipt will be sent automatically.
-                                  </div>
-                                </div>
-
-                                {/* Direct Mobile Link */}
-                                {stripeCheckoutUrl && (
-                                  <a
-                                    href={stripeCheckoutUrl}
-                                    className="w-full bg-[#071A2D] hover:bg-[#D62828] text-white py-3.5 px-4 rounded-xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md text-center cursor-pointer"
-                                  >
-                                    <Smartphone className="w-4 h-4 text-amber-400" />
-                                    <span>Already on Phone? Tap to Open Payment</span>
-                                    <ExternalLink className="w-3.5 h-3.5 opacity-70" />
-                                  </a>
-                                )}
-
-                                {/* Switch to Zelle manual */}
-                                <div className="pt-2 text-center">
-                                  <button
-                                    type="button"
-                                    onClick={() => setQrMode('zelle')}
-                                    className="text-[11px] font-bold text-slate-600 hover:text-[#D62828] transition-colors cursor-pointer inline-flex items-center gap-1"
-                                  >
-                                    <span>Prefer manual bank transfer via Zelle or Venmo? Click here</span>
-                                    <ChevronRight className="w-3 h-3" />
-                                  </button>
-                                </div>
-                              </div>
+                            <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-bold">
+                              <span className="bg-black text-white px-2.5 py-0.5 rounded-full font-bold"> Apple Pay</span>
+                              <span className="bg-blue-600 text-white px-2.5 py-0.5 rounded-full font-bold">G Pay</span>
+                              <span className="bg-emerald-600 text-white px-2.5 py-0.5 rounded-full font-bold">Cards</span>
                             </div>
                           </div>
-                        ) : (
-                          /* ───────── SUB-OPTION A2: MANUAL ZELLE / VENMO TRANSFER ───────── */
-                          <form onSubmit={handleConfirmQrPayment} className="space-y-5">
-                            <div className="bg-[#F8FAFC] p-5 sm:p-6 rounded-2xl border border-slate-200 space-y-5">
-                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-200">
-                                <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
-                                  <QrCode className="w-4 h-4 text-[#D62828]" />
-                                  <span>Zelle / Direct Banking Transfer</span>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => setQrMode('stripe')}
-                                  className="text-[11px] font-bold text-[#D62828] hover:underline cursor-pointer flex items-center gap-1"
-                                >
-                                  <ChevronLeft className="w-3 h-3" />
-                                  <span>Back to Stripe Instant QR</span>
-                                </button>
-                              </div>
 
-                              {/* Payee Details with 1-Click Copy */}
-                              <div className="space-y-3 text-xs bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-                                <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Recipient Account</span>
-                                  <strong className="text-slate-900">{paymentSettings.zelleName || 'Head Coach Wilson Mathew / Challengers Academy'}</strong>
-                                </div>
-
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                  {paymentSettings.zellePhone && (
-                                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex items-center justify-between">
-                                      <div className="truncate pr-2">
-                                        <span className="text-[9px] font-black uppercase tracking-wider text-purple-700 block">Zelle (Phone)</span>
-                                        <span className="font-mono font-bold text-slate-800 text-[11px] truncate block">{paymentSettings.zellePhone}</span>
-                                      </div>
-                                      <button
-                                        type="button"
-                                        onClick={() => handleCopy(paymentSettings.zellePhone, 'zelle')}
-                                        className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 rounded-lg transition-colors cursor-pointer shrink-0"
-                                        title="Copy Zelle Number"
-                                      >
-                                        {copiedField === 'zelle' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                                      </button>
-                                    </div>
-                                  )}
-
-                                  {paymentSettings.venmoHandle && (
-                                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex items-center justify-between">
-                                      <div className="truncate pr-2">
-                                        <span className="text-[9px] font-black uppercase tracking-wider text-blue-700 block">Venmo Tag</span>
-                                        <span className="font-mono font-bold text-slate-800 text-[11px] truncate block">{paymentSettings.venmoHandle}</span>
-                                      </div>
-                                      <button
-                                        type="button"
-                                        onClick={() => handleCopy(paymentSettings.venmoHandle, 'venmo')}
-                                        className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 rounded-lg transition-colors cursor-pointer shrink-0"
-                                        title="Copy Venmo Handle"
-                                      >
-                                        {copiedField === 'venmo' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                                      </button>
-                                    </div>
-                                  )}
-
-                                  {paymentSettings.cashAppHandle && (
-                                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex items-center justify-between">
-                                      <div className="truncate pr-2">
-                                        <span className="text-[9px] font-black uppercase tracking-wider text-green-700 block">Cash App $Cashtag</span>
-                                        <span className="font-mono font-bold text-slate-800 text-[11px] truncate block">{paymentSettings.cashAppHandle}</span>
-                                      </div>
-                                      <button
-                                        type="button"
-                                        onClick={() => handleCopy(paymentSettings.cashAppHandle, 'cashapp')}
-                                        className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 rounded-lg transition-colors cursor-pointer shrink-0"
-                                        title="Copy Cash App Handle"
-                                      >
-                                        {copiedField === 'cashapp' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                                      </button>
-                                    </div>
-                                  )}
-
-                                  {paymentSettings.zelleEmail && (
-                                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex items-center justify-between">
-                                      <div className="truncate pr-2">
-                                        <span className="text-[9px] font-black uppercase tracking-wider text-purple-700 block">Zelle (Email)</span>
-                                        <span className="font-mono font-bold text-slate-800 text-[11px] truncate block">{paymentSettings.zelleEmail}</span>
-                                      </div>
-                                      <button
-                                        type="button"
-                                        onClick={() => handleCopy(paymentSettings.zelleEmail, 'zelleemail')}
-                                        className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 rounded-lg transition-colors cursor-pointer shrink-0"
-                                        title="Copy Zelle Email"
-                                      >
-                                        {copiedField === 'zelleemail' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                                      </button>
-                                    </div>
-                                  )}
-
-                                  <div className="bg-amber-50/70 p-2.5 rounded-xl border border-amber-200/70 flex items-center justify-between">
-                                    <div>
-                                      <span className="text-[9px] font-black uppercase tracking-wider text-amber-900 block">Exact Fee Due</span>
-                                      <span className="font-black text-slate-900 text-xs">${totalRegistrationFee}.00 USD</span>
-                                    </div>
-                                    <button
-                                      type="button"
-                                      onClick={() => handleCopy(String(totalRegistrationFee), 'price')}
-                                      className="p-1.5 text-amber-700 hover:bg-amber-200/60 rounded-lg transition-colors cursor-pointer"
-                                      title="Copy Exact Amount"
-                                    >
-                                      {copiedField === 'price' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                                    </button>
+                          {/* QR Card + Instructions */}
+                          <div className="flex flex-col md:flex-row items-center gap-6 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                            {/* Stripe QR Code Visual */}
+                            <div className="shrink-0 flex flex-col items-center">
+                              <div className="relative p-3 bg-white border-2 border-[#D62828]/30 rounded-2xl shadow-md flex items-center justify-center group">
+                                {qrDataUrl ? (
+                                  <img 
+                                    src={qrDataUrl} 
+                                    alt="Scan to Pay via Phone" 
+                                    className="w-48 h-48 sm:w-52 sm:h-52 object-contain rounded-xl"
+                                  />
+                                ) : (
+                                  <div className="w-48 h-48 flex items-center justify-center">
+                                    <Loader2 className="w-8 h-8 animate-spin text-[#D62828]" />
                                   </div>
-                                </div>
+                                )}
+                                {/* Scan corner targets */}
+                                <div className="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 border-[#D62828] rounded-tl" />
+                                <div className="absolute -top-1 -right-1 w-4 h-4 border-t-2 border-r-2 border-[#D62828] rounded-tr" />
+                                <div className="absolute -bottom-1 -left-1 w-4 h-4 border-b-2 border-l-2 border-[#D62828] rounded-bl" />
+                                <div className="absolute -bottom-1 -right-1 w-4 h-4 border-b-2 border-r-2 border-[#D62828] rounded-br" />
                               </div>
-
-                              {/* Transaction / Reference ID Input */}
-                              <div>
-                                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-700 mb-1">
-                                  Transaction ID / Reference Number / UTR <span className="text-[#D62828]">*</span>
-                                </label>
-                                <input
-                                  type="text"
-                                  value={qrReferenceId}
-                                  onChange={(e) => setQrReferenceId(e.target.value)}
-                                  placeholder="e.g. ZEL-982341209384, Venmo ID, or bank ref"
-                                  required
-                                  className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-900 font-bold outline-none focus:border-[#D62828] tracking-wider"
-                                />
-                                <span className="text-[10px] text-slate-400 mt-1 block">
-                                  Found on your payment app receipt screen after completing the transfer.
-                                </span>
-                              </div>
+                              <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-2 text-center">
+                                Point Phone Camera at QR
+                              </span>
                             </div>
 
-                            {paymentError && (
-                              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-xs flex items-center gap-2">
-                                <AlertCircle className="w-4 h-4 shrink-0" />
-                                <span>{paymentError}</span>
+                            {/* Pay Info + Auto Detection State */}
+                            <div className="flex-1 w-full space-y-4 text-xs">
+                              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 flex items-center justify-between">
+                                <div>
+                                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Total Due</span>
+                                  <span className="text-xl font-black text-slate-900">${totalRegistrationFee}.00 <span className="text-xs font-bold text-slate-500">USD</span></span>
+                                </div>
+                                <div className="text-right">
+                                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
+                                    {formData.hasSibling ? 'Athletes (2)' : 'Athlete'}
+                                  </span>
+                                  <span className="text-xs font-bold text-slate-800">
+                                    {formData.playerName || 'Student'}{formData.hasSibling ? ` & ${formData.siblingName || 'Sibling'}` : ''}
+                                  </span>
+                                </div>
                               </div>
-                            )}
 
-                            <button
-                              type="submit"
-                              disabled={isProcessing}
-                              className="w-full bg-[#D62828] hover:bg-[#b01c1c] text-white py-4 rounded-2xl font-black text-xs sm:text-sm uppercase tracking-widest transition-all shadow-xl active:scale-[0.99] flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
-                            >
-                              {isProcessing ? (
-                                <>
-                                  <Loader2 className="w-4 h-4 animate-spin text-white" />
-                                  <span>Verifying Transfer &amp; Enrolling...</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Check className="w-4 h-4 text-white" />
-                                  <span>Confirm QR Payment &amp; Complete Enrollment (${totalRegistrationFee})</span>
-                                </>
+                              {/* Live Auto-Detector Banner */}
+                              <div className="bg-emerald-50 border border-emerald-200/80 rounded-xl p-3.5 flex items-center gap-3">
+                                <div className="relative flex h-3.5 w-3.5 shrink-0">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                  <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500"></span>
+                                </div>
+                                <div className="text-xs text-emerald-950 leading-tight">
+                                  <strong className="font-black block text-emerald-900 mb-0.5">Live Scan Listener Active</strong>
+                                  Scan with iPhone or Android to pay with Apple Pay, Google Pay, or Card. Confirmation receipt and email will trigger automatically.
+                                </div>
+                              </div>
+
+                              {/* Direct Mobile Link */}
+                              {stripeCheckoutUrl && (
+                                <a
+                                  href={stripeCheckoutUrl}
+                                  className="w-full bg-[#071A2D] hover:bg-[#D62828] text-white py-3.5 px-4 rounded-xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md text-center cursor-pointer"
+                                >
+                                  <Smartphone className="w-4 h-4 text-amber-400" />
+                                  <span>Already on Phone? Tap to Open Stripe Checkout</span>
+                                  <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+                                </a>
                               )}
-                            </button>
-                          </form>
-                        )}
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     )}
 
@@ -2219,10 +1919,10 @@ export default function Register() {
                             </strong>
                           </div>
 
-                          {(registrationRecord?.transactionId || qrReferenceId) && (
+                          {registrationRecord?.transactionId && (
                             <div className="flex justify-between py-2 border-b border-slate-100">
-                              <span className="text-slate-500 font-medium">Transaction / Ref ID:</span>
-                              <strong className="text-slate-900 font-mono">{registrationRecord?.transactionId || qrReferenceId}</strong>
+                              <span className="text-slate-500 font-medium">Transaction / Stripe ID:</span>
+                              <strong className="text-slate-900 font-mono">{registrationRecord.transactionId}</strong>
                             </div>
                           )}
 

@@ -106,16 +106,8 @@ export default function Admin() {
     schedule: '',
   });
 
-  // Admin Payment & QR Settings State
+  // Admin Payment & Stripe Settings State
   const [adminPaymentSettings, setAdminPaymentSettings] = useState<any>({
-    zellePhone: '+1 (863) 845-9913',
-    zelleEmail: 'kenznajeeb@gmail.com',
-    zelleName: 'Head Coach Wilson Mathew / Challengers Academy',
-    venmoHandle: '@Challengers-Academy',
-    cashAppHandle: '$ChallengersAcademy',
-    upiId: '18638459913@upi',
-    qrCustomImageUrl: '',
-    paymentInstructions: 'Scan the official Academy QR Code with your Banking App, Zelle, Venmo, Cash App, or UPI. Enter your transaction/reference ID below to complete enrollment.',
     enableQrPayment: true,
     enableCardPayment: true
   });
@@ -1911,171 +1903,88 @@ export default function Admin() {
                   </div>
                 </div>
 
-                {/* 3. Academy Payment QR Code & Direct Transfer Gateways */}
+                {/* 3. Stripe Payment Gateway & Checkout Configuration */}
                 <form onSubmit={handleSavePaymentSettings} className="bg-white p-10 rounded-[3rem] border border-espresso/5 shadow-xl space-y-6">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[9px] font-black uppercase tracking-widest bg-purple-100 text-purple-800 px-2.5 py-0.5 rounded-full">
-                          Client Payment Option
+                        <span className="text-[10px] font-black uppercase tracking-widest text-espresso/40">
+                          Payment Gateway
                         </span>
                         <span className="text-[9px] font-black uppercase tracking-widest bg-orange/10 text-orange px-2.5 py-0.5 rounded-full">
-                          QR &amp; Direct Gateways
+                          Stripe Powered
                         </span>
                       </div>
                       <h3 className="text-xl font-condensed font-black uppercase text-espresso">
-                        Academy Payment QR Code &amp; Direct Transfer Handles
+                        Stripe Payment Gateway &amp; Checkout Configuration
                       </h3>
                       <p className="text-xs text-espresso/40 mt-0.5">
-                        Configure the Academy QR code, Zelle, Venmo, Cash App, and UPI identifiers presented to parents during enrollment
+                        Manage Stripe card payments, mobile wallet checkout (Apple Pay &amp; Google Pay), and real-time confirmation receipts
                       </p>
                     </div>
 
                     {paymentSettingsSaved && (
                       <span className="text-xs font-black text-green-700 bg-green-100 px-4 py-2 rounded-xl border border-green-200 shrink-0">
-                        ✓ Payment &amp; QR Settings Saved!
+                        ✓ Stripe Settings Saved!
                       </span>
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-espresso/5">
-                    {/* QR Code Upload & Preview */}
-                    <div className="flex flex-col items-center bg-sand/15 p-6 rounded-2xl border border-espresso/5 space-y-3">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-espresso/60">
-                        Academy QR Code Image
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-espresso/5">
+                    <div className="bg-sand/15 p-6 rounded-2xl border border-espresso/5 space-y-4">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-espresso/60 block">
+                        Stripe Checkout Options
                       </span>
-                      <div className="relative p-2 bg-white rounded-xl border border-espresso/10 shadow-sm w-44 h-44 flex items-center justify-center overflow-hidden">
-                        {adminPaymentSettings.qrCustomImageUrl ? (
-                          <img 
-                            src={adminPaymentSettings.qrCustomImageUrl} 
-                            alt="Custom QR Preview" 
-                            className="w-full h-full object-contain rounded-lg"
-                          />
-                        ) : (
-                          <div className="text-center p-3">
-                            <QrCode className="w-12 h-12 text-espresso/30 mx-auto mb-2" />
-                            <span className="text-[10px] font-bold text-espresso/50 block">Auto-Generated Dynamic QR</span>
-                            <span className="text-[9px] text-espresso/30">Or upload your official bank QR below</span>
-                          </div>
-                        )}
-                      </div>
 
-                      <div className="w-full space-y-2">
-                        <label className="w-full bg-espresso text-white hover:bg-orange transition-all py-2.5 px-3 rounded-xl text-[10px] font-black uppercase tracking-wider text-center flex items-center justify-center gap-1.5 cursor-pointer shadow">
-                          <Upload className="w-3.5 h-3.5" />
-                          <span>Upload Bank / Zelle QR Image</span>
-                          <input 
-                            type="file" 
-                            accept="image/*" 
-                            onChange={handleQrImageUpload} 
-                            className="hidden" 
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3 p-3 bg-white rounded-xl border border-espresso/5">
+                          <input
+                            type="checkbox"
+                            id="enable-card-payment"
+                            checked={adminPaymentSettings.enableCardPayment !== false}
+                            onChange={(e) => setAdminPaymentSettings({ ...adminPaymentSettings, enableCardPayment: e.target.checked })}
+                            className="w-4 h-4 rounded text-orange focus:ring-orange cursor-pointer"
                           />
-                        </label>
+                          <label htmlFor="enable-card-payment" className="text-xs font-bold text-espresso cursor-pointer">
+                            Enable Credit / Debit Card Checkout (Stripe Elements)
+                          </label>
+                        </div>
 
-                        {adminPaymentSettings.qrCustomImageUrl && (
-                          <button
-                            type="button"
-                            onClick={() => setAdminPaymentSettings((prev: any) => ({ ...prev, qrCustomImageUrl: '' }))}
-                            className="w-full text-[10px] font-black uppercase text-red-600 hover:text-red-800 py-1 text-center cursor-pointer"
-                          >
-                            Reset to Dynamic QR
-                          </button>
-                        )}
+                        <div className="flex items-center gap-3 p-3 bg-white rounded-xl border border-espresso/5">
+                          <input
+                            type="checkbox"
+                            id="enable-qr-payment"
+                            checked={adminPaymentSettings.enableQrPayment !== false}
+                            onChange={(e) => setAdminPaymentSettings({ ...adminPaymentSettings, enableQrPayment: e.target.checked })}
+                            className="w-4 h-4 rounded text-orange focus:ring-orange cursor-pointer"
+                          />
+                          <label htmlFor="enable-qr-payment" className="text-xs font-bold text-espresso cursor-pointer">
+                            Enable Instant Mobile QR (Apple Pay, Google Pay &amp; Card)
+                          </label>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Account Handles & Identifiers */}
-                    <div className="md:col-span-2 space-y-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-espresso/60">Account Holder / Recipient Name</label>
-                          <input
-                            type="text"
-                            value={adminPaymentSettings.zelleName || ''}
-                            onChange={(e) => setAdminPaymentSettings({ ...adminPaymentSettings, zelleName: e.target.value })}
-                            placeholder="Head Coach Wilson Mathew / Challengers Academy"
-                            className="w-full bg-ivory border-0 rounded-xl px-4 py-2.5 text-xs font-bold text-espresso"
-                          />
+                    <div className="bg-sand/15 p-6 rounded-2xl border border-espresso/5 space-y-4">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-espresso/60 block">
+                        Email &amp; Notification Triggers
+                      </span>
+
+                      <div className="p-4 bg-white rounded-xl border border-espresso/5 space-y-2">
+                        <div className="text-xs font-bold text-espresso">Automatic Payment Receipts</div>
+                        <p className="text-[11px] text-espresso/60">
+                          Instantly sends branded registration passes with QR code verification to both parents and admin (<strong>nihalok625@gmail.com</strong>) upon successful payment.
+                        </p>
+                        <div className="pt-2">
+                          <a
+                            href="/api/test-email"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-orange hover:underline cursor-pointer"
+                          >
+                            <span>Test Email Dispatcher (Opens Diagnostics) →</span>
+                          </a>
                         </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-purple-700">Zelle Phone / Hotline</label>
-                          <input
-                            type="text"
-                            value={adminPaymentSettings.zellePhone || ''}
-                            onChange={(e) => setAdminPaymentSettings({ ...adminPaymentSettings, zellePhone: e.target.value })}
-                            placeholder="+1 (863) 845-9913"
-                            className="w-full bg-ivory border-0 rounded-xl px-4 py-2.5 text-xs font-bold text-espresso"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-purple-700">Zelle Billing Email</label>
-                          <input
-                            type="email"
-                            value={adminPaymentSettings.zelleEmail || ''}
-                            onChange={(e) => setAdminPaymentSettings({ ...adminPaymentSettings, zelleEmail: e.target.value })}
-                            placeholder="kenznajeeb@gmail.com"
-                            className="w-full bg-ivory border-0 rounded-xl px-4 py-2.5 text-xs font-bold text-espresso"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-blue-700">Venmo Username / Tag</label>
-                          <input
-                            type="text"
-                            value={adminPaymentSettings.venmoHandle || ''}
-                            onChange={(e) => setAdminPaymentSettings({ ...adminPaymentSettings, venmoHandle: e.target.value })}
-                            placeholder="@Challengers-Academy"
-                            className="w-full bg-ivory border-0 rounded-xl px-4 py-2.5 text-xs font-bold text-espresso"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-green-700">Cash App $Cashtag</label>
-                          <input
-                            type="text"
-                            value={adminPaymentSettings.cashAppHandle || ''}
-                            onChange={(e) => setAdminPaymentSettings({ ...adminPaymentSettings, cashAppHandle: e.target.value })}
-                            placeholder="$ChallengersAcademy"
-                            className="w-full bg-ivory border-0 rounded-xl px-4 py-2.5 text-xs font-bold text-espresso"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-amber-700">UPI / Banking ID</label>
-                          <input
-                            type="text"
-                            value={adminPaymentSettings.upiId || ''}
-                            onChange={(e) => setAdminPaymentSettings({ ...adminPaymentSettings, upiId: e.target.value })}
-                            placeholder="18638459913@upi"
-                            className="w-full bg-ivory border-0 rounded-xl px-4 py-2.5 text-xs font-bold text-espresso"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-espresso/60">Instructions Shown on QR Checkout Form</label>
-                        <textarea
-                          rows={2}
-                          value={adminPaymentSettings.paymentInstructions || ''}
-                          onChange={(e) => setAdminPaymentSettings({ ...adminPaymentSettings, paymentInstructions: e.target.value })}
-                          placeholder="Scan QR code with your mobile banking app..."
-                          className="w-full bg-ivory border-0 rounded-xl px-4 py-2 text-xs font-medium text-espresso"
-                        />
-                      </div>
-
-                      <div className="flex items-center gap-3 pt-2">
-                        <input
-                          type="checkbox"
-                          id="enable-qr-payment"
-                          checked={adminPaymentSettings.enableQrPayment !== false}
-                          onChange={(e) => setAdminPaymentSettings({ ...adminPaymentSettings, enableQrPayment: e.target.checked })}
-                          className="w-4 h-4 rounded text-orange focus:ring-orange cursor-pointer"
-                        />
-                        <label htmlFor="enable-qr-payment" className="text-xs font-bold text-espresso cursor-pointer">
-                          Enable QR Code &amp; Direct Transfer on Enrollment Page
-                        </label>
                       </div>
                     </div>
                   </div>
@@ -2087,11 +1996,11 @@ export default function Admin() {
                       className="bg-orange hover:bg-espresso text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-orange/20 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
                     >
                       {isSavingPaymentSettings ? (
-                        <span>Saving QR Settings...</span>
+                        <span>Saving Stripe Settings...</span>
                       ) : (
                         <>
                           <Save className="w-3.5 h-3.5" />
-                          <span>Save QR &amp; Payment Settings</span>
+                          <span>Save Payment Settings</span>
                         </>
                       )}
                     </button>
@@ -2369,25 +2278,22 @@ export default function Admin() {
                       onChange={(e) => setStudentEditForm({ ...studentEditForm, paymentMethod: e.target.value })}
                       className="w-full bg-sand/10 border border-espresso/10 rounded-xl px-4 py-2.5 text-xs text-espresso font-bold outline-none focus:border-orange cursor-pointer"
                     >
-                      <option value="QR Code">QR Code Scan &amp; Transfer</option>
-                      <option value="Card">Credit / Debit Card</option>
-                      <option value="Zelle">Zelle Transfer</option>
-                      <option value="Venmo">Venmo</option>
-                      <option value="Cash App">Cash App</option>
-                      <option value="UPI">UPI</option>
+                      <option value="Card">Stripe Credit / Debit Card</option>
+                      <option value="QR Code">Stripe Mobile QR / Apple Pay</option>
                       <option value="Cash">Cash / In-Person</option>
+                      <option value="Check / Other">Check / Other</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-[10px] font-black uppercase tracking-wider text-espresso/60 mb-1">
-                      Transaction / Reference ID
+                      Transaction / Stripe ID
                     </label>
                     <input
                       type="text"
                       value={studentEditForm.transactionId}
                       onChange={(e) => setStudentEditForm({ ...studentEditForm, transactionId: e.target.value })}
-                      placeholder="e.g. ZEL-98234120 or UTR"
+                      placeholder="e.g. pi_3MtwBwLkdIwHu7ix or Cash"
                       className="w-full bg-sand/10 border border-espresso/10 rounded-xl px-4 py-2.5 text-xs text-espresso font-mono font-medium outline-none focus:border-orange"
                     />
                   </div>

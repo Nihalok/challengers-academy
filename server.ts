@@ -1011,10 +1011,7 @@ async function sendAdminNotificationEmail(reg: RegistrationRecord) {
   console.log(`Subject: New Registration: ${reg.playerName}${reg.hasSibling ? ` & ${reg.siblingName} (Sibling)` : ''} ($${reg.amountPaid})`);
   console.log(`======================================================\n`);
 
-  const isQrTransfer = reg.paymentMethod === 'QR Code' || reg.paymentMethod === 'qr';
-  const emailSubject = isQrTransfer
-    ? `🔔 [Zelle / QR Transfer] ${reg.playerName}${reg.hasSibling ? ` + Sibling (${reg.siblingName})` : ''} - Ref: ${reg.transactionId || 'Pending'} ($${reg.amountPaid})`
-    : `🚨 [New Paid Registration] ${reg.playerName}${reg.hasSibling ? ` + Sibling (${reg.siblingName})` : ''} - ${reg.sessionName} ($${reg.amountPaid})`;
+  const emailSubject = `🚨 [New Paid Registration] ${reg.playerName}${reg.hasSibling ? ` + Sibling (${reg.siblingName})` : ''} - ${reg.sessionName} ($${reg.amountPaid}) [${reg.paymentMethod || 'Stripe'}]`;
 
   if (transporter) {
     try {
@@ -1028,8 +1025,8 @@ async function sendAdminNotificationEmail(reg: RegistrationRecord) {
           <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f7f5f0; margin: 0; padding: 24px;">
             <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; border: 1px solid #eae5db; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
               <div style="background: #1B1B1D; padding: 28px; text-align: center;">
-                <div style="display: inline-block; background: ${isQrTransfer ? '#f59e0b' : '#ea580c'}; color: #ffffff; font-weight: 900; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; padding: 6px 14px; border-radius: 50px; margin-bottom: 12px;">
-                  ${isQrTransfer ? 'Zelle / QR Transfer Submitted' : 'New Paid Registration'}
+                <div style="display: inline-block; background: #ea580c; color: #ffffff; font-weight: 900; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; padding: 6px 14px; border-radius: 50px; margin-bottom: 12px;">
+                  New Paid Registration (${reg.paymentMethod || 'Stripe'})
                 </div>
                 ${reg.hasSibling ? `
                 <div style="display: block; margin-bottom: 8px;">
@@ -1047,16 +1044,6 @@ async function sendAdminNotificationEmail(reg: RegistrationRecord) {
               </div>
 
               <div style="padding: 28px;">
-                ${isQrTransfer ? `
-                <div style="background: #fffbeb; border: 1px solid #fef3c7; border-left: 4px solid #f59e0b; padding: 14px 16px; border-radius: 8px; margin-bottom: 20px;">
-                  <p style="margin: 0; color: #92400e; font-size: 13px; font-weight: 700;">
-                    ⚠️ Direct Transfer / Zelle Payment
-                  </p>
-                  <p style="margin: 4px 0 0 0; color: #78350f; font-size: 12px; line-height: 1.5;">
-                    The customer reported transferring <strong>$${reg.amountPaid}</strong> with Transaction/Ref ID: <strong style="font-family: monospace;">${reg.transactionId || 'N/A'}</strong>. Please verify this payment in your bank or Zelle statement.
-                  </p>
-                </div>
-                ` : ''}
 
                 <h3 style="font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: #8c827a; margin: 0 0 16px 0;">
                   Athlete & Parent Details
@@ -1132,20 +1119,50 @@ async function sendCustomerConfirmationEmail(reg: RegistrationRecord) {
   const transporter = getMailTransporter();
   const from = getFromAddress();
   const customerName = reg.parentName || reg.playerName;
+  const targetEmail = String(reg.email || '').trim().toLowerCase();
 
   console.log(`\n======================================================`);
   console.log(`📧 [EMAIL DISPATCH] → CUSTOMER CONFIRMATION`);
-  console.log(`To: ${reg.email}`);
+  console.log(`To: ${targetEmail}`);
   console.log(`From: ${from}`);
   console.log(`Subject: Registration Confirmed! 🎉 - Challengers Volleyball Academy`);
   console.log(`======================================================\n`);
 
+  if (!targetEmail || !targetEmail.includes('@') || targetEmail.includes('example.com')) {
+    console.warn(`⚠️ [CUSTOMER EMAIL SKIPPED] Recipient email is missing or dummy: "${targetEmail}"`);
+    return;
+  }
+
   if (transporter) {
     try {
-      await transporter.sendMail({
+      const textSummary = `
+Registration Confirmed! 🎉
+Welcome to Challengers Volleyball Academy, ${customerName}!
+
+Registration ID: ${reg.registrationId}
+Program / Session: ${reg.sessionName}
+Primary Athlete: ${reg.playerName}
+${reg.hasSibling ? `Sibling Athlete: ${reg.siblingName || 'Sibling'} (Enrolled - $50 Sibling Discount Applied)\n` : ''}Schedule: ${reg.schedule}
+Location: ${reg.location}
+Payment Method: ${reg.paymentMethod || 'Stripe'}
+Total Amount Paid: $${reg.amountPaid}.00 USD (PAID)
+${reg.transactionId ? `Transaction / Stripe ID: ${reg.transactionId}\n` : ''}
+What to Bring to Your First Session:
+- Athletic shoes with good court grip (non-marking soles)
+- Comfortable athletic clothing & knee pads
+- Refillable water bottle & small towel
+- Please arrive 10 minutes prior to session start time
+
+If you have questions, reply to this email or call us at (510) 909-5834.
+Challengers Volleyball Academy - Bay Area, CA
+`;
+
+      const info = await transporter.sendMail({
         from,
-        to: reg.email,
+        to: targetEmail,
+        replyTo: process.env.ACADEMY_ADMIN_EMAIL || process.env.EMAIL_USER || 'nihalok625@gmail.com',
         subject: `🎉 Registration Confirmed: ${reg.sessionName} (${reg.registrationId})`,
+        text: textSummary,
         html: `
           <!DOCTYPE html>
           <html>
@@ -1235,8 +1252,8 @@ async function sendCustomerConfirmationEmail(reg: RegistrationRecord) {
                   </ul>
                 </div>
 
-                <div style="text-align: center; border-top: 1px solid #f2ede4; pt-6; padding-top: 20px; color: #8c827a; font-size: 12px;">
-                  Have questions or need assistance? Reply directly to this email or call us at (510) 555-0199.<br />
+                <div style="text-align: center; border-top: 1px solid #f2ede4; padding-top: 20px; color: #8c827a; font-size: 12px;">
+                  Have questions or need assistance? Reply directly to this email or call us at +1 (510) 909-5834.<br />
                   <strong>Challengers Volleyball Academy</strong> - Bay Area, CA
                 </div>
               </div>
@@ -1245,9 +1262,9 @@ async function sendCustomerConfirmationEmail(reg: RegistrationRecord) {
           </html>
         `
       });
-      console.log(` Customer confirmation email sent successfully to ${reg.email}`);
+      console.log(` Customer confirmation email sent successfully to ${targetEmail} (MessageId: ${info.messageId})`);
     } catch (err: any) {
-      console.error(' Customer confirmation email dispatch error:', err.message);
+      console.error(` Customer confirmation email dispatch error (${targetEmail}):`, err.message);
     }
   }
 }
@@ -1318,7 +1335,7 @@ async function startServer() {
         sessionName: metadata.sessionName || sessionItem?.name || 'Challengers Coaching Session',
         playerName: metadata.playerName || metadata.studentName || 'Student Athlete',
         parentName: metadata.parentName || '',
-        email: metadata.email || metadata.primaryEmail || sessionOrIntent.customer_details?.email || 'customer@example.com',
+        email: metadata.email || metadata.primaryEmail || sessionOrIntent.customer_details?.email || process.env.EMAIL_USER || 'nihalok625@gmail.com',
         phone: metadata.phone || metadata.primaryPhone || 'N/A',
         dob: metadata.dob || '',
         location: metadata.location || sessionItem?.location || 'Fremont Arena',
@@ -2184,8 +2201,8 @@ async function startServer() {
       });
     }
 
-    // Live mode: charge final amount in cents
-    const chargeAmount = amountInCents;
+    // Live mode: charge final amount in cents (Stripe requires minimum $0.50 USD / 50 cents)
+    const chargeAmount = Math.max(50, amountInCents);
     const chargeCurrency = 'usd';
 
     try {
@@ -2304,7 +2321,7 @@ async function startServer() {
               sessionName: matchedLead.sessionName || 'Challengers Coaching Session',
               playerName: matchedLead.playerName || 'Student Athlete',
               parentName: matchedLead.parentName || '',
-              email: matchedLead.email || intent.receipt_email || 'customer@example.com',
+              email: matchedLead.email || intent.receipt_email || process.env.EMAIL_USER || 'nihalok625@gmail.com',
               phone: matchedLead.phone || 'N/A',
               dob: matchedLead.dob || '',
               location: matchedLead.location || 'Fremont Arena',
