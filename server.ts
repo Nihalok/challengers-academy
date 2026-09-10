@@ -150,9 +150,7 @@ function getMailTransporter() {
 
   if (isGmail) {
     return nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
+      service: 'gmail',
       auth: { user, pass },
       tls: { rejectUnauthorized: false }
     });
