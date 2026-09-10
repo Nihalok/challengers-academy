@@ -8,12 +8,17 @@ export default async function handler(req: any, res: any) {
       cachedApp = await createApp();
     }
 
-    // In Vercel serverless rewrites, recover original requested URL
-    const matchedPath = req.headers['x-matched-path'] || req.headers['x-vercel-matched-path'] || req.originalUrl || req.url;
-    if (matchedPath && (matchedPath.startsWith('/api') || matchedPath.startsWith('/'))) {
-      req.url = matchedPath.startsWith('/api') ? matchedPath : `/api${matchedPath}`;
-    } else if (req.url && !req.url.startsWith('/api')) {
-      req.url = `/api${req.url.startsWith('/') ? '' : '/'}${req.url}`;
+    // Recover rewritten path from Vercel query parameter or headers
+    if (req.query?.__path) {
+      const subPath = Array.isArray(req.query.__path) ? req.query.__path.join('/') : req.query.__path;
+      req.url = `/api/${subPath}`;
+    } else {
+      const matchedPath = req.headers['x-matched-path'] || req.headers['x-vercel-matched-path'] || req.originalUrl || req.url;
+      if (matchedPath && matchedPath !== '/api' && (matchedPath.startsWith('/api') || matchedPath.startsWith('/'))) {
+        req.url = matchedPath.startsWith('/api') ? matchedPath : `/api${matchedPath}`;
+      } else if (req.url && !req.url.startsWith('/api')) {
+        req.url = `/api${req.url.startsWith('/') ? '' : '/'}${req.url}`;
+      }
     }
 
     return new Promise((resolve) => {
