@@ -1378,6 +1378,17 @@ export async function createApp() {
     res.json({ received: true });
   });
 
+  // CORS & Security Headers
+  app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    if (req.method === 'OPTIONS') {
+      return res.sendStatus(200);
+    }
+    next();
+  });
+
   // Standard JSON and urlencoded parser with 50MB limit for high-resolution photo uploads
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ extended: true, limit: '50mb' }));
@@ -3078,10 +3089,9 @@ async function startServer() {
 }
 
 // Only start standalone HTTP server when not running inside Vercel serverless environment
-if (process.env.VERCEL !== '1' && !process.env.VERCEL_ENV) {
+if (!process.env.VERCEL && !process.env.VERCEL_ENV && !process.env.AWS_LAMBDA_FUNCTION_NAME && !process.env.NOW_REGION) {
   startServer().catch(err => {
     console.error('Failed to start server:', err);
-    process.exit(1);
   });
 }
 

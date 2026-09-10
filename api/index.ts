@@ -7,6 +7,12 @@ export default async function handler(req: any, res: any) {
     if (!cachedApp) {
       cachedApp = await createApp();
     }
+    
+    // Ensure URL has /api prefix for Express routing on Vercel
+    if (req.url && !req.url.startsWith('/api')) {
+      req.url = `/api${req.url.startsWith('/') ? '' : '/'}${req.url}`;
+    }
+    
     return cachedApp(req, res);
   } catch (err: any) {
     console.error('API serverless handler error:', err);
