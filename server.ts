@@ -1415,9 +1415,47 @@ export async function createApp() {
     });
   });
 
-  // Health check
-  app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok' });
+  // Health & Database Diagnostics Check
+  app.get('/api/health', async (req, res) => {
+    let dbStatus = 'disconnected';
+    let dbError = null;
+    try {
+      const db = await getMongoDb();
+      if (db) {
+        await db.command({ ping: 1 });
+        dbStatus = 'connected';
+      }
+    } catch (e: any) {
+      dbError = e.message;
+    }
+
+    res.json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      database: dbStatus,
+      databaseError: dbError,
+      environment: {
+        hasMongoUri: !!process.env.MONGODB_URI,
+        hasStripeKey: !!process.env.STRIPE_SECRET_KEY,
+        hasJwtSecret: !!process.env.JWT_SECRET,
+        hasGoogleClient: !!(process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID),
+        hasEmailUser: !!(process.env.EMAIL_USER || process.env.EMAIL_FROM),
+        appUrl: process.env.APP_URL || 'Not set'
+      }
+    });
+  });
+
+  app.get('/api/db-status', async (req, res) => {
+    try {
+      const db = await getMongoDb();
+      if (!db) {
+        return res.json({ success: false, message: 'MongoDB not connected. Check MONGODB_URI or Atlas Network Access (0.0.0.0/0).' });
+      }
+      const collections = await db.listCollections().toArray();
+      res.json({ success: true, message: 'MongoDB connected successfully!', collections: collections.map(c => c.name) });
+    } catch (err: any) {
+      res.status(500).json({ success: false, message: 'MongoDB connection error: ' + err.message });
+    }
   });
 
   // ============================================================
