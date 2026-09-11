@@ -113,28 +113,35 @@
   }
 }
 
-/* Custom Cursor */
-.custom-cursor {
-  width: 8px;
-  height: 8px;
-  background-color: var(--color-crimson);
-  border-radius: 50%;
-  position: fixed;
-  pointer-events: none;
-  z-index: 9999;
-  transform: translate(-50%, -50%);
+/* Custom Cursor Management */
+@media (pointer: fine) {
+  html.custom-cursor-enabled,
+  html.custom-cursor-enabled body,
+  html.custom-cursor-enabled a,
+  html.custom-cursor-enabled button,
+  html.custom-cursor-enabled [role="button"],
+  html.custom-cursor-enabled label,
+  html.custom-cursor-enabled select,
+  html.custom-cursor-enabled input[type="submit"],
+  html.custom-cursor-enabled input[type="button"],
+  html.custom-cursor-enabled .cursor-pointer {
+    cursor: none !important;
+  }
 }
 
-.custom-cursor-follower {
-  width: 32px;
-  height: 32px;
-  border: 1px solid var(--color-crimson);
-  border-radius: 50%;
-  position: fixed;
-  pointer-events: none;
-  z-index: 9998;
-  transform: translate(-50%, -50%);
-  transition: transform 0.15s ease-out;
+@keyframes cursor-spike-ripple {
+  0% {
+    transform: translate(-50%, -50%) scale(0.3);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2.5);
+    opacity: 0;
+  }
+}
+
+.cursor-spike-ripple {
+  animation: cursor-spike-ripple 0.65s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
 }
 
 /* Marquee Animation */

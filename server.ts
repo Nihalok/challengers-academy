@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import dns from 'dns';
 import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
 import Stripe from 'stripe';
@@ -10,6 +11,13 @@ import rateLimit from 'express-rate-limit';
 import nodemailer from 'nodemailer';
 import { OAuth2Client } from 'google-auth-library';
 
+// Fix for Node.js SRV record DNS query failures (querySrv ESERVFAIL) on Windows/ISP resolvers
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1', '8.8.4.4']);
+} catch {
+  // Fallback if environment restricts setting custom DNS servers
+}
+
 // MongoDB Client Initialization
 let mongoClient: MongoClient | null = null;
 let mongoDb: Db | null = null;
@@ -20,8 +28,9 @@ async function getMongoDb(): Promise<Db | null> {
   if (mongoDb) return mongoDb;
   try {
     mongoClient = new MongoClient(uri, {
-      serverSelectionTimeoutMS: 7500,
-      connectTimeoutMS: 7500,
+      serverSelectionTimeoutMS: 10000,
+      connectTimeoutMS: 10000,
+      family: 4,
     });
     await mongoClient.connect();
     const dbName = process.env.MONGODB_DB_NAME || 'challengers_academy';

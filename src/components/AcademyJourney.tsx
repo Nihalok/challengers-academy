@@ -265,7 +265,7 @@ export default function AcademyJourney() {
   }
 
   return (
-    <section ref={containerRef} className="relative w-full h-[300vh] bg-gradient-to-br from-[#fff7ed] via-[#ffedd5] to-[#fef3c7] cursor-none" aria-label="Academy Journey Timeline">
+    <section ref={containerRef} className="relative w-full h-[300vh] bg-gradient-to-br from-[#fff7ed] via-[#ffedd5] to-[#fef3c7]" aria-label="Academy Journey Timeline">
       
       <div 
         onMouseMove={handleMouseMove}
@@ -300,15 +300,6 @@ export default function AcademyJourney() {
             backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(0,0,0,0.05) 1px, transparent 0)',
             backgroundSize: '40px 40px'
           }} />
-        </motion.div>
-
-        {/* Custom Cursor Follower - Styled to match warm tones */}
-        <motion.div
-          className="absolute w-6 h-6 bg-[#ea580c] rounded-full pointer-events-none z-[100] shadow-[0_0_15px_rgba(234,88,12,0.4)]"
-          style={{ left: smoothX, top: smoothY, x: '-50%', y: '-50%' }}
-        >
-          <div className="absolute inset-0 bg-[#ea580c] rounded-full animate-ping opacity-30 scale-150" />
-          <div className="absolute inset-[-30px] bg-[#ea580c]/10 rounded-full blur-xl" />
         </motion.div>
 
         <div className="container mx-auto relative h-full px-4 flex flex-col justify-center pt-20 z-10">

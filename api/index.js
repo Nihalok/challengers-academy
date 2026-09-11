@@ -1,5 +1,6 @@
 // server.ts
 import "dotenv/config";
+import dns from "dns";
 import express from "express";
 import path from "path";
 import Stripe from "stripe";
@@ -9,6 +10,11 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 import { OAuth2Client } from "google-auth-library";
+
+try {
+  dns.setServers(["8.8.8.8", "1.1.1.1", "8.8.4.4"]);
+} catch {}
+
 var mongoClient = null;
 var mongoDb = null;
 async function getMongoDb() {
@@ -17,8 +23,9 @@ async function getMongoDb() {
   if (mongoDb) return mongoDb;
   try {
     mongoClient = new MongoClient(uri, {
-      serverSelectionTimeoutMS: 7500,
-      connectTimeoutMS: 7500
+      serverSelectionTimeoutMS: 10000,
+      connectTimeoutMS: 10000,
+      family: 4
     });
     await mongoClient.connect();
     const dbName = process.env.MONGODB_DB_NAME || "challengers_academy";
