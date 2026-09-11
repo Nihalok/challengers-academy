@@ -20,21 +20,28 @@ var mongoDb = null;
 async function getMongoDb() {
   const uri = process.env.MONGODB_URI;
   if (!uri) return null;
-  if (mongoDb) return mongoDb;
+  if (mongoDb && mongoClient) return mongoDb;
   try {
     mongoClient = new MongoClient(uri, {
       serverSelectionTimeoutMS: 10000,
       connectTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+      maxPoolSize: 20,
+      minPoolSize: 2,
+      maxIdleTimeMS: 30000,
+      retryWrites: true,
+      retryReads: true,
       family: 4
     });
+    mongoClient.on('error', () => { mongoDb = null; mongoClient = null; });
+    mongoClient.on('close', () => { mongoDb = null; mongoClient = null; });
     await mongoClient.connect();
     const dbName = process.env.MONGODB_DB_NAME || "challengers_academy";
     mongoDb = mongoClient.db(dbName);
-    console.log(` Connected to MongoDB Database: "${dbName}"`);
-    await seedFirstAdmin(mongoDb).catch((e) => console.warn("\u26A0\uFE0F Failed to seed initial admin:", e.message));
     return mongoDb;
   } catch (err) {
-    console.warn("\u26A0\uFE0F MongoDB connection error:", err.message);
+    mongoDb = null;
+    mongoClient = null;
     return null;
   }
 }

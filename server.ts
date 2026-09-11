@@ -11,6 +11,15 @@ import rateLimit from 'express-rate-limit';
 import nodemailer from 'nodemailer';
 import { OAuth2Client } from 'google-auth-library';
 
+// Global Process Crash Prevention Handlers
+process.on('uncaughtException', (err: any) => {
+  console.error('🛡️ [Uncaught Exception caught]:', err?.message || err);
+});
+
+process.on('unhandledRejection', (reason: any) => {
+  console.error('🛡️ [Unhandled Rejection caught]:', reason?.message || reason);
+});
+
 // Fix for Node.js SRV record DNS query failures (querySrv ESERVFAIL) on Windows/ISP resolvers
 try {
   dns.setServers(['8.8.8.8', '1.1.1.1', '8.8.4.4']);
@@ -18,30 +27,95 @@ try {
   // Fallback if environment restricts setting custom DNS servers
 }
 
-// MongoDB Client Initialization
+// In-Memory Fast Cache for Read-Heavy Public Data (Sub-millisecond API response)
+const fastCache = new Map<string, { data: any; expiresAt: number }>();
+
+function getCachedData<T>(key: string): T | null {
+  const item = fastCache.get(key);
+  if (!item) return null;
+  if (Date.now() > item.expiresAt) {
+    fastCache.delete(key);
+    return null;
+  }
+  return item.data as T;
+}
+
+function setCachedData(key: string, data: any, ttlSeconds: number = 60): void {
+  fastCache.set(key, { data, expiresAt: Date.now() + ttlSeconds * 1000 });
+}
+
+function clearCache(keyPrefix?: string): void {
+  if (!keyPrefix) {
+    fastCache.clear();
+    return;
+  }
+  for (const key of fastCache.keys()) {
+    if (key.startsWith(keyPrefix)) {
+      fastCache.delete(key);
+    }
+  }
+}
+
+// MongoDB Client Initialization with Connection Pool & Auto-Recovery
 let mongoClient: MongoClient | null = null;
 let mongoDb: Db | null = null;
+let isConnecting = false;
+let connectPromise: Promise<Db | null> | null = null;
 
 async function getMongoDb(): Promise<Db | null> {
   const uri = process.env.MONGODB_URI;
   if (!uri) return null;
-  if (mongoDb) return mongoDb;
-  try {
-    mongoClient = new MongoClient(uri, {
-      serverSelectionTimeoutMS: 10000,
-      connectTimeoutMS: 10000,
-      family: 4,
-    });
-    await mongoClient.connect();
-    const dbName = process.env.MONGODB_DB_NAME || 'challengers_academy';
-    mongoDb = mongoClient.db(dbName);
-    console.log(` Connected to MongoDB Database: "${dbName}"`);
-    await seedFirstAdmin(mongoDb).catch(e => console.warn('⚠️ Failed to seed initial admin:', e.message));
+  if (mongoDb && mongoClient) {
     return mongoDb;
-  } catch (err: any) {
-    console.warn('⚠️ MongoDB connection error:', err.message);
-    return null;
   }
+  if (isConnecting && connectPromise) {
+    return connectPromise;
+  }
+
+  isConnecting = true;
+  connectPromise = (async () => {
+    try {
+      mongoClient = new MongoClient(uri, {
+        serverSelectionTimeoutMS: 10000,
+        connectTimeoutMS: 10000,
+        socketTimeoutMS: 45000,
+        maxPoolSize: 25,
+        minPoolSize: 2,
+        maxIdleTimeMS: 30000,
+        retryWrites: true,
+        retryReads: true,
+        family: 4,
+      });
+
+      mongoClient.on('error', (err) => {
+        console.warn('⚠️ MongoDB Client Error:', err.message);
+        mongoDb = null;
+        mongoClient = null;
+      });
+
+      mongoClient.on('close', () => {
+        console.warn('⚠️ MongoDB Connection Closed. Auto-reconnecting on next query.');
+        mongoDb = null;
+        mongoClient = null;
+      });
+
+      await mongoClient.connect();
+      const dbName = process.env.MONGODB_DB_NAME || 'challengers_academy';
+      mongoDb = mongoClient.db(dbName);
+      console.log(` Connected to MongoDB Database: "${dbName}"`);
+      return mongoDb;
+    } catch (err: any) {
+      console.warn('⚠️ MongoDB connection error:', err.message);
+      mongoDb = null;
+      mongoClient = null;
+      return null;
+    } finally {
+      isConnecting = false;
+      connectPromise = null;
+    }
+  })();
+
+  return connectPromise;
 }
 
 // ============================================================
@@ -1937,15 +2011,25 @@ Challengers Volleyball Academy
   // GET /api/programs - Public endpoint (returns all active programs)
   app.get('/api/programs', async (req, res) => {
     try {
+      const cached = getCachedData<any[]>('public_programs');
+      if (cached) {
+        return res.json({ success: true, programs: cached });
+      }
+
       const db = await getMongoDb();
       if (db) {
         const programs = await db.collection('programs')
           .find({ isActive: { $ne: false } })
           .sort({ order: 1 })
           .toArray();
-        if (programs.length > 0) return res.json({ success: true, programs });
+        if (programs.length > 0) {
+          setCachedData('public_programs', programs, 120);
+          return res.json({ success: true, programs });
+        }
       }
-      res.json({ success: true, programs: DEFAULT_PROGRAMS.filter(p => p.isActive !== false) });
+      const defaultProgs = DEFAULT_PROGRAMS.filter(p => p.isActive !== false);
+      setCachedData('public_programs', defaultProgs, 120);
+      res.json({ success: true, programs: defaultProgs });
     } catch (err: any) {
       res.json({ success: true, programs: DEFAULT_PROGRAMS.filter(p => p.isActive !== false) });
     }
@@ -1997,6 +2081,7 @@ Challengers Volleyball Academy
       if (db) {
         await db.collection('programs').insertOne(newProg);
       }
+      clearCache('public_programs');
       res.json({ success: true, program: newProg });
     } catch (err: any) {
       res.status(500).json({ success: false, message: err.message });
@@ -2026,6 +2111,7 @@ Challengers Volleyball Academy
           { $set: updateData }
         );
       }
+      clearCache('public_programs');
       res.json({ success: true, message: 'Program updated successfully' });
     } catch (err: any) {
       res.status(500).json({ success: false, message: err.message });
@@ -2036,15 +2122,25 @@ Challengers Volleyball Academy
   // GET /api/camps - Public endpoint (returns active camps)
   app.get('/api/camps', async (req, res) => {
     try {
+      const cached = getCachedData<any[]>('public_camps');
+      if (cached) {
+        return res.json({ success: true, camps: cached });
+      }
+
       const db = await getMongoDb();
       if (db) {
         const camps = await db.collection('camps')
           .find({ isActive: { $ne: false } })
           .sort({ order: 1 })
           .toArray();
-        if (camps.length > 0) return res.json({ success: true, camps });
+        if (camps.length > 0) {
+          setCachedData('public_camps', camps, 120);
+          return res.json({ success: true, camps });
+        }
       }
-      res.json({ success: true, camps: DEFAULT_CAMPS.filter(c => c.isActive !== false) });
+      const defaultCamps = DEFAULT_CAMPS.filter(c => c.isActive !== false);
+      setCachedData('public_camps', defaultCamps, 120);
+      res.json({ success: true, camps: defaultCamps });
     } catch {
       res.json({ success: true, camps: DEFAULT_CAMPS.filter(c => c.isActive !== false) });
     }
@@ -2093,6 +2189,7 @@ Challengers Volleyball Academy
       if (db) {
         await db.collection('camps').insertOne(newCamp);
       }
+      clearCache('public_camps');
       res.json({ success: true, camp: newCamp });
     } catch (err: any) {
       res.status(500).json({ success: false, message: err.message });
@@ -2119,6 +2216,7 @@ Challengers Volleyball Academy
           { $set: updateData }
         );
       }
+      clearCache('public_camps');
       res.json({ success: true, message: 'Camp updated successfully' });
     } catch (err: any) {
       res.status(500).json({ success: false, message: err.message });
@@ -3258,6 +3356,17 @@ Challengers Volleyball Academy
     } catch (err: any) {
       console.error('Delete gallery item error:', err);
       res.status(500).json({ success: false, message: 'Failed to delete gallery item' });
+    }
+  });
+
+  // Global Express Error Handler Middleware (Prevents server crash on unhandled route errors)
+  app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+    console.error('🛡️ [Express Unhandled Route Error]:', err?.message || err);
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error. Please try again.'
+      });
     }
   });
 
