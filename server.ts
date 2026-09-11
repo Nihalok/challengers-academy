@@ -1293,13 +1293,11 @@ let galleryItems = [
 export async function createApp() {
   const app = express();
 
-  // Vercel URL Path Rewrite Recovery Middleware
+  // Vercel URL Path Rewrite Recovery Middleware (Only if query parameter __path is provided by Vercel rewrite)
   app.use((req, res, next) => {
     if (req.query?.__path) {
       const subPath = Array.isArray(req.query.__path) ? req.query.__path.join('/') : req.query.__path;
       req.url = `/api/${subPath}`;
-    } else if (req.url && !req.url.startsWith('/api')) {
-      req.url = `/api${req.url.startsWith('/') ? '' : '/'}${req.url}`;
     }
     next();
   });

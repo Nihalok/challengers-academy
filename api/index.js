@@ -1151,8 +1151,6 @@ async function createApp() {
     if (req.query?.__path) {
       const subPath = Array.isArray(req.query.__path) ? req.query.__path.join("/") : req.query.__path;
       req.url = `/api/${subPath}`;
-    } else if (req.url && !req.url.startsWith("/api")) {
-      req.url = `/api${req.url.startsWith("/") ? "" : "/"}${req.url}`;
     }
     next();
   });
@@ -2758,6 +2756,12 @@ async function getApp() {
 }
 async function handler(req, res) {
   try {
+    if (req.query?.__path) {
+      const subPath = Array.isArray(req.query.__path) ? req.query.__path.join("/") : req.query.__path;
+      req.url = `/api/${subPath}`;
+    } else if (req.url && !req.url.startsWith("/api")) {
+      req.url = `/api${req.url.startsWith("/") ? "" : "/"}${req.url}`;
+    }
     const app = await getApp();
     return new Promise((resolve, reject) => {
       res.on("finish", () => resolve());

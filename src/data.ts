@@ -70,7 +70,7 @@ export const PROGRAMS: Program[] = [
     image: ASSETS.EXPERTISE.TACTICAL,
     ageRange: '5 - 18',
     ageGroups: ['5-10', '11-14', '15-18'],
-    features: ['4 x 2-Hour Sessions ($360)', '1-on-1 Dedicated Coach', 'Extended Travel Service', 'Rapid Progression']
+    features: ['4 x 1-Hour Sessions ($360)', '1-on-1 Dedicated Coach', 'Extended Travel Service', 'Rapid Progression']
   }
 ];
 

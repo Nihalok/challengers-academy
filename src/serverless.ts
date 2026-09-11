@@ -11,6 +11,14 @@ async function getApp() {
 
 export default async function handler(req: any, res: any) {
   try {
+    // Normalize path for Vercel serverless functions
+    if (req.query?.__path) {
+      const subPath = Array.isArray(req.query.__path) ? req.query.__path.join('/') : req.query.__path;
+      req.url = `/api/${subPath}`;
+    } else if (req.url && !req.url.startsWith('/api')) {
+      req.url = `/api${req.url.startsWith('/') ? '' : '/'}${req.url}`;
+    }
+
     const app = await getApp();
     return new Promise<void>((resolve, reject) => {
       res.on('finish', () => resolve());

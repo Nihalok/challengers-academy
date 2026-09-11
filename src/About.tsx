@@ -59,7 +59,7 @@ const FOUNDER_PILLARS = [
     icon: BookOpen,
     title: 'Coaching Philosophy',
     tag: 'FIVB Certified Level 1 & 2',
-    desc: 'Holding international FIVB Level 1 and Level 2 coaching accreditations, Coach Wilson builds technical precision, court awareness, mental toughness, and high-character athletes who succeed both on and off the court.',
+    desc: 'Holding international FIVB Level 1 and Level 2 coaching accreditations, Head Coach Wilson builds technical precision, court awareness, mental toughness, and high-character athletes who succeed both on and off the court.',
     accent: '#1B1B1D'
   }
 ];
@@ -384,7 +384,7 @@ export default function About() {
               </h2>
             </div>
             <p data-anim="reveal" className="text-white/70 max-w-md text-sm sm:text-base leading-relaxed">
-              Over three decades of international athletic competition, national training academy credentials, and certified FIVB coaching expertise.
+              Over three decades of international athletic competition, National training academy credentials, and certified FIVB coaching expertise.
             </p>
           </div>
 
@@ -421,7 +421,7 @@ export default function About() {
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[#F9BC00] shrink-0" />
-                  <span>Junior Indian National Camp attended at Aurangabad(1997)</span>
+                  <span>Junior Indian  Camp attended at Aurangabad(1997)</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[#F9BC00] shrink-0" />
