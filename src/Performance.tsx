@@ -1,4 +1,5 @@
 import { motion } from 'motion/react';
+import { NavLink } from 'react-router-dom';
 import SectionHeader from './components/SectionHeader';
 import PerformanceDashboard from './components/PerformanceDashboard';
 import ThreeSpike from './components/ThreeSpike';
@@ -170,12 +171,12 @@ export default function Performance() {
             </p>
             
             <div className="flex flex-wrap justify-center gap-4">
-              <a href="/register" className="px-8 py-4 bg-espresso text-white rounded-xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-white hover:text-espresso transition-all shadow-xl">
+              <NavLink to="/register" className="px-8 py-4 bg-espresso text-white rounded-xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-white hover:text-espresso transition-all shadow-xl">
                 Begin Phase 01
-              </a>
-              <a href="/contact" className="px-8 py-4 bg-white text-espresso border border-espresso/5 rounded-xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-espresso hover:text-white transition-all shadow-md">
+              </NavLink>
+              <NavLink to="/contact" className="px-8 py-4 bg-white text-espresso border border-espresso/5 rounded-xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-espresso hover:text-white transition-all shadow-md">
                 Request Eval
-              </a>
+              </NavLink>
             </div>
           </div>
           

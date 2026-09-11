@@ -384,9 +384,9 @@ export default function Programs() {
                   </div>
                 ))}
               </div>
-              <a href="/contact" className="inline-flex items-center gap-3 bg-[#F9BC00] text-espresso px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white transition-all shadow-xl">
+              <NavLink to="/contact" className="inline-flex items-center gap-3 bg-[#F9BC00] text-espresso px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white transition-all shadow-xl">
                 Book a Program <ChevronRight className="w-3.5 h-3.5" />
-              </a>
+              </NavLink>
             </div>
           </div>
 
@@ -418,9 +418,9 @@ export default function Programs() {
                   </div>
                 ))}
               </div>
-              <a href="/contact" className="inline-flex items-center gap-3 bg-white text-espresso px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] hover:bg-[#F3722C] hover:text-white transition-all shadow-xl">
+              <NavLink to="/contact" className="inline-flex items-center gap-3 bg-white text-espresso px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] hover:bg-[#F3722C] hover:text-white transition-all shadow-xl">
                 Enroll Now <ChevronRight className="w-3.5 h-3.5" />
-              </a>
+              </NavLink>
             </div>
           </div>
         </div>

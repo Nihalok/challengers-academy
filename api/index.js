@@ -1288,6 +1288,100 @@ async function createApp() {
       res.status(500).json({ success: false, message: "MongoDB connection error: " + err.message });
     }
   });
+  app.post("/api/contact", async (req, res) => {
+    try {
+      const { name, email, subject, message } = req.body || {};
+      if (!name || !email || !message) {
+        return res.status(400).json({ success: false, message: "Name, email, and message are required." });
+      }
+      const adminEmail = process.env.ACADEMY_ADMIN_EMAIL || process.env.EMAIL_USER || "challengersvolleyballacademy@gmail.com";
+      const transporter = getMailTransporter();
+      const from = getFromAddress();
+      const leadId = `ENQ-${nanoid(8).toUpperCase()}`;
+      const newLead = {
+        id: leadId,
+        leadId,
+        name: String(name).trim(),
+        email: String(email).trim().toLowerCase(),
+        subject: String(subject || "General Inquiry").trim(),
+        message: String(message).trim(),
+        source: "Website Contact Form",
+        status: "new",
+        createdAt: /* @__PURE__ */ new Date()
+      };
+      const db = await getMongoDb();
+      if (db) {
+        await db.collection("leads").insertOne(newLead).catch((e) => console.warn("\u26A0\uFE0F Failed to store lead in DB:", e.message));
+      }
+      if (transporter) {
+        try {
+          await transporter.sendMail({
+            from,
+            to: adminEmail,
+            replyTo: email,
+            subject: `\u{1F3D0} New Website Enquiry: ${subject || "General Inquiry"} from ${name}`,
+            text: `
+New Website Contact Form Enquiry
+
+Name: ${name}
+Email: ${email}
+Subject: ${subject || "General Inquiry"}
+
+Message:
+${message}
+
+---
+Challengers Volleyball Academy
+            `,
+            html: `
+              <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 580px; margin: 0 auto; background: #ffffff; border: 1px solid #e8e4dc; border-radius: 16px; overflow: hidden;">
+                <div style="background: #1B1B1D; padding: 24px 20px; text-align: center;">
+                  <div style="display: inline-block; background: #ea580c; color: #fff; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; padding: 4px 12px; border-radius: 20px; margin-bottom: 8px;">
+                    New Website Enquiry
+                  </div>
+                  <h2 style="color: #ffffff; margin: 0; font-size: 20px; font-weight: 900; text-transform: uppercase;">
+                    Challengers Academy
+                  </h2>
+                </div>
+                <div style="padding: 24px 20px;">
+                  <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 20px;">
+                    <tr style="border-bottom: 1px solid #f2ede4;">
+                      <td style="padding: 10px 0; color: #736b63; font-weight: bold; width: 35%;">Sender Name:</td>
+                      <td style="padding: 10px 0; color: #1B1B1D; font-weight: bold;">${escapeHtml(name)}</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #f2ede4;">
+                      <td style="padding: 10px 0; color: #736b63; font-weight: bold;">Email Address:</td>
+                      <td style="padding: 10px 0; color: #ea580c; font-weight: bold;">
+                        <a href="mailto:${escapeHtml(email)}" style="color: #ea580c; text-decoration: underline;">${escapeHtml(email)}</a>
+                      </td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #f2ede4;">
+                      <td style="padding: 10px 0; color: #736b63; font-weight: bold;">Subject:</td>
+                      <td style="padding: 10px 0; color: #1B1B1D;">${escapeHtml(subject || "General Inquiry")}</td>
+                    </tr>
+                  </table>
+                  <div style="background: #fbf9f6; border-left: 4px solid #ea580c; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                    <h4 style="margin: 0 0 8px 0; font-size: 11px; text-transform: uppercase; color: #8c827a; letter-spacing: 1px;">Message:</h4>
+                    <p style="margin: 0; color: #1B1B1D; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${escapeHtml(message)}</p>
+                  </div>
+                  <p style="font-size: 12px; color: #8c827a; text-align: center; margin: 0;">
+                    Reply directly to this email to respond to <strong>${escapeHtml(name)}</strong>.
+                  </p>
+                </div>
+              </div>
+            `
+          });
+          console.log(` Contact enquiry email sent to admin (${adminEmail}) from ${email}`);
+        } catch (mailErr) {
+          console.warn("\u26A0\uFE0F SMTP mail send error:", mailErr.message);
+        }
+      }
+      res.json({ success: true, message: "Enquiry sent successfully to admin email!" });
+    } catch (err) {
+      console.error("Contact error:", err);
+      res.status(500).json({ success: false, message: "Failed to process enquiry" });
+    }
+  });
   app.post("/api/auth/login", async (req, res) => {
     const { email, password, rememberMe } = req.body;
     if (!email || !password) return res.status(400).json({ success: false, message: "Email and password are required." });
