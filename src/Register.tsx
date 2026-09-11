@@ -60,7 +60,7 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     schedule: 'Weekly Tryout Batches',
     dates: 'Upcoming Weekend Batch',
     time: '2 Hours Assessment',
-    price: 0.50,
+    price: 30,
     priceNote: 'evaluation fee',
     capacity: 20,
     filled: 9,
