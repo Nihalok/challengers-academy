@@ -447,7 +447,26 @@ async function seedPrograms(db) {
   for (const prog of DEFAULT_PROGRAMS) {
     await collection.updateOne(
       { id: prog.id },
-      { $setOnInsert: { ...prog, createdAt: /* @__PURE__ */ new Date() } },
+      { 
+        $set: { 
+          title: prog.title,
+          price: prog.price,
+          phase: prog.phase,
+          description: prog.description,
+          longDescription: prog.longDescription,
+          ageRange: prog.ageRange,
+          ageGroups: prog.ageGroups,
+          features: prog.features,
+          schedule: prog.schedule,
+          location: prog.location,
+          capacity: prog.capacity,
+          coach: prog.coach,
+          isActive: prog.isActive,
+          order: prog.order,
+          updatedAt: /* @__PURE__ */ new Date()
+        },
+        $setOnInsert: { createdAt: /* @__PURE__ */ new Date() } 
+      },
       { upsert: true }
     );
   }
@@ -476,7 +495,24 @@ async function seedCamps(db) {
   for (const camp of DEFAULT_CAMPS) {
     await collection.updateOne(
       { id: camp.id },
-      { $setOnInsert: { ...camp, createdAt: /* @__PURE__ */ new Date() } },
+      { 
+        $set: {
+          name: camp.name,
+          price: camp.price,
+          duration: camp.duration,
+          months: camp.months,
+          bestFor: camp.bestFor,
+          schedule: camp.schedule,
+          location: camp.location,
+          capacity: camp.capacity,
+          coach: camp.coach,
+          description: camp.description,
+          isActive: camp.isActive,
+          order: camp.order,
+          updatedAt: /* @__PURE__ */ new Date()
+        },
+        $setOnInsert: { createdAt: /* @__PURE__ */ new Date() } 
+      },
       { upsert: true }
     );
   }
@@ -2017,10 +2053,15 @@ Temp Password: ${tempPassword}
     if (db) {
       const dbProg = await db.collection("programs").findOne({ id: sessionId });
       if (dbProg) {
+        let progPrice = Number(dbProg.price);
+        if (isNaN(progPrice) || progPrice < 1) {
+          const fallback = SESSIONS_CATALOG[sessionId] || DEFAULT_PROGRAMS.find(p => p.id === sessionId);
+          progPrice = fallback ? fallback.price : 30;
+        }
         session = {
           id: dbProg.id,
           name: dbProg.title,
-          price: Number(dbProg.price) || 200,
+          price: progPrice,
           location: dbProg.location || "Fremont Arena",
           schedule: dbProg.schedule || "Weekend Sessions",
           capacity: Number(dbProg.capacity) || 20,
@@ -2029,10 +2070,15 @@ Temp Password: ${tempPassword}
       } else {
         const dbCamp = await db.collection("camps").findOne({ id: sessionId });
         if (dbCamp) {
+          let campPrice = Number(dbCamp.price);
+          if (isNaN(campPrice) || campPrice < 1) {
+            const fallbackCamp = DEFAULT_CAMPS.find(c => c.id === sessionId);
+            campPrice = fallbackCamp ? fallbackCamp.price : 350;
+          }
           session = {
             id: dbCamp.id,
             name: dbCamp.name,
-            price: Number(dbCamp.price) || 350,
+            price: campPrice,
             location: dbCamp.location || "Fremont Arena",
             schedule: dbCamp.schedule || "Mon - Fri",
             capacity: Number(dbCamp.capacity) || 25,
@@ -2042,7 +2088,7 @@ Temp Password: ${tempPassword}
       }
     }
     if (!session) {
-      session = SESSIONS_CATALOG[sessionId] || SESSIONS_CATALOG["starter-pack"];
+      session = SESSIONS_CATALOG[sessionId] || DEFAULT_PROGRAMS.find(p => p.id === sessionId) || SESSIONS_CATALOG["gym-training-4"];
     }
     if (!session) {
       return res.status(400).json({ success: false, message: "Invalid session selected" });
@@ -2051,7 +2097,16 @@ Temp Password: ${tempPassword}
     if (session.filled + requiredSpots > session.capacity) {
       return res.status(400).json({ success: false, message: "This session does not have enough open spots available." });
     }
-    const singlePrice = session.price;
+    let singlePrice = Number(session.price);
+    if (isNaN(singlePrice) || singlePrice < 1) {
+      const clientPrice = Number(req.body.price);
+      if (!isNaN(clientPrice) && clientPrice >= 1) {
+        singlePrice = clientPrice;
+      } else {
+        const fallback = SESSIONS_CATALOG[sessionId] || DEFAULT_PROGRAMS.find(p => p.id === sessionId);
+        singlePrice = fallback ? fallback.price : 30;
+      }
+    }
     const siblingDiscount = isSibling ? 50 : 0;
     const finalAmount = isSibling ? Math.max(0, singlePrice * 2 - siblingDiscount) : singlePrice;
     const amountInCents = Math.round(finalAmount * 100);

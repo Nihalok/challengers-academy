@@ -772,6 +772,7 @@ export default function Register() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sessionId: selectedSession.id,
+          price: selectedSession.price,
           ...formData
         })
       });
