@@ -146,17 +146,17 @@ export default function Camps() {
               </div>
             </div>
           </div>
-          <div className="relative mt-4 lg:mt-0">
-            <div className="aspect-[16/9] max-h-[260px] sm:max-h-[300px] w-full bg-espresso rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden rotate-1 shadow-xl relative z-10 border-4 border-white mx-auto">
+          <div className="relative mt-6 lg:mt-0">
+            <div className="aspect-[4/3] sm:aspect-[16/11] lg:aspect-[16/10] min-h-[320px] sm:min-h-[380px] lg:min-h-[420px] w-full bg-espresso rounded-[1.8rem] sm:rounded-[2.5rem] overflow-hidden rotate-1 hover:rotate-0 transition-transform duration-500 shadow-2xl relative z-10 border-4 sm:border-[6px] border-white mx-auto">
               <img 
                 src={ASSETS.CAMPS.HERO} 
-                alt="Volleyball Outdoor Summer Camp Action" 
+                alt="Volleyball Summer Camp Indoor Training Action" 
                 className="w-full h-full object-cover transition-all duration-700 hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-espresso/40 via-transparent to-transparent pointer-events-none" />
             </div>
-            <div className="absolute -bottom-6 -left-6 w-28 h-28 bg-[#D62828] rounded-full -z-10 blur-2xl opacity-30" />
-            <div className="absolute -top-6 -right-6 w-28 h-28 bg-[#F9BC00] rounded-full -z-10 blur-2xl opacity-30" />
+            <div className="absolute -bottom-8 -left-8 w-36 h-36 bg-[#D62828] rounded-full -z-10 blur-3xl opacity-35" />
+            <div className="absolute -top-8 -right-8 w-36 h-36 bg-[#F9BC00] rounded-full -z-10 blur-3xl opacity-35" />
           </div>
         </div>
 

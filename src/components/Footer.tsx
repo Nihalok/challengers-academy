@@ -1,10 +1,11 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type FormEvent, type MouseEvent } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Instagram, Twitter, Check, ArrowUpRight } from 'lucide-react';
+import { Instagram, Twitter, Check, ArrowUpRight, Mail, Copy } from 'lucide-react';
 
 export default function Footer() {
   const [subscribed, setSubscribed] = useState(false);
   const [email, setEmail] = useState('');
+  const [emailCopied, setEmailCopied] = useState(false);
 
   const handleSubscribe = (e: FormEvent) => {
     e.preventDefault();
@@ -12,6 +13,24 @@ export default function Footer() {
       setSubscribed(true);
       setEmail('');
     }
+  };
+
+  const handleEmailClick = (e: MouseEvent) => {
+    e.preventDefault();
+    const mailtoUrl = 'mailto:challengersvolleyballacademy@gmail.com?subject=Inquiry%20-%20Challengers%20Volleyball%20Academy';
+    const gmailUrl = 'https://mail.google.com/mail/?view=cm&fs=1&to=challengersvolleyballacademy@gmail.com&su=Inquiry%20-%20Challengers%20Volleyball%20Academy';
+    
+    const win = window.open(gmailUrl, '_blank', 'noopener,noreferrer');
+    if (!win || win.closed || typeof win.closed === 'undefined') {
+      window.location.href = mailtoUrl;
+    }
+  };
+
+  const handleCopyEmail = (e: MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard?.writeText('challengersvolleyballacademy@gmail.com');
+    setEmailCopied(true);
+    setTimeout(() => setEmailCopied(false), 2500);
   };
   return (
     <footer className="bg-espresso text-white pt-12 sm:pt-16 md:pt-20 pb-8 sm:pb-10 relative overflow-hidden" aria-labelledby="footer-heading">
@@ -32,7 +51,14 @@ export default function Footer() {
               <span className="text-3xl font-condensed tracking-[0.2em]">CHALLENGERS</span>
             </div>
             <p className="text-white/80 text-sm leading-relaxed max-w-xs font-medium">
-              Volleyball coaching for all ages in the Bay Area. Come train with us - we'd love to have you.
+
+**Volleyball Training for Ages 5–18 | Bay Area**
+
+From first-time players to competitive athletes, we help young volleyball players build skills, confidence, and a passion for the game.
+
+**Join us on the court — let’s get started!**
+
+
             </p>
           </div>
 
@@ -80,7 +106,52 @@ export default function Footer() {
                 <p className="text-white/50 mt-0.5">Starting September — details coming soon</p>
               </div>
 
-              <a href="mailto:challengersacademy@gmail.com" className="block text-white/50 hover:text-white transition-colors pt-1">challengersacademy@gmail.com</a>
+              {/* Direct Academy Email Transmission */}
+              <div className="pt-3 border-t border-white/10 mt-2">
+                <p className="text-[10px] font-black uppercase tracking-wider text-yellow mb-1.5 flex items-center gap-1.5">
+                  <Mail className="w-3.5 h-3.5 text-orange" />
+                  Direct Email Transmission
+                </p>
+                <div className="space-y-2">
+                  <a 
+                    href="mailto:challengersvolleyballacademy@gmail.com?subject=Inquiry%20-%20Challengers%20Volleyball%20Academy"
+                    onClick={handleEmailClick}
+                    className="inline-flex items-center gap-2 text-white hover:text-yellow text-[12px] font-bold transition-all break-all group hover:translate-x-0.5 cursor-pointer bg-white/5 hover:bg-white/10 px-3 py-2 rounded-xl border border-white/10 w-full"
+                    title="Click to compose email to challengersvolleyballacademy@gmail.com"
+                  >
+                    <span className="underline decoration-white/30 group-hover:decoration-yellow flex-1 text-left">
+                      challengersvolleyballacademy@gmail.com
+                    </span>
+                    <ArrowUpRight className="w-4 h-4 text-yellow opacity-80 group-hover:opacity-100 shrink-0 transition-opacity" />
+                  </a>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleEmailClick}
+                      className="text-[10px] font-black uppercase tracking-wider bg-orange hover:bg-yellow hover:text-espresso text-white px-2.5 py-1 rounded-md transition-all shadow-sm flex items-center gap-1 cursor-pointer"
+                    >
+                      <Mail className="w-3 h-3" /> Open in Mail
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCopyEmail}
+                      className="text-[10px] font-black uppercase tracking-wider bg-white/10 hover:bg-white/20 text-white/90 px-2.5 py-1 rounded-md transition-all flex items-center gap-1 cursor-pointer"
+                    >
+                      {emailCopied ? (
+                        <>
+                          <Check className="w-3 h-3 text-green-400" />
+                          <span className="text-green-400">Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3 h-3" /> Copy
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 

@@ -55,6 +55,6 @@ export const ASSETS = {
     DAY_15: new URL('./images/camp_15day_master.jpg', import.meta.url).href,
     PRIVATE: new URL('./images/camp_private_coaching.jpg', import.meta.url).href,
     JUNIOR: new URL('./images/camp_junior_spikers.jpg', import.meta.url).href,
-    HERO: new URL('./images/camp_overview_hero.jpg', import.meta.url).href,
+    HERO: new URL('./images/team_training_huddle_1783920253600.jpg', import.meta.url).href,
   },
 };

@@ -45,7 +45,7 @@ const FOUNDER_PILLARS = [
     icon: Trophy,
     title: 'SAI Elite Development',
     tag: '5 Years Intensive Training',
-    desc: 'Selected for the Sports Authority of India (SAI), he completed five years of elite training under premier National Coaches, proudly representing his State, University, and Indian Railways in premier competitions.',
+    desc: 'Selected for the Sports Authority of India (SAI), he completed five years of elite training under premier National Coaches. He proudly represented his State, University, and Indian Railways, earning National-Level awards and recognition in premier competitions.',
     accent: '#F3722C'
   },
   {
