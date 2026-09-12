@@ -1470,7 +1470,7 @@ async function createApp() {
       const amountPaid = sessionOrIntent.amount_total ? sessionOrIntent.amount_total / 100 : sessionOrIntent.amount ? sessionOrIntent.amount / 100 : matchedLead?.amount || sessionItem?.price || 30;
       const isSiblingEnrolled = metadata.hasSibling === "true" || metadata.hasSibling === true || matchedLead?.hasSibling === true || matchedLead?.hasSibling === "true";
       const discountAmount = Number(metadata.discountAmount) || (isSiblingEnrolled ? 50 : 0);
-      const customerEmail = (metadata.email || matchedLead?.email || sessionOrIntent.customer_details?.email || sessionOrIntent.receipt_email || sessionOrIntent.billing_details?.email || process.env.EMAIL_USER || "nihalok625@gmail.com").trim();
+      const customerEmail = (metadata.email || matchedLead?.email || sessionOrIntent.customer_details?.email || sessionOrIntent.receipt_email || sessionOrIntent.billing_details?.email || sessionOrIntent.charges?.data?.[0]?.billing_details?.email || "N/A").trim();
       const customerPhone = (metadata.phone || matchedLead?.phone || sessionOrIntent.customer_details?.phone || "N/A").trim();
       const resolvedPlayerName = metadata.playerName || matchedLead?.playerName || sessionOrIntent.customer_details?.name || "Student Athlete";
       const resolvedParentName = metadata.parentName || matchedLead?.parentName || "";
@@ -2536,7 +2536,7 @@ Temp Password: ${tempPassword}
               sessionName: matchedLead.sessionName || "Challengers Coaching Session",
               playerName: matchedLead.playerName || "Student Athlete",
               parentName: matchedLead.parentName || "",
-              email: matchedLead.email || intent.receipt_email || process.env.EMAIL_USER || "nihalok625@gmail.com",
+              email: matchedLead.email || intent.receipt_email || intent.customer_details?.email || "N/A",
               phone: matchedLead.phone || "N/A",
               dob: matchedLead.dob || "",
               location: matchedLead.preferredLocation || matchedLead.location || "Fremont (Kerala House)",
@@ -2771,7 +2771,7 @@ Temp Password: ${tempPassword}
         const intentDiscount = Number(metadata.discountAmount) || (intentSibling ? 50 : 0);
         const intentTotalAthletes = intentSibling ? 2 : 1;
         const intentAmountPaid = intent.amount ? intent.amount / 100 : computedAmountPaid;
-        const resolvedEmail = (metadata.email || req.body.email || student.email || lead?.email || intent.receipt_email || intent.customer_details?.email || process.env.EMAIL_USER || "nihalok625@gmail.com").trim();
+        const resolvedEmail = (metadata.email || req.body.email || student.email || lead?.email || intent.receipt_email || intent.customer_details?.email || intent.charges?.data?.[0]?.billing_details?.email || "N/A").trim();
         const resolvedPlayerName = metadata.playerName || req.body.playerName || student.playerName || lead?.playerName || "Student Athlete";
         const resolvedParentName = metadata.parentName || req.body.parentName || student.parentName || lead?.parentName || "";
         const resolvedPhone = metadata.phone || req.body.phone || student.phone || lead?.phone || "N/A";
@@ -3056,7 +3056,7 @@ Temp Password: ${tempPassword}
           continue;
         }
         const intentCharges = intent.charges?.data?.[0]?.billing_details;
-        const resolvedEmail = (metadata.email || intent.receipt_email || intent.customer_details?.email || intentCharges?.email || process.env.EMAIL_USER || "customer@example.com").trim().toLowerCase();
+        const resolvedEmail = (metadata.email || intent.receipt_email || intent.customer_details?.email || intentCharges?.email || "N/A").trim().toLowerCase();
         let matchedLead = null;
         if (db) {
           if (metadata.leadId) {
@@ -3264,14 +3264,16 @@ Temp Password: ${tempPassword}
             { stripePaymentIntentId: { $regex: "^mock_", $options: "i" } },
             { transactionId: { $regex: "^mock_", $options: "i" } },
             { paymentMethod: { $regex: "mock", $options: "i" } },
-            { registrationId: { $regex: "^mock_", $options: "i" } }
+            { registrationId: { $regex: "^mock_", $options: "i" } },
+            { playerName: "Student Athlete" },
+            { email: "customer@example.com" }
           ]
         };
         const result = await db.collection("registrations").deleteMany(query);
         deletedCount = result.deletedCount;
       }
       for (const [key, val] of Object.entries(registrations)) {
-        if (val.stripePaymentIntentId?.startsWith("mock_") || val.transactionId?.startsWith("mock_") || val.paymentMethod?.toLowerCase().includes("mock") || val.registrationId?.startsWith("mock_")) {
+        if (val.stripePaymentIntentId?.startsWith("mock_") || val.transactionId?.startsWith("mock_") || val.paymentMethod?.toLowerCase().includes("mock") || val.registrationId?.startsWith("mock_") || val.playerName === "Student Athlete" || val.email === "customer@example.com") {
           delete registrations[key];
         }
       }

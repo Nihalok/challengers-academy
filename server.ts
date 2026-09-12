@@ -1704,8 +1704,8 @@ export async function createApp() {
         sessionOrIntent.customer_details?.email || 
         sessionOrIntent.receipt_email || 
         sessionOrIntent.billing_details?.email || 
-        process.env.EMAIL_USER || 
-        'nihalok625@gmail.com'
+        (sessionOrIntent.charges?.data?.[0]?.billing_details?.email) ||
+        'N/A'
       ).trim();
 
       const customerPhone = (
@@ -2972,7 +2972,7 @@ Challengers Volleyball Academy
               sessionName: matchedLead.sessionName || 'Challengers Coaching Session',
               playerName: matchedLead.playerName || 'Student Athlete',
               parentName: matchedLead.parentName || '',
-              email: matchedLead.email || intent.receipt_email || process.env.EMAIL_USER || 'nihalok625@gmail.com',
+              email: matchedLead.email || intent.receipt_email || (intent as any).customer_details?.email || 'N/A',
               phone: matchedLead.phone || 'N/A',
               dob: matchedLead.dob || '',
               location: matchedLead.preferredLocation || matchedLead.location || 'Fremont (Kerala House)',
@@ -3265,8 +3265,8 @@ Challengers Volleyball Academy
           lead?.email || 
           intent.receipt_email || 
           (intent as any).customer_details?.email || 
-          process.env.EMAIL_USER || 
-          'nihalok625@gmail.com'
+          (intent as any).charges?.data?.[0]?.billing_details?.email ||
+          'N/A'
         ).trim();
 
         const resolvedPlayerName = metadata.playerName || req.body.playerName || student.playerName || lead?.playerName || 'Student Athlete';
@@ -3611,8 +3611,7 @@ Challengers Volleyball Academy
           intent.receipt_email || 
           (intent as any).customer_details?.email || 
           intentCharges?.email || 
-          process.env.EMAIL_USER || 
-          'customer@example.com'
+          'N/A'
         ).trim().toLowerCase();
 
         // Check if matching lead exists to pull athlete name, parent name, schedule, sibling info
@@ -3854,7 +3853,9 @@ Challengers Volleyball Academy
             { stripePaymentIntentId: { $regex: '^mock_', $options: 'i' } },
             { transactionId: { $regex: '^mock_', $options: 'i' } },
             { paymentMethod: { $regex: 'mock', $options: 'i' } },
-            { registrationId: { $regex: '^mock_', $options: 'i' } }
+            { registrationId: { $regex: '^mock_', $options: 'i' } },
+            { playerName: 'Student Athlete' },
+            { email: 'customer@example.com' }
           ]
         };
         const result = await db.collection('registrations').deleteMany(query);
@@ -3867,7 +3868,9 @@ Challengers Volleyball Academy
           val.stripePaymentIntentId?.startsWith('mock_') ||
           val.transactionId?.startsWith('mock_') ||
           val.paymentMethod?.toLowerCase().includes('mock') ||
-          val.registrationId?.startsWith('mock_')
+          val.registrationId?.startsWith('mock_') ||
+          val.playerName === 'Student Athlete' ||
+          val.email === 'customer@example.com'
         ) {
           delete registrations[key];
         }
