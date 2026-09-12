@@ -103,6 +103,12 @@ async function getMongoDb(): Promise<Db | null> {
       const dbName = process.env.MONGODB_DB_NAME || 'challengers_academy';
       mongoDb = mongoClient.db(dbName);
       console.log(` Connected to MongoDB Database: "${dbName}"`);
+
+      // Initialize database indexes asynchronously
+      ensureMongoIndexes(mongoDb).catch((e: any) => {
+        console.warn('MongoDB index initialization notice:', e.message);
+      });
+
       return mongoDb;
     } catch (err: any) {
       console.warn('⚠️ MongoDB connection error:', err.message);
@@ -116,6 +122,36 @@ async function getMongoDb(): Promise<Db | null> {
   })();
 
   return connectPromise;
+}
+
+let indexesEnsured = false;
+async function ensureMongoIndexes(db: Db) {
+  if (indexesEnsured || !db) return;
+  indexesEnsured = true;
+  try {
+    // 1. Registrations collection constraints
+    await db.collection('registrations').createIndex({ registrationId: 1 }, { unique: true, background: true });
+    await db.collection('registrations').createIndex({ stripePaymentIntentId: 1 }, { sparse: true, background: true });
+    await db.collection('registrations').createIndex({ transactionId: 1 }, { sparse: true, background: true });
+    await db.collection('registrations').createIndex({ email: 1 }, { background: true });
+    await db.collection('registrations').createIndex({ registeredAt: -1 }, { background: true });
+
+    // 2. Stripe Webhook Events Idempotency
+    await db.collection('stripe_events').createIndex({ eventId: 1 }, { unique: true, background: true });
+    await db.collection('stripe_events').createIndex({ createdAt: 1 }, { expireAfterSeconds: 30 * 24 * 60 * 60, background: true }); // 30-day retention
+
+    // 3. Email Delivery Jobs Queue & Idempotency
+    await db.collection('email_jobs').createIndex({ jobId: 1 }, { unique: true, background: true });
+    await db.collection('email_jobs').createIndex({ status: 1, attempts: 1 }, { background: true });
+    await db.collection('email_jobs').createIndex({ registrationId: 1 }, { background: true });
+
+    // 4. Leads collection constraints
+    await db.collection('leads').createIndex({ id: 1 }, { unique: true, background: true });
+
+    console.log('✅ MongoDB unique constraints and performance indexes verified.');
+  } catch (err: any) {
+    console.warn('⚠️ Notice during MongoDB index creation:', err.message);
+  }
 }
 
 // ============================================================
@@ -1521,6 +1557,218 @@ Challengers Volleyball Academy - Bay Area, CA
   }
 }
 
+// ============================================================
+// ASYNC EMAIL QUEUE & DELIVERY TRACKING (DECOUPLED FROM PAYMENTS)
+// ============================================================
+export interface EmailJob {
+  jobId: string; // `${registrationId}_${type}`
+  registrationId: string;
+  type: 'customer_confirmation' | 'admin_notification';
+  recipient: string;
+  status: 'pending' | 'processing' | 'sent' | 'failed';
+  attempts: number;
+  maxAttempts: number;
+  lastError?: string | null;
+  lastAttemptAt?: number | null;
+  sentAt?: number | null;
+  createdAt: number;
+  payload?: any;
+}
+
+const emailJobsMap: Record<string, EmailJob> = {};
+
+async function getOrCreateEmailJob(
+  reg: RegistrationRecord,
+  type: 'customer_confirmation' | 'admin_notification'
+): Promise<EmailJob> {
+  const recipient = type === 'customer_confirmation'
+    ? String(reg.email || '').trim().toLowerCase()
+    : (process.env.ACADEMY_ADMIN_EMAIL || process.env.ADMIN_SEED_EMAIL || process.env.EMAIL_USER || 'nihalok625@gmail.com').trim();
+  
+  const jobId = `${reg.registrationId}_${type}`;
+  const db = await getMongoDb();
+  
+  if (db) {
+    try {
+      const existing = await db.collection('email_jobs').findOne({ jobId });
+      if (existing) return existing as unknown as EmailJob;
+    } catch { /* ignore */ }
+  } else if (emailJobsMap[jobId]) {
+    return emailJobsMap[jobId];
+  }
+
+  const newJob: EmailJob = {
+    jobId,
+    registrationId: reg.registrationId,
+    type,
+    recipient,
+    status: 'pending',
+    attempts: 0,
+    maxAttempts: 5,
+    lastError: null,
+    createdAt: Date.now()
+  };
+
+  emailJobsMap[jobId] = newJob;
+  if (db) {
+    try {
+      await db.collection('email_jobs').updateOne(
+        { jobId },
+        { $setOnInsert: newJob },
+        { upsert: true }
+      );
+    } catch { /* ignore */ }
+  }
+  return newJob;
+}
+
+async function dispatchEmailJob(job: EmailJob, reg?: RegistrationRecord): Promise<boolean> {
+  const db = await getMongoDb();
+  let targetReg = reg;
+  if (!targetReg && db) {
+    try {
+      targetReg = await db.collection('registrations').findOne({ registrationId: job.registrationId }) as any;
+    } catch { /* ignore */ }
+  }
+  if (!targetReg) {
+    targetReg = registrations[job.registrationId];
+  }
+
+  if (!targetReg) {
+    const errorMsg = `Registration ${job.registrationId} not found for email job ${job.jobId}`;
+    if (db) {
+      await db.collection('email_jobs').updateOne(
+        { jobId: job.jobId },
+        { $set: { status: 'failed', lastError: errorMsg, lastAttemptAt: Date.now() }, $inc: { attempts: 1 } }
+      );
+    }
+    return false;
+  }
+
+  // Check if job was already successfully sent
+  if (job.status === 'sent') {
+    return true;
+  }
+
+  const nextAttempt = (job.attempts || 0) + 1;
+  const now = Date.now();
+
+  if (db) {
+    try {
+      await db.collection('email_jobs').updateOne(
+        { jobId: job.jobId },
+        { $set: { status: 'processing', lastAttemptAt: now }, $inc: { attempts: 1 } }
+      );
+    } catch { /* ignore */ }
+  }
+
+  let success = false;
+  let errorDetail = '';
+
+  try {
+    if (job.type === 'customer_confirmation') {
+      success = await sendCustomerConfirmationEmail(targetReg);
+    } else {
+      success = await sendAdminNotificationEmail(targetReg);
+    }
+  } catch (err: any) {
+    success = false;
+    errorDetail = err.message || 'Unknown email dispatch error';
+  }
+
+  const finalStatus = success
+    ? 'sent'
+    : (nextAttempt >= (job.maxAttempts || 5) ? 'failed' : 'pending');
+
+  const updates: any = {
+    status: finalStatus,
+    lastAttemptAt: now,
+    lastError: success ? null : (errorDetail || 'SMTP transmission failure')
+  };
+  if (success) {
+    updates.sentAt = now;
+  }
+
+  if (emailJobsMap[job.jobId]) {
+    Object.assign(emailJobsMap[job.jobId], updates);
+    emailJobsMap[job.jobId].attempts = nextAttempt;
+  }
+
+  if (db) {
+    try {
+      await db.collection('email_jobs').updateOne({ jobId: job.jobId }, { $set: updates });
+    } catch { /* ignore */ }
+  }
+
+  return success;
+}
+
+// Decoupled email queueing: ensures payment processing NEVER fails even if email encounters temporary SMTP issues
+async function queueAndDispatchEmails(reg: RegistrationRecord): Promise<{ customerSent: boolean; adminSent: boolean }> {
+  let customerSent = false;
+  let adminSent = false;
+
+  try {
+    const [custJob, adminJob] = await Promise.all([
+      getOrCreateEmailJob(reg, 'customer_confirmation'),
+      getOrCreateEmailJob(reg, 'admin_notification')
+    ]);
+
+    // Dispatch asynchronously without throwing unhandled rejections
+    const results = await Promise.allSettled([
+      custJob.status !== 'sent' ? dispatchEmailJob(custJob, reg) : Promise.resolve(true),
+      adminJob.status !== 'sent' ? dispatchEmailJob(adminJob, reg) : Promise.resolve(true)
+    ]);
+
+    customerSent = results[0].status === 'fulfilled' && results[0].value === true;
+    adminSent = results[1].status === 'fulfilled' && results[1].value === true;
+  } catch (err: any) {
+    console.warn(`⚠️ [EMAIL QUEUE NOTICE] Background email dispatch deferred for ${reg.registrationId}:`, err.message);
+  }
+
+  return { customerSent, adminSent };
+}
+
+// Process pending or retryable failed email jobs with exponential backoff
+async function processEmailQueue(limit = 30): Promise<{ processed: number; sent: number; failed: number }> {
+  let processed = 0;
+  let sent = 0;
+  let failed = 0;
+
+  const db = await getMongoDb();
+  if (!db) {
+    return { processed: 0, sent: 0, failed: 0 };
+  }
+
+  try {
+    const now = Date.now();
+    const jobs = await db.collection('email_jobs')
+      .find({
+        status: { $in: ['pending', 'failed'] },
+        attempts: { $lt: 5 }
+      })
+      .limit(limit)
+      .toArray();
+
+    for (const rawJob of jobs) {
+      const job = rawJob as unknown as EmailJob;
+      const backoffMs = Math.pow(2, job.attempts || 0) * 15000; // 15s, 30s, 60s, 120s
+      if (job.lastAttemptAt && (now - job.lastAttemptAt) < backoffMs) {
+        continue; // Backoff period not elapsed yet
+      }
+
+      processed++;
+      const ok = await dispatchEmailJob(job);
+      if (ok) sent++;
+      else failed++;
+    }
+  } catch (err: any) {
+    console.error('Email queue processing error:', err.message);
+  }
+
+  return { processed, sent, failed };
+}
+
 let galleryItems = [
   { id: '1', type: 'image', url: 'https://images.unsplash.com/photo-1546519638-68e109498ffc', title: 'Elite Training Session', description: 'Core strength and tactical positioning.' },
   { id: '2', type: 'image', url: 'https://images.unsplash.com/photo-1518063319789-7217e6706b04', title: 'Championship Finals', description: 'The moment of victory for our under-17 squad.' },
@@ -1597,6 +1845,27 @@ export async function createApp() {
 
     console.log(`🔔 Stripe Webhook Received: ${event?.type || 'unknown_event'} (${event?.id || 'no-id'})`);
 
+    const db = await getMongoDb();
+    const eventId = event?.id;
+
+    // 1. Stripe Webhook Deduplication: Prevent duplicate event processing across concurrent serverless instances
+    if (eventId && db) {
+      try {
+        const processedEvent = await db.collection('stripe_events').findOne({ eventId, status: 'processed' });
+        if (processedEvent) {
+          console.log(`ℹ️ [WEBHOOK IDEMPOTENT] Event ${eventId} was already processed successfully. Returning 200 OK.`);
+          return res.status(200).json({ received: true, idempotent: true, eventId });
+        }
+        await db.collection('stripe_events').updateOne(
+          { eventId },
+          { $setOnInsert: { eventId, type: event.type, status: 'processing', createdAt: new Date() } },
+          { upsert: true }
+        );
+      } catch (e: any) {
+        console.warn('⚠️ Webhook event idempotency check notice:', e.message);
+      }
+    }
+
     const relevantEvents = ['payment_intent.succeeded', 'checkout.session.completed', 'charge.succeeded'];
     if (relevantEvents.includes(event.type)) {
       let sessionOrIntent = event.data?.object;
@@ -1636,7 +1905,6 @@ export async function createApp() {
       const dynamicPaymentMethod = paymentMethodInfo.paymentMethod;
 
       // Query database for matching lead to restore any missing student details
-      const db = await getMongoDb();
       let matchedLead: any = null;
       if (leadIdFromMeta && leads[leadIdFromMeta]) {
         matchedLead = leads[leadIdFromMeta];
@@ -1673,8 +1941,7 @@ export async function createApp() {
       }
 
       if (existingRecord && existingRecord.paymentStatus === 'PAID') {
-        console.log(`ℹ️ Registration ${existingRecord.registrationId} already confirmed in DB. Updating method if needed.`);
-        // Update payment method with specific details if previously generic
+        console.log(`ℹ️ Registration ${existingRecord.registrationId} already confirmed in DB.`);
         if (db && dynamicPaymentMethod && dynamicPaymentMethod !== 'Stripe' && existingRecord.paymentMethod !== dynamicPaymentMethod) {
           try {
             await db.collection('registrations').updateOne(
@@ -1685,6 +1952,10 @@ export async function createApp() {
               registrations[existingRecord.registrationId].paymentMethod = dynamicPaymentMethod;
             }
           } catch { /* ignore */ }
+        }
+
+        if (eventId && db) {
+          await db.collection('stripe_events').updateOne({ eventId }, { $set: { status: 'processed', processedAt: Date.now() } }).catch(() => {});
         }
         return res.json({ received: true, alreadyProcessed: true });
       }
@@ -1764,12 +2035,18 @@ export async function createApp() {
         await saveLeadToDb(matchedLead);
       }
 
-      // Dispatch automated emails (awaited for serverless safety)
-      console.log(`✉️ Dispatching confirmation emails for ${dynamicPaymentMethod} payment (${registrationId})...`);
-      await Promise.allSettled([
-        sendAdminNotificationEmail(newRegistration),
-        sendCustomerConfirmationEmail(newRegistration)
-      ]);
+      // Decoupled Email Queue: Queues and dispatches confirmation emails safely
+      queueAndDispatchEmails(newRegistration).catch((e: any) => {
+        console.warn('⚠️ Non-blocking email queue dispatch notice:', e.message);
+      });
+
+      // Mark Stripe event as processed in idempotency table
+      if (eventId && db) {
+        await db.collection('stripe_events').updateOne(
+          { eventId },
+          { $set: { status: 'processed', processedAt: Date.now() } }
+        ).catch(() => {});
+      }
     }
 
     res.json({ received: true });
@@ -3637,13 +3914,9 @@ Challengers Volleyball Academy
 
         await saveRegistrationToDb(newRegistration);
 
+        // Queue & dispatch emails asynchronously
         if (resolvedEmail && resolvedEmail.includes('@') && !resolvedEmail.includes('example.com')) {
-          try {
-            await Promise.allSettled([
-              sendAdminNotificationEmail(newRegistration),
-              sendCustomerConfirmationEmail(newRegistration)
-            ]);
-          } catch { /* ignore */ }
+          queueAndDispatchEmails(newRegistration).catch(() => {});
         }
 
         syncedCount++;
@@ -3822,17 +4095,9 @@ Challengers Volleyball Academy
           );
         }
 
-        // Dispatch confirmation emails to customer and academy
+        // Queue & dispatch confirmation emails safely
         if (resolvedEmail && resolvedEmail.includes('@') && !resolvedEmail.includes('example.com')) {
-          try {
-            console.log(`✉️ [AUTO EMAIL] Dispatching emails for ${resolvedPlayerName} (${resolvedEmail})...`);
-            await Promise.allSettled([
-              sendAdminNotificationEmail(newRegistration),
-              sendCustomerConfirmationEmail(newRegistration)
-            ]);
-          } catch (mailErr: any) {
-            console.warn('⚠️ Auto email error during sync:', mailErr.message);
-          }
+          queueAndDispatchEmails(newRegistration).catch(() => {});
         }
 
         syncedCount++;
@@ -3911,16 +4176,14 @@ Challengers Volleyball Academy
         await saveRegistrationToDb(newRegistration);
 
         if (resolvedEmail && resolvedEmail.includes('@') && !resolvedEmail.includes('example.com')) {
-          try {
-            await Promise.allSettled([
-              sendAdminNotificationEmail(newRegistration),
-              sendCustomerConfirmationEmail(newRegistration)
-            ]);
-          } catch { /* ignore */ }
+          queueAndDispatchEmails(newRegistration).catch(() => {});
         }
 
         syncedCount++;
       }
+
+      // Automatically process any pending or retrying email delivery jobs in the background
+      processEmailQueue(30).catch(() => {});
 
       console.log(`✅ Stripe sync completed: ${syncedCount} new registrations imported, ${updatedCount} updated (${totalStripePayments} total Stripe transactions fetched).`);
     } catch (syncErr: any) {
@@ -3975,6 +4238,35 @@ Challengers Volleyball Academy
     }
   });
 
+  // POST /api/admin/process-email-queue - Process and retry pending / failed email delivery jobs
+  app.post('/api/admin/process-email-queue', requireAuth, async (req, res) => {
+    try {
+      const result = await processEmailQueue(50);
+      res.json({
+        success: true,
+        message: `Email Queue Processed: ${result.sent} delivered, ${result.failed} failed (${result.processed} processed).`,
+        ...result
+      });
+    } catch (err: any) {
+      console.error('Email queue processing API error:', err);
+      res.status(500).json({ success: false, message: err.message || 'Email queue processing failed' });
+    }
+  });
+
+  // GET /api/admin/email-jobs - List all email delivery jobs with status
+  app.get('/api/admin/email-jobs', requireAuth, async (req, res) => {
+    try {
+      const db = await getMongoDb();
+      let jobs: any[] = Object.values(emailJobsMap);
+      if (db) {
+        jobs = await db.collection('email_jobs').find().sort({ createdAt: -1 }).limit(100).toArray();
+      }
+      res.json({ success: true, jobs });
+    } catch (err: any) {
+      res.status(500).json({ success: false, message: err.message || 'Failed to retrieve email jobs' });
+    }
+  });
+
   // POST /api/admin/sync-stripe-payments - Sync all successful Stripe transactions to MongoDB
   app.post('/api/admin/sync-stripe-payments', requireAuth, async (req, res) => {
     try {
@@ -4003,6 +4295,7 @@ Challengers Volleyball Academy
 
     let allRegistrations = Object.values(registrations);
     let allLeads = Object.values(leads);
+    let emailJobs: any[] = [];
 
     const db = await getMongoDb();
     if (db) {
@@ -4011,10 +4304,30 @@ Challengers Volleyball Academy
         if (mongoRegs.length > 0) allRegistrations = mongoRegs as any;
         const mongoLeads = await db.collection('leads').find().toArray();
         if (mongoLeads.length > 0) allLeads = mongoLeads as any;
+        emailJobs = await db.collection('email_jobs').find().toArray();
       } catch (err: any) {
         console.error('MongoDB stats query error:', err.message);
       }
     }
+
+    // Map email jobs by registrationId to compute email delivery status for each registration
+    const emailJobStatusMap = new Map<string, { status: string; lastError?: string }>();
+    for (const job of emailJobs) {
+      if (!emailJobStatusMap.has(job.registrationId) || job.status === 'failed') {
+        emailJobStatusMap.set(job.registrationId, { status: job.status, lastError: job.lastError });
+      }
+    }
+
+    // Attach emailStatus to each registration
+    const enrichedRegistrations = allRegistrations.map((reg: any) => {
+      const jobInfo = emailJobStatusMap.get(reg.registrationId);
+      const emailStatus = jobInfo ? jobInfo.status : (reg.email && reg.email.includes('@') && !reg.email.includes('example.com') ? 'sent' : 'pending');
+      return {
+        ...reg,
+        emailStatus,
+        emailLastError: jobInfo?.lastError || null
+      };
+    });
 
     // Reconcile and synchronize lead statuses with confirmed registrations
     const confirmedEmailSet = new Set(allRegistrations.map(r => String(r.email || '').toLowerCase().trim()).filter(Boolean));
@@ -4047,6 +4360,14 @@ Challengers Volleyball Academy
     const totalLeads = allLeads.length;
     const totalRevenue = allRegistrations.reduce((sum, r) => sum + (Number(r.amountPaid) || 0), 0);
 
+    // Compute email delivery summary
+    const emailStats = {
+      sent: emailJobs.filter(j => j.status === 'sent').length,
+      pending: emailJobs.filter(j => j.status === 'pending' || j.status === 'processing').length,
+      failed: emailJobs.filter(j => j.status === 'failed').length,
+      total: emailJobs.length
+    };
+
     // Compute real 7-day registration trends
     const now = Date.now();
     const dayMs = 24 * 60 * 60 * 1000;
@@ -4071,9 +4392,10 @@ Challengers Volleyball Academy
         totalRevenue: Math.round(totalRevenue * 100) / 100,
         recentGrowth,
         trends,
-        sessions: SESSIONS_CATALOG
+        sessions: SESSIONS_CATALOG,
+        emailStats
       },
-      registrations: allRegistrations.sort((a, b) => (b.registeredAt || 0) - (a.registeredAt || 0)),
+      registrations: enrichedRegistrations.sort((a, b) => (b.registeredAt || 0) - (a.registeredAt || 0)),
       leads: allLeads.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)),
       gallery: galleryItemsList
     });

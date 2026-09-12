@@ -85,6 +85,9 @@ async function getMongoDb() {
       const dbName = process.env.MONGODB_DB_NAME || "challengers_academy";
       mongoDb = mongoClient.db(dbName);
       console.log(` Connected to MongoDB Database: "${dbName}"`);
+      ensureMongoIndexes(mongoDb).catch((e) => {
+        console.warn("MongoDB index initialization notice:", e.message);
+      });
       return mongoDb;
     } catch (err) {
       console.warn("\u26A0\uFE0F MongoDB connection error:", err.message);
@@ -97,6 +100,27 @@ async function getMongoDb() {
     }
   })();
   return connectPromise;
+}
+var indexesEnsured = false;
+async function ensureMongoIndexes(db) {
+  if (indexesEnsured || !db) return;
+  indexesEnsured = true;
+  try {
+    await db.collection("registrations").createIndex({ registrationId: 1 }, { unique: true, background: true });
+    await db.collection("registrations").createIndex({ stripePaymentIntentId: 1 }, { sparse: true, background: true });
+    await db.collection("registrations").createIndex({ transactionId: 1 }, { sparse: true, background: true });
+    await db.collection("registrations").createIndex({ email: 1 }, { background: true });
+    await db.collection("registrations").createIndex({ registeredAt: -1 }, { background: true });
+    await db.collection("stripe_events").createIndex({ eventId: 1 }, { unique: true, background: true });
+    await db.collection("stripe_events").createIndex({ createdAt: 1 }, { expireAfterSeconds: 30 * 24 * 60 * 60, background: true });
+    await db.collection("email_jobs").createIndex({ jobId: 1 }, { unique: true, background: true });
+    await db.collection("email_jobs").createIndex({ status: 1, attempts: 1 }, { background: true });
+    await db.collection("email_jobs").createIndex({ registrationId: 1 }, { background: true });
+    await db.collection("leads").createIndex({ id: 1 }, { unique: true, background: true });
+    console.log("\u2705 MongoDB unique constraints and performance indexes verified.");
+  } catch (err) {
+    console.warn("\u26A0\uFE0F Notice during MongoDB index creation:", err.message);
+  }
 }
 var JWT_SECRET = process.env.JWT_SECRET || "challengers-dev-secret-change-in-production";
 var GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || "";
@@ -1332,6 +1356,162 @@ Challengers Volleyball Academy - Bay Area, CA
     return false;
   }
 }
+var emailJobsMap = {};
+async function getOrCreateEmailJob(reg, type) {
+  const recipient = type === "customer_confirmation" ? String(reg.email || "").trim().toLowerCase() : (process.env.ACADEMY_ADMIN_EMAIL || process.env.ADMIN_SEED_EMAIL || process.env.EMAIL_USER || "nihalok625@gmail.com").trim();
+  const jobId = `${reg.registrationId}_${type}`;
+  const db = await getMongoDb();
+  if (db) {
+    try {
+      const existing = await db.collection("email_jobs").findOne({ jobId });
+      if (existing) return existing;
+    } catch {
+    }
+  } else if (emailJobsMap[jobId]) {
+    return emailJobsMap[jobId];
+  }
+  const newJob = {
+    jobId,
+    registrationId: reg.registrationId,
+    type,
+    recipient,
+    status: "pending",
+    attempts: 0,
+    maxAttempts: 5,
+    lastError: null,
+    createdAt: Date.now()
+  };
+  emailJobsMap[jobId] = newJob;
+  if (db) {
+    try {
+      await db.collection("email_jobs").updateOne(
+        { jobId },
+        { $setOnInsert: newJob },
+        { upsert: true }
+      );
+    } catch {
+    }
+  }
+  return newJob;
+}
+async function dispatchEmailJob(job, reg) {
+  const db = await getMongoDb();
+  let targetReg = reg;
+  if (!targetReg && db) {
+    try {
+      targetReg = await db.collection("registrations").findOne({ registrationId: job.registrationId });
+    } catch {
+    }
+  }
+  if (!targetReg) {
+    targetReg = registrations[job.registrationId];
+  }
+  if (!targetReg) {
+    const errorMsg = `Registration ${job.registrationId} not found for email job ${job.jobId}`;
+    if (db) {
+      await db.collection("email_jobs").updateOne(
+        { jobId: job.jobId },
+        { $set: { status: "failed", lastError: errorMsg, lastAttemptAt: Date.now() }, $inc: { attempts: 1 } }
+      );
+    }
+    return false;
+  }
+  if (job.status === "sent") {
+    return true;
+  }
+  const nextAttempt = (job.attempts || 0) + 1;
+  const now = Date.now();
+  if (db) {
+    try {
+      await db.collection("email_jobs").updateOne(
+        { jobId: job.jobId },
+        { $set: { status: "processing", lastAttemptAt: now }, $inc: { attempts: 1 } }
+      );
+    } catch {
+    }
+  }
+  let success = false;
+  let errorDetail = "";
+  try {
+    if (job.type === "customer_confirmation") {
+      success = await sendCustomerConfirmationEmail(targetReg);
+    } else {
+      success = await sendAdminNotificationEmail(targetReg);
+    }
+  } catch (err) {
+    success = false;
+    errorDetail = err.message || "Unknown email dispatch error";
+  }
+  const finalStatus = success ? "sent" : nextAttempt >= (job.maxAttempts || 5) ? "failed" : "pending";
+  const updates = {
+    status: finalStatus,
+    lastAttemptAt: now,
+    lastError: success ? null : errorDetail || "SMTP transmission failure"
+  };
+  if (success) {
+    updates.sentAt = now;
+  }
+  if (emailJobsMap[job.jobId]) {
+    Object.assign(emailJobsMap[job.jobId], updates);
+    emailJobsMap[job.jobId].attempts = nextAttempt;
+  }
+  if (db) {
+    try {
+      await db.collection("email_jobs").updateOne({ jobId: job.jobId }, { $set: updates });
+    } catch {
+    }
+  }
+  return success;
+}
+async function queueAndDispatchEmails(reg) {
+  let customerSent = false;
+  let adminSent = false;
+  try {
+    const [custJob, adminJob] = await Promise.all([
+      getOrCreateEmailJob(reg, "customer_confirmation"),
+      getOrCreateEmailJob(reg, "admin_notification")
+    ]);
+    const results = await Promise.allSettled([
+      custJob.status !== "sent" ? dispatchEmailJob(custJob, reg) : Promise.resolve(true),
+      adminJob.status !== "sent" ? dispatchEmailJob(adminJob, reg) : Promise.resolve(true)
+    ]);
+    customerSent = results[0].status === "fulfilled" && results[0].value === true;
+    adminSent = results[1].status === "fulfilled" && results[1].value === true;
+  } catch (err) {
+    console.warn(`\u26A0\uFE0F [EMAIL QUEUE NOTICE] Background email dispatch deferred for ${reg.registrationId}:`, err.message);
+  }
+  return { customerSent, adminSent };
+}
+async function processEmailQueue(limit = 30) {
+  let processed = 0;
+  let sent = 0;
+  let failed = 0;
+  const db = await getMongoDb();
+  if (!db) {
+    return { processed: 0, sent: 0, failed: 0 };
+  }
+  try {
+    const now = Date.now();
+    const jobs = await db.collection("email_jobs").find({
+      status: { $in: ["pending", "failed"] },
+      attempts: { $lt: 5 }
+    }).limit(limit).toArray();
+    for (const rawJob of jobs) {
+      const job = rawJob;
+      const backoffMs = Math.pow(2, job.attempts || 0) * 15e3;
+      if (job.lastAttemptAt && now - job.lastAttemptAt < backoffMs) {
+        continue;
+      }
+      processed++;
+      const ok = await dispatchEmailJob(job);
+      if (ok) sent++;
+      else failed++;
+    }
+  } catch (err) {
+    console.error("Email queue processing error:", err.message);
+  }
+  return { processed, sent, failed };
+}
 async function createApp() {
   const app = express();
   app.use((req, res, next) => {
@@ -1386,6 +1566,24 @@ async function createApp() {
       return res.status(400).json({ error: "Missing or unreadable webhook payload" });
     }
     console.log(`\u{1F514} Stripe Webhook Received: ${event?.type || "unknown_event"} (${event?.id || "no-id"})`);
+    const db = await getMongoDb();
+    const eventId = event?.id;
+    if (eventId && db) {
+      try {
+        const processedEvent = await db.collection("stripe_events").findOne({ eventId, status: "processed" });
+        if (processedEvent) {
+          console.log(`\u2139\uFE0F [WEBHOOK IDEMPOTENT] Event ${eventId} was already processed successfully. Returning 200 OK.`);
+          return res.status(200).json({ received: true, idempotent: true, eventId });
+        }
+        await db.collection("stripe_events").updateOne(
+          { eventId },
+          { $setOnInsert: { eventId, type: event.type, status: "processing", createdAt: /* @__PURE__ */ new Date() } },
+          { upsert: true }
+        );
+      } catch (e) {
+        console.warn("\u26A0\uFE0F Webhook event idempotency check notice:", e.message);
+      }
+    }
     const relevantEvents = ["payment_intent.succeeded", "checkout.session.completed", "charge.succeeded"];
     if (relevantEvents.includes(event.type)) {
       let sessionOrIntent = event.data?.object;
@@ -1417,7 +1615,6 @@ async function createApp() {
       const leadIdFromMeta = metadata.leadId;
       const paymentMethodInfo = await extractStripePaymentMethodDetails(sessionOrIntent, stripe);
       const dynamicPaymentMethod = paymentMethodInfo.paymentMethod;
-      const db = await getMongoDb();
       let matchedLead = null;
       if (leadIdFromMeta && leads[leadIdFromMeta]) {
         matchedLead = leads[leadIdFromMeta];
@@ -1450,7 +1647,7 @@ async function createApp() {
         }
       }
       if (existingRecord && existingRecord.paymentStatus === "PAID") {
-        console.log(`\u2139\uFE0F Registration ${existingRecord.registrationId} already confirmed in DB. Updating method if needed.`);
+        console.log(`\u2139\uFE0F Registration ${existingRecord.registrationId} already confirmed in DB.`);
         if (db && dynamicPaymentMethod && dynamicPaymentMethod !== "Stripe" && existingRecord.paymentMethod !== dynamicPaymentMethod) {
           try {
             await db.collection("registrations").updateOne(
@@ -1462,6 +1659,10 @@ async function createApp() {
             }
           } catch {
           }
+        }
+        if (eventId && db) {
+          await db.collection("stripe_events").updateOne({ eventId }, { $set: { status: "processed", processedAt: Date.now() } }).catch(() => {
+          });
         }
         return res.json({ received: true, alreadyProcessed: true });
       }
@@ -1513,11 +1714,16 @@ async function createApp() {
         matchedLead.registrationId = registrationId;
         await saveLeadToDb(matchedLead);
       }
-      console.log(`\u2709\uFE0F Dispatching confirmation emails for ${dynamicPaymentMethod} payment (${registrationId})...`);
-      await Promise.allSettled([
-        sendAdminNotificationEmail(newRegistration),
-        sendCustomerConfirmationEmail(newRegistration)
-      ]);
+      queueAndDispatchEmails(newRegistration).catch((e) => {
+        console.warn("\u26A0\uFE0F Non-blocking email queue dispatch notice:", e.message);
+      });
+      if (eventId && db) {
+        await db.collection("stripe_events").updateOne(
+          { eventId },
+          { $set: { status: "processed", processedAt: Date.now() } }
+        ).catch(() => {
+        });
+      }
     }
     res.json({ received: true });
   });
@@ -3084,13 +3290,8 @@ Temp Password: ${tempPassword}
         };
         await saveRegistrationToDb(newRegistration);
         if (resolvedEmail && resolvedEmail.includes("@") && !resolvedEmail.includes("example.com")) {
-          try {
-            await Promise.allSettled([
-              sendAdminNotificationEmail(newRegistration),
-              sendCustomerConfirmationEmail(newRegistration)
-            ]);
-          } catch {
-          }
+          queueAndDispatchEmails(newRegistration).catch(() => {
+          });
         }
         syncedCount++;
       }
@@ -3232,15 +3433,8 @@ Temp Password: ${tempPassword}
           );
         }
         if (resolvedEmail && resolvedEmail.includes("@") && !resolvedEmail.includes("example.com")) {
-          try {
-            console.log(`\u2709\uFE0F [AUTO EMAIL] Dispatching emails for ${resolvedPlayerName} (${resolvedEmail})...`);
-            await Promise.allSettled([
-              sendAdminNotificationEmail(newRegistration),
-              sendCustomerConfirmationEmail(newRegistration)
-            ]);
-          } catch (mailErr) {
-            console.warn("\u26A0\uFE0F Auto email error during sync:", mailErr.message);
-          }
+          queueAndDispatchEmails(newRegistration).catch(() => {
+          });
         }
         syncedCount++;
       }
@@ -3309,16 +3503,13 @@ Temp Password: ${tempPassword}
         };
         await saveRegistrationToDb(newRegistration);
         if (resolvedEmail && resolvedEmail.includes("@") && !resolvedEmail.includes("example.com")) {
-          try {
-            await Promise.allSettled([
-              sendAdminNotificationEmail(newRegistration),
-              sendCustomerConfirmationEmail(newRegistration)
-            ]);
-          } catch {
-          }
+          queueAndDispatchEmails(newRegistration).catch(() => {
+          });
         }
         syncedCount++;
       }
+      processEmailQueue(30).catch(() => {
+      });
       console.log(`\u2705 Stripe sync completed: ${syncedCount} new registrations imported, ${updatedCount} updated (${totalStripePayments} total Stripe transactions fetched).`);
     } catch (syncErr) {
       console.error("\u26A0\uFE0F Stripe payment sync error:", syncErr.message);
@@ -3358,6 +3549,31 @@ Temp Password: ${tempPassword}
       res.status(500).json({ success: false, message: err.message || "Failed to purge mock records" });
     }
   });
+  app.post("/api/admin/process-email-queue", requireAuth, async (req, res) => {
+    try {
+      const result = await processEmailQueue(50);
+      res.json({
+        success: true,
+        message: `Email Queue Processed: ${result.sent} delivered, ${result.failed} failed (${result.processed} processed).`,
+        ...result
+      });
+    } catch (err) {
+      console.error("Email queue processing API error:", err);
+      res.status(500).json({ success: false, message: err.message || "Email queue processing failed" });
+    }
+  });
+  app.get("/api/admin/email-jobs", requireAuth, async (req, res) => {
+    try {
+      const db = await getMongoDb();
+      let jobs = Object.values(emailJobsMap);
+      if (db) {
+        jobs = await db.collection("email_jobs").find().sort({ createdAt: -1 }).limit(100).toArray();
+      }
+      res.json({ success: true, jobs });
+    } catch (err) {
+      res.status(500).json({ success: false, message: err.message || "Failed to retrieve email jobs" });
+    }
+  });
   app.post("/api/admin/sync-stripe-payments", requireAuth, async (req, res) => {
     try {
       const result = await syncStripePaymentsWithDb();
@@ -3381,6 +3597,7 @@ Temp Password: ${tempPassword}
     }
     let allRegistrations = Object.values(registrations);
     let allLeads = Object.values(leads);
+    let emailJobs = [];
     const db = await getMongoDb();
     if (db) {
       try {
@@ -3388,10 +3605,26 @@ Temp Password: ${tempPassword}
         if (mongoRegs.length > 0) allRegistrations = mongoRegs;
         const mongoLeads = await db.collection("leads").find().toArray();
         if (mongoLeads.length > 0) allLeads = mongoLeads;
+        emailJobs = await db.collection("email_jobs").find().toArray();
       } catch (err) {
         console.error("MongoDB stats query error:", err.message);
       }
     }
+    const emailJobStatusMap = /* @__PURE__ */ new Map();
+    for (const job of emailJobs) {
+      if (!emailJobStatusMap.has(job.registrationId) || job.status === "failed") {
+        emailJobStatusMap.set(job.registrationId, { status: job.status, lastError: job.lastError });
+      }
+    }
+    const enrichedRegistrations = allRegistrations.map((reg) => {
+      const jobInfo = emailJobStatusMap.get(reg.registrationId);
+      const emailStatus = jobInfo ? jobInfo.status : reg.email && reg.email.includes("@") && !reg.email.includes("example.com") ? "sent" : "pending";
+      return {
+        ...reg,
+        emailStatus,
+        emailLastError: jobInfo?.lastError || null
+      };
+    });
     const confirmedEmailSet = new Set(allRegistrations.map((r) => String(r.email || "").toLowerCase().trim()).filter(Boolean));
     const confirmedRegIdSet = new Set(allRegistrations.map((r) => r.registrationId).filter(Boolean));
     const confirmedTxIdSet = new Set(allRegistrations.map((r) => r.stripePaymentIntentId || r.transactionId).filter(Boolean));
@@ -3416,6 +3649,12 @@ Temp Password: ${tempPassword}
     const totalConfirmed = allRegistrations.length;
     const totalLeads = allLeads.length;
     const totalRevenue = allRegistrations.reduce((sum, r) => sum + (Number(r.amountPaid) || 0), 0);
+    const emailStats = {
+      sent: emailJobs.filter((j) => j.status === "sent").length,
+      pending: emailJobs.filter((j) => j.status === "pending" || j.status === "processing").length,
+      failed: emailJobs.filter((j) => j.status === "failed").length,
+      total: emailJobs.length
+    };
     const now = Date.now();
     const dayMs = 24 * 60 * 60 * 1e3;
     const trends = Array.from({ length: 7 }).map((_, i) => {
@@ -3437,9 +3676,10 @@ Temp Password: ${tempPassword}
         totalRevenue: Math.round(totalRevenue * 100) / 100,
         recentGrowth,
         trends,
-        sessions: SESSIONS_CATALOG
+        sessions: SESSIONS_CATALOG,
+        emailStats
       },
-      registrations: allRegistrations.sort((a, b) => (b.registeredAt || 0) - (a.registeredAt || 0)),
+      registrations: enrichedRegistrations.sort((a, b) => (b.registeredAt || 0) - (a.registeredAt || 0)),
       leads: allLeads.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)),
       gallery: galleryItemsList
     });
