@@ -1161,18 +1161,18 @@ export default function Admin() {
                     </div>
                   </div>
 
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                      <thead>
-                        <tr className="bg-sand/5 text-[10px] font-black uppercase tracking-widest text-espresso/40 border-b border-espresso/5">
-                          <th className="px-8 py-5">Athlete &amp; Code</th>
-                          <th className="px-6 py-5">Program / Session</th>
-                          <th className="px-6 py-5">Amount</th>
-                          <th className="px-6 py-5">Customer Contact</th>
-                          <th className="px-6 py-5">Payment Method</th>
-                          <th className="px-6 py-5">Stripe / Ref ID</th>
-                          <th className="px-6 py-5">Date</th>
-                          <th className="px-8 py-5 text-right">Actions</th>
+                  <div className="overflow-x-auto admin-table-scroll max-h-[580px] border-t border-espresso/5">
+                    <table className="w-full text-left border-collapse">
+                      <thead className="sticky top-0 z-10 bg-[#FBF9F6] shadow-sm">
+                        <tr className="bg-[#FBF9F6] text-[10px] font-black uppercase tracking-widest text-espresso/50 border-b border-espresso/10">
+                          <th className="px-8 py-4 bg-[#FBF9F6]">Athlete &amp; Code</th>
+                          <th className="px-6 py-4 bg-[#FBF9F6]">Program / Session</th>
+                          <th className="px-6 py-4 bg-[#FBF9F6]">Amount</th>
+                          <th className="px-6 py-4 bg-[#FBF9F6]">Customer Contact</th>
+                          <th className="px-6 py-4 bg-[#FBF9F6]">Payment Method</th>
+                          <th className="px-6 py-4 bg-[#FBF9F6]">Stripe / Ref ID</th>
+                          <th className="px-6 py-4 bg-[#FBF9F6]">Date</th>
+                          <th className="px-8 py-4 bg-[#FBF9F6] text-right">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-espresso/5">
@@ -1357,15 +1357,15 @@ export default function Admin() {
                     </div>
                   </div>
 
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                      <thead>
-                        <tr className="bg-sand/5 text-[10px] font-black uppercase tracking-widest text-espresso/40 border-b border-espresso/5">
-                          <th className="px-8 py-5">Athlete</th>
-                          <th className="px-6 py-5">Program</th>
-                          <th className="px-6 py-5">Status</th>
-                          <th className="px-6 py-5">Date</th>
-                          <th className="px-8 py-5 text-right">Actions</th>
+                  <div className="overflow-x-auto admin-table-scroll max-h-[440px] border-t border-espresso/5">
+                    <table className="w-full text-left border-collapse">
+                      <thead className="sticky top-0 z-10 bg-[#FBF9F6] shadow-sm">
+                        <tr className="bg-[#FBF9F6] text-[10px] font-black uppercase tracking-widest text-espresso/50 border-b border-espresso/10">
+                          <th className="px-8 py-4 bg-[#FBF9F6]">Athlete</th>
+                          <th className="px-6 py-4 bg-[#FBF9F6]">Program</th>
+                          <th className="px-6 py-4 bg-[#FBF9F6]">Status</th>
+                          <th className="px-6 py-4 bg-[#FBF9F6]">Date</th>
+                          <th className="px-8 py-4 bg-[#FBF9F6] text-right">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-espresso/5">
