@@ -2984,12 +2984,121 @@ Temp Password: ${tempPassword}
       } catch {
       }
       totalStripePayments = allPaymentIntents.length + allCharges.length + allSessions.length;
+      const sessionByPiId = /* @__PURE__ */ new Map();
+      for (const sess of allSessions) {
+        const piId = typeof sess.payment_intent === "string" ? sess.payment_intent : sess.payment_intent?.id;
+        if (piId) sessionByPiId.set(piId, sess);
+        sessionByPiId.set(sess.id, sess);
+      }
       const processedIntentIds = /* @__PURE__ */ new Set();
+      for (const sess of allSessions) {
+        if (sess.payment_status !== "paid") continue;
+        const targetPiId = typeof sess.payment_intent === "string" ? sess.payment_intent : sess.payment_intent?.id || sess.id;
+        processedIntentIds.add(targetPiId);
+        processedIntentIds.add(sess.id);
+        const sessMeta = sess.metadata || {};
+        const resolvedEmail = (sess.customer_details?.email || sess.customer_email || sessMeta.email || "N/A").toLowerCase().trim();
+        const resolvedParentName = sessMeta.parentName || sess.customer_details?.name || "";
+        let resolvedPlayerName = sessMeta.playerName || sess.customer_details?.name;
+        if (!resolvedPlayerName || resolvedPlayerName.startsWith("pi_") || resolvedPlayerName === "Student Athlete" || resolvedPlayerName === "Athlete") {
+          if (resolvedEmail && resolvedEmail.includes("@") && !resolvedEmail.includes("example.com")) {
+            const prefix = resolvedEmail.split("@")[0].replace(/[0-9._-]/g, " ").trim();
+            resolvedPlayerName = prefix.charAt(0).toUpperCase() + prefix.slice(1);
+          } else {
+            resolvedPlayerName = "Athlete";
+          }
+        }
+        let dynamicMethod = "Card";
+        if (sess.payment_intent && typeof sess.payment_intent !== "string") {
+          const mInfo = await extractStripePaymentMethodDetails(sess.payment_intent, stripe);
+          dynamicMethod = mInfo.paymentMethod;
+        } else if (sess.payment_method_types && sess.payment_method_types.length > 0) {
+          const rawType = sess.payment_method_types[0];
+          if (rawType === "link") dynamicMethod = "Link";
+          else if (rawType === "card") dynamicMethod = "Card";
+          else dynamicMethod = rawType.toUpperCase();
+        }
+        let existing = null;
+        if (db) {
+          existing = await db.collection("registrations").findOne({
+            $or: [
+              ...sessMeta.registrationId ? [{ registrationId: sessMeta.registrationId }] : [],
+              { stripePaymentIntentId: targetPiId },
+              { transactionId: targetPiId },
+              { transactionId: sess.id }
+            ]
+          });
+        }
+        if (existing) {
+          const updates = {};
+          if (dynamicMethod && dynamicMethod !== "Stripe" && existing.paymentMethod !== dynamicMethod) {
+            updates.paymentMethod = dynamicMethod;
+          }
+          if (resolvedEmail && resolvedEmail !== "N/A" && (!existing.email || existing.email.toLowerCase() === "n/a" || existing.email === "customer@example.com" || existing.email === "nihalok625@gmail.com")) {
+            updates.email = resolvedEmail;
+          }
+          if (resolvedParentName && (!existing.parentName || existing.parentName === "N/A" || existing.parentName === "")) {
+            updates.parentName = resolvedParentName;
+          }
+          if (resolvedPlayerName && (existing.playerName === "Student Athlete" || existing.playerName === "Athlete" || !existing.playerName)) {
+            updates.playerName = resolvedPlayerName;
+          }
+          if (sess.customer_details?.phone && (!existing.phone || existing.phone === "N/A")) {
+            updates.phone = sess.customer_details.phone;
+          }
+          if (Object.keys(updates).length > 0 && db) {
+            await db.collection("registrations").updateOne({ _id: existing._id }, { $set: updates });
+            if (registrations[existing.registrationId]) {
+              Object.assign(registrations[existing.registrationId], updates);
+            }
+            updatedCount++;
+          }
+          continue;
+        }
+        const amountTotal = sess.amount_total ? sess.amount_total / 100 : sessMeta.basePrice ? Number(sessMeta.basePrice) : 200;
+        const newRegistration = {
+          registrationId: sessMeta.registrationId || generateRegistrationId(),
+          sessionId: sessMeta.sessionId || "starter-pack",
+          sessionName: sessMeta.sessionName || "Challengers Coaching Session",
+          playerName: resolvedPlayerName || "Athlete",
+          parentName: resolvedParentName,
+          email: resolvedEmail,
+          phone: sess.customer_details?.phone || sessMeta.phone || "N/A",
+          dob: sessMeta.dob || "",
+          location: sessMeta.preferredLocation || sessMeta.location || "Fremont Arena",
+          schedule: sessMeta.schedule || "Weekend Sessions",
+          amountPaid: amountTotal,
+          paymentStatus: "PAID",
+          paymentMethod: dynamicMethod,
+          transactionId: targetPiId || sess.id,
+          stripePaymentIntentId: targetPiId || sess.id,
+          waiverAccepted: true,
+          registeredAt: sess.created ? sess.created * 1e3 : Date.now(),
+          hasSibling: sessMeta.hasSibling === "true" || sessMeta.hasSibling === true,
+          siblingName: sessMeta.siblingName || "",
+          siblingDob: sessMeta.siblingDob || "",
+          siblingGender: sessMeta.siblingGender || "",
+          discountAmount: sessMeta.hasSibling === "true" || sessMeta.hasSibling === true ? 50 : 0,
+          basePrice: amountTotal,
+          totalAthletes: sessMeta.hasSibling === "true" || sessMeta.hasSibling === true ? 2 : 1
+        };
+        await saveRegistrationToDb(newRegistration);
+        if (resolvedEmail && resolvedEmail.includes("@") && !resolvedEmail.includes("example.com")) {
+          try {
+            await Promise.allSettled([
+              sendAdminNotificationEmail(newRegistration),
+              sendCustomerConfirmationEmail(newRegistration)
+            ]);
+          } catch {
+          }
+        }
+        syncedCount++;
+      }
       for (const intent of allPaymentIntents) {
         if (intent.status !== "succeeded") continue;
-        processedIntentIds.add(intent.id);
         const paymentIntentId = intent.id;
-        const metadata = intent.metadata || {};
+        const matchedSess = sessionByPiId.get(paymentIntentId);
+        const metadata = { ...matchedSess?.metadata || {}, ...intent.metadata || {} };
         const methodInfo = await extractStripePaymentMethodDetails(intent, stripe);
         const dynamicMethod = methodInfo.paymentMethod;
         let stripeCustomerEmail = "";
@@ -3013,8 +3122,8 @@ Temp Password: ${tempPassword}
         const latestCharge = intent.latest_charge;
         const chargeBilling = typeof latestCharge === "object" ? latestCharge?.billing_details : intentCharges;
         const receiptEmail = intent.receipt_email || (typeof latestCharge === "object" ? latestCharge?.receipt_email : null);
-        const resolvedEmail = (metadata.email || stripeCustomerEmail || receiptEmail || intent.customer_details?.email || chargeBilling?.email || intentCharges?.email || "N/A").trim().toLowerCase();
-        let resolvedPlayerName = metadata.playerName || stripeCustomerName || chargeBilling?.name || intentCharges?.name || intent.customer_details?.name;
+        const resolvedEmail = (metadata.email || matchedSess?.customer_details?.email || stripeCustomerEmail || receiptEmail || intent.customer_details?.email || chargeBilling?.email || intentCharges?.email || "N/A").trim().toLowerCase();
+        let resolvedPlayerName = metadata.playerName || matchedSess?.customer_details?.name || stripeCustomerName || chargeBilling?.name || intentCharges?.name || intent.customer_details?.name;
         if (!resolvedPlayerName || resolvedPlayerName.startsWith("pi_") || resolvedPlayerName === "Student Athlete" || resolvedPlayerName === "Athlete") {
           if (resolvedEmail && resolvedEmail.includes("@") && !resolvedEmail.includes("example.com")) {
             const emailPrefix = resolvedEmail.split("@")[0].replace(/[0-9._-]/g, " ").trim();
@@ -3023,6 +3132,7 @@ Temp Password: ${tempPassword}
             resolvedPlayerName = "Athlete";
           }
         }
+        const resolvedParentName = metadata.parentName || matchedSess?.customer_details?.name || chargeBilling?.name || "";
         let existing = null;
         if (db) {
           existing = await db.collection("registrations").findOne({
@@ -3038,8 +3148,11 @@ Temp Password: ${tempPassword}
           if (dynamicMethod && dynamicMethod !== "Stripe" && existing.paymentMethod !== dynamicMethod) {
             updates.paymentMethod = dynamicMethod;
           }
-          if (resolvedEmail && resolvedEmail !== "N/A" && (existing.email === "nihalok625@gmail.com" || existing.email === "customer@example.com" || !existing.email || existing.email === "N/A")) {
+          if (resolvedEmail && resolvedEmail !== "N/A" && (!existing.email || existing.email.toLowerCase() === "n/a" || existing.email === "customer@example.com" || existing.email === "nihalok625@gmail.com")) {
             updates.email = resolvedEmail;
+          }
+          if (resolvedParentName && (!existing.parentName || existing.parentName === "N/A" || existing.parentName === "")) {
+            updates.parentName = resolvedParentName;
           }
           if (resolvedPlayerName && (existing.playerName === "Student Athlete" || existing.playerName === "Athlete" || !existing.playerName)) {
             updates.playerName = resolvedPlayerName;
@@ -3053,6 +3166,8 @@ Temp Password: ${tempPassword}
           }
           continue;
         }
+        if (processedIntentIds.has(paymentIntentId)) continue;
+        processedIntentIds.add(paymentIntentId);
         let matchedLead = null;
         if (db) {
           if (metadata.leadId) {
@@ -3073,7 +3188,7 @@ Temp Password: ${tempPassword}
         const sessionItem = SESSIONS_CATALOG[sessionId];
         const amountPaid = intent.amount ? intent.amount / 100 : matchedLead?.amount || sessionItem?.price || 30;
         const isSibling = metadata.hasSibling === "true" || metadata.hasSibling === true || matchedLead?.hasSibling === true || matchedLead?.hasSibling === "true";
-        const resolvedParentName = metadata.parentName || matchedLead?.parentName || "";
+        const finalParentName = resolvedParentName || matchedLead?.parentName || "";
         const resolvedPhone = metadata.phone || matchedLead?.phone || chargeBilling?.phone || intentCharges?.phone || "N/A";
         const resolvedLocation = metadata.preferredLocation || metadata.location || matchedLead?.preferredLocation || matchedLead?.location || sessionItem?.location || "Fremont (Kerala House)";
         const resolvedSchedule = metadata.schedule || matchedLead?.schedule || sessionItem?.schedule || "Weekend Sessions";
@@ -3086,7 +3201,7 @@ Temp Password: ${tempPassword}
           sessionId,
           sessionName: sessionTitle,
           playerName: resolvedPlayerName,
-          parentName: resolvedParentName,
+          parentName: finalParentName,
           email: resolvedEmail,
           phone: resolvedPhone,
           dob: metadata.dob || matchedLead?.dob || "",
@@ -3174,7 +3289,7 @@ Temp Password: ${tempPassword}
           sessionId: "starter-pack",
           sessionName: ch.description || "Challengers Coaching Session",
           playerName: resolvedPlayerName || "Athlete",
-          parentName: "",
+          parentName: ch.billing_details?.name || "",
           email: resolvedEmail,
           phone: ch.billing_details?.phone || "N/A",
           dob: "",
@@ -3191,83 +3306,6 @@ Temp Password: ${tempPassword}
           discountAmount: 0,
           basePrice: ch.amount / 100,
           totalAthletes: 1
-        };
-        await saveRegistrationToDb(newRegistration);
-        if (resolvedEmail && resolvedEmail.includes("@") && !resolvedEmail.includes("example.com")) {
-          try {
-            await Promise.allSettled([
-              sendAdminNotificationEmail(newRegistration),
-              sendCustomerConfirmationEmail(newRegistration)
-            ]);
-          } catch {
-          }
-        }
-        syncedCount++;
-      }
-      for (const sess of allSessions) {
-        if (sess.payment_status !== "paid") continue;
-        const targetPiId = typeof sess.payment_intent === "string" ? sess.payment_intent : sess.payment_intent?.id || sess.id;
-        if (targetPiId && processedIntentIds.has(targetPiId)) continue;
-        processedIntentIds.add(targetPiId);
-        let existing = null;
-        if (db) {
-          existing = await db.collection("registrations").findOne({
-            $or: [
-              ...sess.metadata?.registrationId ? [{ registrationId: sess.metadata.registrationId }] : [],
-              { stripePaymentIntentId: targetPiId },
-              { transactionId: targetPiId },
-              { transactionId: sess.id }
-            ]
-          });
-        }
-        if (existing) continue;
-        let dynamicMethod = "Card";
-        if (sess.payment_intent && typeof sess.payment_intent !== "string") {
-          const mInfo = await extractStripePaymentMethodDetails(sess.payment_intent, stripe);
-          dynamicMethod = mInfo.paymentMethod;
-        } else if (sess.payment_method_types && sess.payment_method_types.length > 0) {
-          const rawType = sess.payment_method_types[0];
-          if (rawType === "link") dynamicMethod = "Link";
-          else if (rawType === "card") dynamicMethod = "Card";
-          else dynamicMethod = rawType.toUpperCase();
-        }
-        const sessMeta = sess.metadata || {};
-        const resolvedEmail = (sess.customer_details?.email || sess.customer_email || sessMeta.email || "N/A").toLowerCase().trim();
-        let resolvedPlayerName = sess.customer_details?.name || sessMeta.playerName;
-        if (!resolvedPlayerName || resolvedPlayerName.startsWith("pi_") || resolvedPlayerName === "Student Athlete" || resolvedPlayerName === "Athlete") {
-          if (resolvedEmail && resolvedEmail.includes("@") && !resolvedEmail.includes("example.com")) {
-            const prefix = resolvedEmail.split("@")[0].replace(/[0-9._-]/g, " ").trim();
-            resolvedPlayerName = prefix.charAt(0).toUpperCase() + prefix.slice(1);
-          } else {
-            resolvedPlayerName = "Athlete";
-          }
-        }
-        const amountTotal = sess.amount_total ? sess.amount_total / 100 : sessMeta.basePrice ? Number(sessMeta.basePrice) : 200;
-        const newRegistration = {
-          registrationId: sessMeta.registrationId || generateRegistrationId(),
-          sessionId: sessMeta.sessionId || "starter-pack",
-          sessionName: sessMeta.sessionName || "Challengers Coaching Session",
-          playerName: resolvedPlayerName || "Athlete",
-          parentName: sessMeta.parentName || "",
-          email: resolvedEmail,
-          phone: sess.customer_details?.phone || sessMeta.phone || "N/A",
-          dob: sessMeta.dob || "",
-          location: sessMeta.preferredLocation || sessMeta.location || "Fremont Arena",
-          schedule: sessMeta.schedule || "Weekend Sessions",
-          amountPaid: amountTotal,
-          paymentStatus: "PAID",
-          paymentMethod: dynamicMethod,
-          transactionId: targetPiId || sess.id,
-          stripePaymentIntentId: targetPiId || sess.id,
-          waiverAccepted: true,
-          registeredAt: sess.created ? sess.created * 1e3 : Date.now(),
-          hasSibling: sessMeta.hasSibling === "true" || sessMeta.hasSibling === true,
-          siblingName: sessMeta.siblingName || "",
-          siblingDob: sessMeta.siblingDob || "",
-          siblingGender: sessMeta.siblingGender || "",
-          discountAmount: sessMeta.hasSibling === "true" || sessMeta.hasSibling === true ? 50 : 0,
-          basePrice: amountTotal,
-          totalAthletes: sessMeta.hasSibling === "true" || sessMeta.hasSibling === true ? 2 : 1
         };
         await saveRegistrationToDb(newRegistration);
         if (resolvedEmail && resolvedEmail.includes("@") && !resolvedEmail.includes("example.com")) {

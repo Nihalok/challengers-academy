@@ -3520,20 +3520,146 @@ Challengers Volleyball Academy
 
       totalStripePayments = allPaymentIntents.length + allCharges.length + allSessions.length;
 
-      // Track processed IDs to prevent duplicate processing during sync
+      // Map Checkout Sessions by payment_intent ID and session ID for fast lookup
+      const sessionByPiId = new Map<string, Stripe.Checkout.Session>();
+      for (const sess of allSessions) {
+        const piId = typeof sess.payment_intent === 'string' ? sess.payment_intent : (sess.payment_intent as any)?.id;
+        if (piId) sessionByPiId.set(piId, sess);
+        sessionByPiId.set(sess.id, sess);
+      }
+
+      // Track processed IDs to prevent duplicate creation during sync
       const processedIntentIds = new Set<string>();
 
-      // Process Payment Intents
+      // 1. Process Checkout Sessions FIRST (they contain rich metadata: email, parentName, playerName, leadId, etc.)
+      for (const sess of allSessions) {
+        if (sess.payment_status !== 'paid') continue;
+        const targetPiId = typeof sess.payment_intent === 'string' 
+          ? sess.payment_intent 
+          : (sess.payment_intent as any)?.id || sess.id;
+
+        processedIntentIds.add(targetPiId);
+        processedIntentIds.add(sess.id);
+
+        const sessMeta = (sess.metadata || {}) as Record<string, any>;
+        const resolvedEmail = (sess.customer_details?.email || sess.customer_email || sessMeta.email || 'N/A').toLowerCase().trim();
+        const resolvedParentName = sessMeta.parentName || sess.customer_details?.name || '';
+        let resolvedPlayerName = sessMeta.playerName || sess.customer_details?.name;
+
+        if (!resolvedPlayerName || resolvedPlayerName.startsWith('pi_') || resolvedPlayerName === 'Student Athlete' || resolvedPlayerName === 'Athlete') {
+          if (resolvedEmail && resolvedEmail.includes('@') && !resolvedEmail.includes('example.com')) {
+            const prefix = resolvedEmail.split('@')[0].replace(/[0-9._-]/g, ' ').trim();
+            resolvedPlayerName = prefix.charAt(0).toUpperCase() + prefix.slice(1);
+          } else {
+            resolvedPlayerName = 'Athlete';
+          }
+        }
+
+        let dynamicMethod = 'Card';
+        if (sess.payment_intent && typeof sess.payment_intent !== 'string') {
+          const mInfo = await extractStripePaymentMethodDetails(sess.payment_intent, stripe);
+          dynamicMethod = mInfo.paymentMethod;
+        } else if (sess.payment_method_types && sess.payment_method_types.length > 0) {
+          const rawType = sess.payment_method_types[0];
+          if (rawType === 'link') dynamicMethod = 'Link';
+          else if (rawType === 'card') dynamicMethod = 'Card';
+          else dynamicMethod = rawType.toUpperCase();
+        }
+
+        let existing: any = null;
+        if (db) {
+          existing = await db.collection('registrations').findOne({
+            $or: [
+              ...(sessMeta.registrationId ? [{ registrationId: sessMeta.registrationId }] : []),
+              { stripePaymentIntentId: targetPiId },
+              { transactionId: targetPiId },
+              { transactionId: sess.id }
+            ]
+          });
+        }
+
+        if (existing) {
+          const updates: any = {};
+          if (dynamicMethod && dynamicMethod !== 'Stripe' && existing.paymentMethod !== dynamicMethod) {
+            updates.paymentMethod = dynamicMethod;
+          }
+          if (resolvedEmail && resolvedEmail !== 'N/A' && (!existing.email || existing.email.toLowerCase() === 'n/a' || existing.email === 'customer@example.com' || existing.email === 'nihalok625@gmail.com')) {
+            updates.email = resolvedEmail;
+          }
+          if (resolvedParentName && (!existing.parentName || existing.parentName === 'N/A' || existing.parentName === '')) {
+            updates.parentName = resolvedParentName;
+          }
+          if (resolvedPlayerName && (existing.playerName === 'Student Athlete' || existing.playerName === 'Athlete' || !existing.playerName)) {
+            updates.playerName = resolvedPlayerName;
+          }
+          if (sess.customer_details?.phone && (!existing.phone || existing.phone === 'N/A')) {
+            updates.phone = sess.customer_details.phone;
+          }
+
+          if (Object.keys(updates).length > 0 && db) {
+            await db.collection('registrations').updateOne({ _id: existing._id }, { $set: updates });
+            if (registrations[existing.registrationId]) {
+              Object.assign(registrations[existing.registrationId], updates);
+            }
+            updatedCount++;
+          }
+          continue;
+        }
+
+        const amountTotal = sess.amount_total ? sess.amount_total / 100 : (sessMeta.basePrice ? Number(sessMeta.basePrice) : 200);
+
+        const newRegistration: RegistrationRecord = {
+          registrationId: sessMeta.registrationId || generateRegistrationId(),
+          sessionId: sessMeta.sessionId || 'starter-pack',
+          sessionName: sessMeta.sessionName || 'Challengers Coaching Session',
+          playerName: resolvedPlayerName || 'Athlete',
+          parentName: resolvedParentName,
+          email: resolvedEmail,
+          phone: sess.customer_details?.phone || sessMeta.phone || 'N/A',
+          dob: sessMeta.dob || '',
+          location: sessMeta.preferredLocation || sessMeta.location || 'Fremont Arena',
+          schedule: sessMeta.schedule || 'Weekend Sessions',
+          amountPaid: amountTotal,
+          paymentStatus: 'PAID',
+          paymentMethod: dynamicMethod,
+          transactionId: targetPiId || sess.id,
+          stripePaymentIntentId: targetPiId || sess.id,
+          waiverAccepted: true,
+          registeredAt: sess.created ? sess.created * 1000 : Date.now(),
+          hasSibling: sessMeta.hasSibling === 'true' || sessMeta.hasSibling === true,
+          siblingName: sessMeta.siblingName || '',
+          siblingDob: sessMeta.siblingDob || '',
+          siblingGender: sessMeta.siblingGender || '',
+          discountAmount: (sessMeta.hasSibling === 'true' || sessMeta.hasSibling === true) ? 50 : 0,
+          basePrice: amountTotal,
+          totalAthletes: (sessMeta.hasSibling === 'true' || sessMeta.hasSibling === true) ? 2 : 1
+        };
+
+        await saveRegistrationToDb(newRegistration);
+
+        if (resolvedEmail && resolvedEmail.includes('@') && !resolvedEmail.includes('example.com')) {
+          try {
+            await Promise.allSettled([
+              sendAdminNotificationEmail(newRegistration),
+              sendCustomerConfirmationEmail(newRegistration)
+            ]);
+          } catch { /* ignore */ }
+        }
+
+        syncedCount++;
+      }
+
+      // 2. Process Payment Intents
       for (const intent of allPaymentIntents) {
         if (intent.status !== 'succeeded') continue;
-        processedIntentIds.add(intent.id);
-
         const paymentIntentId = intent.id;
-        const metadata = (intent.metadata || {}) as Record<string, any>;
+
+        // If already processed via Checkout Session, skip adding new, but update existing if missing email/name
+        const matchedSess = sessionByPiId.get(paymentIntentId);
+        const metadata = { ...(matchedSess?.metadata || {}), ...(intent.metadata || {}) } as Record<string, any>;
         const methodInfo = await extractStripePaymentMethodDetails(intent, stripe);
         const dynamicMethod = methodInfo.paymentMethod;
 
-        // Retrieve Stripe customer email & name if attached to customer object
         let stripeCustomerEmail = '';
         let stripeCustomerName = '';
         if (intent.customer) {
@@ -3558,6 +3684,7 @@ Challengers Volleyball Academy
 
         const resolvedEmail = (
           metadata.email || 
+          matchedSess?.customer_details?.email ||
           stripeCustomerEmail ||
           receiptEmail || 
           (intent as any).customer_details?.email || 
@@ -3568,6 +3695,7 @@ Challengers Volleyball Academy
 
         let resolvedPlayerName = (
           metadata.playerName || 
+          matchedSess?.customer_details?.name ||
           stripeCustomerName || 
           chargeBilling?.name || 
           intentCharges?.name || 
@@ -3583,6 +3711,8 @@ Challengers Volleyball Academy
           }
         }
 
+        const resolvedParentName = metadata.parentName || matchedSess?.customer_details?.name || chargeBilling?.name || '';
+
         // Check if registration already exists in MongoDB or memory
         let existing: any = null;
         if (db) {
@@ -3596,13 +3726,15 @@ Challengers Volleyball Academy
         }
 
         if (existing) {
-          // Update details if previously generic or holding placeholder email/name
           const updates: any = {};
           if (dynamicMethod && dynamicMethod !== 'Stripe' && existing.paymentMethod !== dynamicMethod) {
             updates.paymentMethod = dynamicMethod;
           }
-          if (resolvedEmail && resolvedEmail !== 'N/A' && (existing.email === 'nihalok625@gmail.com' || existing.email === 'customer@example.com' || !existing.email || existing.email === 'N/A')) {
+          if (resolvedEmail && resolvedEmail !== 'N/A' && (!existing.email || existing.email.toLowerCase() === 'n/a' || existing.email === 'customer@example.com' || existing.email === 'nihalok625@gmail.com')) {
             updates.email = resolvedEmail;
+          }
+          if (resolvedParentName && (!existing.parentName || existing.parentName === 'N/A' || existing.parentName === '')) {
+            updates.parentName = resolvedParentName;
           }
           if (resolvedPlayerName && (existing.playerName === 'Student Athlete' || existing.playerName === 'Athlete' || !existing.playerName)) {
             updates.playerName = resolvedPlayerName;
@@ -3616,6 +3748,9 @@ Challengers Volleyball Academy
           }
           continue;
         }
+
+        if (processedIntentIds.has(paymentIntentId)) continue;
+        processedIntentIds.add(paymentIntentId);
 
         // Check if matching lead exists to pull athlete name, parent name, schedule, sibling info
         let matchedLead: any = null;
@@ -3640,7 +3775,7 @@ Challengers Volleyball Academy
         const amountPaid = intent.amount ? intent.amount / 100 : (matchedLead?.amount || sessionItem?.price || 30);
         const isSibling = metadata.hasSibling === 'true' || metadata.hasSibling === true || matchedLead?.hasSibling === true || matchedLead?.hasSibling === 'true';
 
-        const resolvedParentName = metadata.parentName || matchedLead?.parentName || '';
+        const finalParentName = resolvedParentName || matchedLead?.parentName || '';
         const resolvedPhone = metadata.phone || matchedLead?.phone || chargeBilling?.phone || intentCharges?.phone || 'N/A';
         const resolvedLocation = metadata.preferredLocation || metadata.location || matchedLead?.preferredLocation || matchedLead?.location || sessionItem?.location || 'Fremont (Kerala House)';
         const resolvedSchedule = metadata.schedule || matchedLead?.schedule || sessionItem?.schedule || 'Weekend Sessions';
@@ -3655,7 +3790,7 @@ Challengers Volleyball Academy
           sessionId,
           sessionName: sessionTitle,
           playerName: resolvedPlayerName,
-          parentName: resolvedParentName,
+          parentName: finalParentName,
           email: resolvedEmail,
           phone: resolvedPhone,
           dob: metadata.dob || matchedLead?.dob || '',
@@ -3703,7 +3838,7 @@ Challengers Volleyball Academy
         syncedCount++;
       }
 
-      // Also process any standalone successful Charges not linked to already processed PaymentIntents
+      // 3. Also process any standalone successful Charges not linked to already processed PaymentIntents
       for (const ch of allCharges) {
         if (!ch.paid || ch.status !== 'succeeded') continue;
         const targetPiId = typeof ch.payment_intent === 'string' ? ch.payment_intent : (ch.payment_intent as any)?.id;
@@ -3754,7 +3889,7 @@ Challengers Volleyball Academy
           sessionId: 'starter-pack',
           sessionName: ch.description || 'Challengers Coaching Session',
           playerName: resolvedPlayerName || 'Athlete',
-          parentName: '',
+          parentName: ch.billing_details?.name || '',
           email: resolvedEmail,
           phone: ch.billing_details?.phone || 'N/A',
           dob: '',
@@ -3771,96 +3906,6 @@ Challengers Volleyball Academy
           discountAmount: 0,
           basePrice: ch.amount / 100,
           totalAthletes: 1
-        };
-
-        await saveRegistrationToDb(newRegistration);
-
-        if (resolvedEmail && resolvedEmail.includes('@') && !resolvedEmail.includes('example.com')) {
-          try {
-            await Promise.allSettled([
-              sendAdminNotificationEmail(newRegistration),
-              sendCustomerConfirmationEmail(newRegistration)
-            ]);
-          } catch { /* ignore */ }
-        }
-
-        syncedCount++;
-      }
-
-      // 3. Process Checkout Sessions (capturing Link, Apple Pay, Google Pay completed via Checkout)
-      for (const sess of allSessions) {
-        if (sess.payment_status !== 'paid') continue;
-        const targetPiId = typeof sess.payment_intent === 'string' 
-          ? sess.payment_intent 
-          : (sess.payment_intent as any)?.id || sess.id;
-
-        if (targetPiId && processedIntentIds.has(targetPiId)) continue;
-        processedIntentIds.add(targetPiId);
-
-        let existing: any = null;
-        if (db) {
-          existing = await db.collection('registrations').findOne({
-            $or: [
-              ...(sess.metadata?.registrationId ? [{ registrationId: sess.metadata.registrationId }] : []),
-              { stripePaymentIntentId: targetPiId },
-              { transactionId: targetPiId },
-              { transactionId: sess.id }
-            ]
-          });
-        }
-
-        if (existing) continue;
-
-        let dynamicMethod = 'Card';
-        if (sess.payment_intent && typeof sess.payment_intent !== 'string') {
-          const mInfo = await extractStripePaymentMethodDetails(sess.payment_intent, stripe);
-          dynamicMethod = mInfo.paymentMethod;
-        } else if (sess.payment_method_types && sess.payment_method_types.length > 0) {
-          const rawType = sess.payment_method_types[0];
-          if (rawType === 'link') dynamicMethod = 'Link';
-          else if (rawType === 'card') dynamicMethod = 'Card';
-          else dynamicMethod = rawType.toUpperCase();
-        }
-
-        const sessMeta = (sess.metadata || {}) as Record<string, any>;
-        const resolvedEmail = (sess.customer_details?.email || sess.customer_email || sessMeta.email || 'N/A').toLowerCase().trim();
-        let resolvedPlayerName = sess.customer_details?.name || sessMeta.playerName;
-        if (!resolvedPlayerName || resolvedPlayerName.startsWith('pi_') || resolvedPlayerName === 'Student Athlete' || resolvedPlayerName === 'Athlete') {
-          if (resolvedEmail && resolvedEmail.includes('@') && !resolvedEmail.includes('example.com')) {
-            const prefix = resolvedEmail.split('@')[0].replace(/[0-9._-]/g, ' ').trim();
-            resolvedPlayerName = prefix.charAt(0).toUpperCase() + prefix.slice(1);
-          } else {
-            resolvedPlayerName = 'Athlete';
-          }
-        }
-
-        const amountTotal = sess.amount_total ? sess.amount_total / 100 : (sessMeta.basePrice ? Number(sessMeta.basePrice) : 200);
-
-        const newRegistration: RegistrationRecord = {
-          registrationId: sessMeta.registrationId || generateRegistrationId(),
-          sessionId: sessMeta.sessionId || 'starter-pack',
-          sessionName: sessMeta.sessionName || 'Challengers Coaching Session',
-          playerName: resolvedPlayerName || 'Athlete',
-          parentName: sessMeta.parentName || '',
-          email: resolvedEmail,
-          phone: sess.customer_details?.phone || sessMeta.phone || 'N/A',
-          dob: sessMeta.dob || '',
-          location: sessMeta.preferredLocation || sessMeta.location || 'Fremont Arena',
-          schedule: sessMeta.schedule || 'Weekend Sessions',
-          amountPaid: amountTotal,
-          paymentStatus: 'PAID',
-          paymentMethod: dynamicMethod,
-          transactionId: targetPiId || sess.id,
-          stripePaymentIntentId: targetPiId || sess.id,
-          waiverAccepted: true,
-          registeredAt: sess.created ? sess.created * 1000 : Date.now(),
-          hasSibling: sessMeta.hasSibling === 'true' || sessMeta.hasSibling === true,
-          siblingName: sessMeta.siblingName || '',
-          siblingDob: sessMeta.siblingDob || '',
-          siblingGender: sessMeta.siblingGender || '',
-          discountAmount: (sessMeta.hasSibling === 'true' || sessMeta.hasSibling === true) ? 50 : 0,
-          basePrice: amountTotal,
-          totalAthletes: (sessMeta.hasSibling === 'true' || sessMeta.hasSibling === true) ? 2 : 1
         };
 
         await saveRegistrationToDb(newRegistration);
