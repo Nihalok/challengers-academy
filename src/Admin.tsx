@@ -87,6 +87,8 @@ export default function Admin() {
   const [regSearchQuery, setRegSearchQuery] = useState('');
   const [copiedStripeId, setCopiedStripeId] = useState<string | null>(null);
   const [isSyncingStripe, setIsSyncingStripe] = useState(false);
+  const [onlyRealPayments, setOnlyRealPayments] = useState(true);
+  const [isPurgingMock, setIsPurgingMock] = useState(false);
 
   // Edit Student Registration Modal State
   const [isEditingStudent, setIsEditingStudent] = useState(false);
@@ -263,6 +265,46 @@ export default function Admin() {
     } finally {
       setIsSyncingStripe(false);
     }
+  };
+
+  const handlePurgeMockRecords = async () => {
+    if (!confirm('Are you sure you want to permanently delete all mock/test payment records from the database?\n\nThis will remove test enrollments and keep only genuine live payments.')) {
+      return;
+    }
+    setIsPurgingMock(true);
+    const token = getToken();
+    try {
+      const res = await fetch('/api/admin/clean-mock-records', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert(`✅ Purge complete: ${data.message}`);
+        await fetchData();
+      } else {
+        alert(data.message || 'Failed to purge mock records');
+      }
+    } catch (err: any) {
+      alert('Error purging mock records: ' + err.message);
+    } finally {
+      setIsPurgingMock(false);
+    }
+  };
+
+  const isMockPayment = (reg: any) => {
+    const piId = String(reg.stripePaymentIntentId || '').toLowerCase();
+    const txId = String(reg.transactionId || '').toLowerCase();
+    const regId = String(reg.registrationId || '').toLowerCase();
+    const method = String(reg.paymentMethod || '').toLowerCase();
+    const email = String(reg.email || '').toLowerCase();
+    return (
+      piId.startsWith('mock_') ||
+      txId.startsWith('mock_') ||
+      regId.startsWith('mock_') ||
+      method.includes('mock') ||
+      (email === 'customer@example.com' && !piId.startsWith('pi_') && !txId.startsWith('ch_'))
+    );
   };
 
   const handleCopyStripeId = (id: string) => {
@@ -958,7 +1000,7 @@ export default function Admin() {
                         <span className="text-[10px] font-black uppercase tracking-widest text-green-700">Live Stripe &amp; Enrollees</span>
                       </div>
                       <h3 className="text-xl font-condensed font-black uppercase text-espresso">
-                        Confirmed Registrations ({registrationsList.length})
+                        Confirmed Registrations ({registrationsList.filter(r => onlyRealPayments ? !isMockPayment(r) : true).length})
                       </h3>
                       <p className="text-espresso/40 text-[10px] font-black uppercase tracking-widest mt-0.5">
                         All successful Stripe checkouts (Card, Link, Apple Pay, Google Pay) and QR payments
@@ -966,6 +1008,34 @@ export default function Admin() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2.5">
+                      {/* Real vs All Toggle */}
+                      <button
+                        type="button"
+                        onClick={() => setOnlyRealPayments(prev => !prev)}
+                        className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all border cursor-pointer ${
+                          onlyRealPayments 
+                            ? 'bg-emerald-50 text-emerald-800 border-emerald-300 shadow-sm'
+                            : 'bg-sand/30 text-espresso/60 border-espresso/10 hover:bg-sand/60'
+                        }`}
+                        title="Toggle to hide test/mock records and display only genuine paid checkouts"
+                      >
+                        <span className={`w-2 h-2 rounded-full ${onlyRealPayments ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
+                        <span>{onlyRealPayments ? 'Real Payments Only' : 'Showing All (incl. Tests)'}</span>
+                      </button>
+
+                      {/* Purge Test Records */}
+                      <button
+                        type="button"
+                        onClick={handlePurgeMockRecords}
+                        disabled={isPurgingMock}
+                        className="px-3.5 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer"
+                        title="Permanently remove mock / test records from database"
+                      >
+                        <Trash className="w-3.5 h-3.5" />
+                        <span>{isPurgingMock ? 'Purging...' : 'Purge Test Records'}</span>
+                      </button>
+
+                      {/* Sync With Stripe */}
                       <button
                         onClick={handleSyncStripe}
                         disabled={isSyncingStripe}
@@ -983,7 +1053,7 @@ export default function Admin() {
                     {/* Payment Method Filter Pills */}
                     <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 no-scrollbar text-xs font-bold">
                       {[
-                        { id: 'all', label: `All (${registrationsList.length})` },
+                        { id: 'all', label: `All (${registrationsList.filter(r => onlyRealPayments ? !isMockPayment(r) : true).length})` },
                         { id: 'card', label: '💳 Cards' },
                         { id: 'apple_pay', label: ' Apple Pay' },
                         { id: 'google_pay', label: 'GPay' },
@@ -1041,6 +1111,7 @@ export default function Admin() {
                       </thead>
                       <tbody className="divide-y divide-espresso/5">
                         {registrationsList.filter(reg => {
+                          if (onlyRealPayments && isMockPayment(reg)) return false;
                           if (paymentFilter !== 'all') {
                             const pm = String(reg.paymentMethod || '').toLowerCase();
                             if (paymentFilter === 'apple_pay' && !pm.includes('apple')) return false;
@@ -1069,10 +1140,13 @@ export default function Admin() {
                             <td colSpan={8} className="px-8 py-16 text-center text-espresso/40 italic text-xs">
                               {regSearchQuery || paymentFilter !== 'all' 
                                 ? 'No registrations match your current filter criteria.' 
-                                : 'No confirmed registrations yet. Completed checkouts will appear here instantly!'}
+                                : onlyRealPayments 
+                                  ? 'No live realtime payments found. Use "Sync with Stripe" above to pull recent transactions.' 
+                                  : 'No confirmed registrations yet. Completed checkouts will appear here instantly!'}
                             </td>
                           </tr>
                         ) : registrationsList.filter(reg => {
+                          if (onlyRealPayments && isMockPayment(reg)) return false;
                           if (paymentFilter !== 'all') {
                             const pm = String(reg.paymentMethod || '').toLowerCase();
                             if (paymentFilter === 'apple_pay' && !pm.includes('apple')) return false;
@@ -1283,12 +1357,17 @@ export default function Admin() {
               >
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {[
-                    { label: 'Total Inquiries & Leads', value: stats?.totalLeads ?? leads.length, change: `${leads.length} active`, icon: Users, color: 'orange' },
-                    { label: 'Confirmed Athletes', value: stats?.totalConfirmed ?? registrationsList.length, change: `${registrationsList.length} enrollees`, icon: CheckCircle2, color: 'yellow' },
-                    { label: 'Live Revenue', value: `$${stats?.totalRevenue ?? registrationsList.reduce((acc, r) => acc + (Number(r.amountPaid) || 0), 0)}`, change: 'Stripe Verified', icon: BarChart3, color: 'espresso' },
-                    { label: 'Registrations (Today)', value: stats?.recentGrowth ?? 0, change: 'Last 24h', icon: Clock, color: 'orange' },
-                  ].map((stat, i) => (
+                  {(() => {
+                    const realRegs = registrationsList.filter(r => !isMockPayment(r));
+                    const activeRegs = onlyRealPayments ? realRegs : registrationsList;
+                    const computedRevenue = activeRegs.reduce((acc, r) => acc + (Number(r.amountPaid) || 0), 0);
+                    return [
+                      { label: 'Total Inquiries & Leads', value: stats?.totalLeads ?? leads.length, change: `${leads.length} active`, icon: Users, color: 'orange' },
+                      { label: 'Confirmed Athletes', value: activeRegs.length, change: `${activeRegs.length} enrollees`, icon: CheckCircle2, color: 'yellow' },
+                      { label: 'Live Revenue', value: `$${Math.round(computedRevenue * 100) / 100}`, change: 'Stripe Verified', icon: BarChart3, color: 'espresso' },
+                      { label: 'Registrations (Today)', value: stats?.recentGrowth ?? 0, change: 'Last 24h', icon: Clock, color: 'orange' },
+                    ];
+                  })().map((stat, i) => (
                     <div key={i} className="bg-white p-8 rounded-[2.5rem] border border-espresso/5 shadow-xl shadow-espresso/5">
                       <div className="flex justify-between items-start mb-6">
                         <div className={`p-4 rounded-2xl bg-${stat.color === 'orange' ? 'orange' : stat.color === 'yellow' ? 'yellow' : 'espresso'} text-white`}>
