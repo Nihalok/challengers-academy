@@ -3486,33 +3486,45 @@ Challengers Volleyball Academy
     try {
       const db = await getMongoDb();
       
-      // 1. Fetch recent Payment Intents with expanded details (including customer object)
-      const paymentIntents = await stripe.paymentIntents.list({
-        limit: 100,
-        expand: ['data.payment_method', 'data.latest_charge', 'data.customer']
-      });
+      // 1. Fetch ALL Payment Intents with expanded details (auto-paginating beyond 100)
+      const allPaymentIntents: Stripe.PaymentIntent[] = [];
+      try {
+        for await (const pi of stripe.paymentIntents.list({
+          limit: 100,
+          expand: ['data.payment_method', 'data.latest_charge', 'data.customer']
+        })) {
+          allPaymentIntents.push(pi);
+          if (allPaymentIntents.length >= 500) break; // Safety cap to prevent excessive API calls
+        }
+      } catch (piErr: any) {
+        console.warn('⚠️ PaymentIntent auto-pagination error:', piErr.message);
+      }
 
-      // 2. Fetch recent Charges for direct/legacy charges
+      // 2. Fetch ALL Charges for direct/legacy charges (auto-paginating)
       let allCharges: Stripe.Charge[] = [];
       try {
-        const chargesRes = await stripe.charges.list({ limit: 100, expand: ['data.customer'] });
-        allCharges = chargesRes.data;
+        for await (const ch of stripe.charges.list({ limit: 100, expand: ['data.customer'] })) {
+          allCharges.push(ch);
+          if (allCharges.length >= 500) break; // Safety cap
+        }
       } catch { /* ignore */ }
 
-      // 3. Fetch recent Checkout Sessions
+      // 3. Fetch ALL Checkout Sessions (auto-paginating)
       let allSessions: Stripe.Checkout.Session[] = [];
       try {
-        const sessionsRes = await stripe.checkout.sessions.list({ limit: 100, expand: ['data.payment_intent', 'data.customer'] });
-        allSessions = sessionsRes.data;
+        for await (const sess of stripe.checkout.sessions.list({ limit: 100, expand: ['data.payment_intent', 'data.customer'] })) {
+          allSessions.push(sess);
+          if (allSessions.length >= 500) break; // Safety cap
+        }
       } catch { /* ignore */ }
 
-      totalStripePayments = paymentIntents.data.length;
+      totalStripePayments = allPaymentIntents.length + allCharges.length + allSessions.length;
 
       // Track processed IDs to prevent duplicate processing during sync
       const processedIntentIds = new Set<string>();
 
       // Process Payment Intents
-      for (const intent of paymentIntents.data) {
+      for (const intent of allPaymentIntents) {
         if (intent.status !== 'succeeded') continue;
         processedIntentIds.add(intent.id);
 
@@ -3865,7 +3877,7 @@ Challengers Volleyball Academy
         syncedCount++;
       }
 
-      console.log(`✅ Stripe sync completed: ${syncedCount} new registrations imported, ${updatedCount} updated.`);
+      console.log(`✅ Stripe sync completed: ${syncedCount} new registrations imported, ${updatedCount} updated (${totalStripePayments} total Stripe transactions fetched).`);
     } catch (syncErr: any) {
       console.error('⚠️ Stripe payment sync error:', syncErr.message);
     }

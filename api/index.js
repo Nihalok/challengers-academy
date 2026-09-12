@@ -2955,25 +2955,37 @@ Temp Password: ${tempPassword}
     let totalStripePayments = 0;
     try {
       const db = await getMongoDb();
-      const paymentIntents = await stripe.paymentIntents.list({
-        limit: 100,
-        expand: ["data.payment_method", "data.latest_charge", "data.customer"]
-      });
+      const allPaymentIntents = [];
+      try {
+        for await (const pi of stripe.paymentIntents.list({
+          limit: 100,
+          expand: ["data.payment_method", "data.latest_charge", "data.customer"]
+        })) {
+          allPaymentIntents.push(pi);
+          if (allPaymentIntents.length >= 500) break;
+        }
+      } catch (piErr) {
+        console.warn("\u26A0\uFE0F PaymentIntent auto-pagination error:", piErr.message);
+      }
       let allCharges = [];
       try {
-        const chargesRes = await stripe.charges.list({ limit: 100, expand: ["data.customer"] });
-        allCharges = chargesRes.data;
+        for await (const ch of stripe.charges.list({ limit: 100, expand: ["data.customer"] })) {
+          allCharges.push(ch);
+          if (allCharges.length >= 500) break;
+        }
       } catch {
       }
       let allSessions = [];
       try {
-        const sessionsRes = await stripe.checkout.sessions.list({ limit: 100, expand: ["data.payment_intent", "data.customer"] });
-        allSessions = sessionsRes.data;
+        for await (const sess of stripe.checkout.sessions.list({ limit: 100, expand: ["data.payment_intent", "data.customer"] })) {
+          allSessions.push(sess);
+          if (allSessions.length >= 500) break;
+        }
       } catch {
       }
-      totalStripePayments = paymentIntents.data.length;
+      totalStripePayments = allPaymentIntents.length + allCharges.length + allSessions.length;
       const processedIntentIds = /* @__PURE__ */ new Set();
-      for (const intent of paymentIntents.data) {
+      for (const intent of allPaymentIntents) {
         if (intent.status !== "succeeded") continue;
         processedIntentIds.add(intent.id);
         const paymentIntentId = intent.id;
@@ -3269,7 +3281,7 @@ Temp Password: ${tempPassword}
         }
         syncedCount++;
       }
-      console.log(`\u2705 Stripe sync completed: ${syncedCount} new registrations imported, ${updatedCount} updated.`);
+      console.log(`\u2705 Stripe sync completed: ${syncedCount} new registrations imported, ${updatedCount} updated (${totalStripePayments} total Stripe transactions fetched).`);
     } catch (syncErr) {
       console.error("\u26A0\uFE0F Stripe payment sync error:", syncErr.message);
     }
