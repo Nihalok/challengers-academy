@@ -297,13 +297,17 @@ export default function Admin() {
     const txId = String(reg.transactionId || '').toLowerCase();
     const regId = String(reg.registrationId || '').toLowerCase();
     const method = String(reg.paymentMethod || '').toLowerCase();
-    const email = String(reg.email || '').toLowerCase();
+
+    // Genuine Stripe transactions (pi_..., ch_..., cs_...) are ALWAYS preserved as real!
+    if (piId.startsWith('pi_') || txId.startsWith('pi_') || txId.startsWith('ch_') || piId.startsWith('cs_')) {
+      return false;
+    }
+
     return (
       piId.startsWith('mock_') ||
       txId.startsWith('mock_') ||
       regId.startsWith('mock_') ||
-      method.includes('mock') ||
-      (email === 'customer@example.com' && !piId.startsWith('pi_') && !txId.startsWith('ch_'))
+      method.includes('mock')
     );
   };
 

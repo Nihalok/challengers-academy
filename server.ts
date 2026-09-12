@@ -3486,23 +3486,23 @@ Challengers Volleyball Academy
     try {
       const db = await getMongoDb();
       
-      // 1. Fetch recent Payment Intents with expanded details
+      // 1. Fetch recent Payment Intents with expanded details (including customer object)
       const paymentIntents = await stripe.paymentIntents.list({
         limit: 100,
-        expand: ['data.payment_method', 'data.latest_charge']
+        expand: ['data.payment_method', 'data.latest_charge', 'data.customer']
       });
 
       // 2. Fetch recent Charges for direct/legacy charges
       let allCharges: Stripe.Charge[] = [];
       try {
-        const chargesRes = await stripe.charges.list({ limit: 100 });
+        const chargesRes = await stripe.charges.list({ limit: 100, expand: ['data.customer'] });
         allCharges = chargesRes.data;
       } catch { /* ignore */ }
 
       // 3. Fetch recent Checkout Sessions
       let allSessions: Stripe.Checkout.Session[] = [];
       try {
-        const sessionsRes = await stripe.checkout.sessions.list({ limit: 100, expand: ['data.payment_intent'] });
+        const sessionsRes = await stripe.checkout.sessions.list({ limit: 100, expand: ['data.payment_intent', 'data.customer'] });
         allSessions = sessionsRes.data;
       } catch { /* ignore */ }
 
@@ -3521,6 +3521,56 @@ Challengers Volleyball Academy
         const methodInfo = await extractStripePaymentMethodDetails(intent, stripe);
         const dynamicMethod = methodInfo.paymentMethod;
 
+        // Retrieve Stripe customer email & name if attached to customer object
+        let stripeCustomerEmail = '';
+        let stripeCustomerName = '';
+        if (intent.customer) {
+          if (typeof intent.customer === 'object' && (intent.customer as any).email) {
+            stripeCustomerEmail = (intent.customer as any).email;
+            stripeCustomerName = (intent.customer as any).name || '';
+          } else if (typeof intent.customer === 'string') {
+            try {
+              const cus = await stripe.customers.retrieve(intent.customer);
+              if (cus && !(cus as any).deleted) {
+                stripeCustomerEmail = (cus as Stripe.Customer).email || '';
+                stripeCustomerName = (cus as Stripe.Customer).name || '';
+              }
+            } catch { /* ignore */ }
+          }
+        }
+
+        const intentCharges = (intent as any).charges?.data?.[0]?.billing_details;
+        const latestCharge = (intent as any).latest_charge;
+        const chargeBilling = typeof latestCharge === 'object' ? latestCharge?.billing_details : intentCharges;
+        const receiptEmail = intent.receipt_email || (typeof latestCharge === 'object' ? latestCharge?.receipt_email : null);
+
+        const resolvedEmail = (
+          metadata.email || 
+          stripeCustomerEmail ||
+          receiptEmail || 
+          (intent as any).customer_details?.email || 
+          chargeBilling?.email || 
+          intentCharges?.email || 
+          'N/A'
+        ).trim().toLowerCase();
+
+        let resolvedPlayerName = (
+          metadata.playerName || 
+          stripeCustomerName || 
+          chargeBilling?.name || 
+          intentCharges?.name || 
+          (intent as any).customer_details?.name
+        );
+
+        if (!resolvedPlayerName || resolvedPlayerName.startsWith('pi_') || resolvedPlayerName === 'Student Athlete' || resolvedPlayerName === 'Athlete') {
+          if (resolvedEmail && resolvedEmail.includes('@') && !resolvedEmail.includes('example.com')) {
+            const emailPrefix = resolvedEmail.split('@')[0].replace(/[0-9._-]/g, ' ').trim();
+            resolvedPlayerName = emailPrefix ? (emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1)) : 'Athlete';
+          } else {
+            resolvedPlayerName = 'Athlete';
+          }
+        }
+
         // Check if registration already exists in MongoDB or memory
         let existing: any = null;
         if (db) {
@@ -3534,29 +3584,26 @@ Challengers Volleyball Academy
         }
 
         if (existing) {
-          // Update payment method with specific details if previously generic
-          if (db && dynamicMethod && dynamicMethod !== 'Stripe' && existing.paymentMethod !== dynamicMethod) {
-            await db.collection('registrations').updateOne(
-              { _id: existing._id },
-              { $set: { paymentMethod: dynamicMethod, stripePaymentIntentId: paymentIntentId } }
-            );
+          // Update details if previously generic or holding placeholder email/name
+          const updates: any = {};
+          if (dynamicMethod && dynamicMethod !== 'Stripe' && existing.paymentMethod !== dynamicMethod) {
+            updates.paymentMethod = dynamicMethod;
+          }
+          if (resolvedEmail && resolvedEmail !== 'N/A' && (existing.email === 'nihalok625@gmail.com' || existing.email === 'customer@example.com' || !existing.email || existing.email === 'N/A')) {
+            updates.email = resolvedEmail;
+          }
+          if (resolvedPlayerName && (existing.playerName === 'Student Athlete' || existing.playerName === 'Athlete' || !existing.playerName)) {
+            updates.playerName = resolvedPlayerName;
+          }
+          if (Object.keys(updates).length > 0 && db) {
+            await db.collection('registrations').updateOne({ _id: existing._id }, { $set: updates });
             if (registrations[existing.registrationId]) {
-              registrations[existing.registrationId].paymentMethod = dynamicMethod;
+              Object.assign(registrations[existing.registrationId], updates);
             }
             updatedCount++;
           }
           continue;
         }
-
-        // Determine customer email
-        const intentCharges = (intent as any).charges?.data?.[0]?.billing_details;
-        const resolvedEmail = (
-          metadata.email || 
-          intent.receipt_email || 
-          (intent as any).customer_details?.email || 
-          intentCharges?.email || 
-          'N/A'
-        ).trim().toLowerCase();
 
         // Check if matching lead exists to pull athlete name, parent name, schedule, sibling info
         let matchedLead: any = null;
@@ -3581,19 +3628,8 @@ Challengers Volleyball Academy
         const amountPaid = intent.amount ? intent.amount / 100 : (matchedLead?.amount || sessionItem?.price || 30);
         const isSibling = metadata.hasSibling === 'true' || metadata.hasSibling === true || matchedLead?.hasSibling === true || matchedLead?.hasSibling === 'true';
 
-        // Format clean athlete name
-        let resolvedPlayerName = metadata.playerName || matchedLead?.playerName || intentCharges?.name;
-        if (!resolvedPlayerName || resolvedPlayerName.startsWith('pi_') || resolvedPlayerName === 'Student Athlete') {
-          if (resolvedEmail && resolvedEmail.includes('@')) {
-            const emailPrefix = resolvedEmail.split('@')[0].replace(/[0-9._-]/g, ' ').trim();
-            resolvedPlayerName = emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1);
-          } else {
-            resolvedPlayerName = 'Athlete';
-          }
-        }
-
         const resolvedParentName = metadata.parentName || matchedLead?.parentName || '';
-        const resolvedPhone = metadata.phone || matchedLead?.phone || intentCharges?.phone || 'N/A';
+        const resolvedPhone = metadata.phone || matchedLead?.phone || chargeBilling?.phone || intentCharges?.phone || 'N/A';
         const resolvedLocation = metadata.preferredLocation || metadata.location || matchedLead?.preferredLocation || matchedLead?.location || sessionItem?.location || 'Fremont (Kerala House)';
         const resolvedSchedule = metadata.schedule || matchedLead?.schedule || sessionItem?.schedule || 'Weekend Sessions';
         
@@ -3638,6 +3674,20 @@ Challengers Volleyball Academy
             { $set: { status: 'confirmed', registrationId: regId } }
           );
         }
+
+        // Dispatch confirmation emails to customer and academy
+        if (resolvedEmail && resolvedEmail.includes('@') && !resolvedEmail.includes('example.com')) {
+          try {
+            console.log(`✉️ [AUTO EMAIL] Dispatching emails for ${resolvedPlayerName} (${resolvedEmail})...`);
+            await Promise.allSettled([
+              sendAdminNotificationEmail(newRegistration),
+              sendCustomerConfirmationEmail(newRegistration)
+            ]);
+          } catch (mailErr: any) {
+            console.warn('⚠️ Auto email error during sync:', mailErr.message);
+          }
+        }
+
         syncedCount++;
       }
 
@@ -3663,9 +3713,26 @@ Challengers Volleyball Academy
 
         if (existing) continue;
 
-        const resolvedEmail = (ch.receipt_email || ch.billing_details?.email || 'customer@example.com').toLowerCase().trim();
-        let resolvedPlayerName = ch.billing_details?.name;
-        if (!resolvedPlayerName && resolvedEmail.includes('@')) {
+        let chargeCustomerEmail = '';
+        let chargeCustomerName = '';
+        if (ch.customer) {
+          if (typeof ch.customer === 'object' && (ch.customer as any).email) {
+            chargeCustomerEmail = (ch.customer as any).email;
+            chargeCustomerName = (ch.customer as any).name || '';
+          } else if (typeof ch.customer === 'string') {
+            try {
+              const cus = await stripe.customers.retrieve(ch.customer);
+              if (cus && !(cus as any).deleted) {
+                chargeCustomerEmail = (cus as Stripe.Customer).email || '';
+                chargeCustomerName = (cus as Stripe.Customer).name || '';
+              }
+            } catch { /* ignore */ }
+          }
+        }
+
+        const resolvedEmail = (chargeCustomerEmail || ch.receipt_email || ch.billing_details?.email || 'N/A').toLowerCase().trim();
+        let resolvedPlayerName = chargeCustomerName || ch.billing_details?.name;
+        if (!resolvedPlayerName && resolvedEmail.includes('@') && !resolvedEmail.includes('example.com')) {
           const prefix = resolvedEmail.split('@')[0].replace(/[0-9._-]/g, ' ').trim();
           resolvedPlayerName = prefix.charAt(0).toUpperCase() + prefix.slice(1);
         }
@@ -3695,6 +3762,16 @@ Challengers Volleyball Academy
         };
 
         await saveRegistrationToDb(newRegistration);
+
+        if (resolvedEmail && resolvedEmail.includes('@') && !resolvedEmail.includes('example.com')) {
+          try {
+            await Promise.allSettled([
+              sendAdminNotificationEmail(newRegistration),
+              sendCustomerConfirmationEmail(newRegistration)
+            ]);
+          } catch { /* ignore */ }
+        }
+
         syncedCount++;
       }
 
@@ -3734,10 +3811,10 @@ Challengers Volleyball Academy
         }
 
         const sessMeta = (sess.metadata || {}) as Record<string, any>;
-        const resolvedEmail = (sess.customer_details?.email || sess.customer_email || sessMeta.email || 'customer@example.com').toLowerCase().trim();
+        const resolvedEmail = (sess.customer_details?.email || sess.customer_email || sessMeta.email || 'N/A').toLowerCase().trim();
         let resolvedPlayerName = sess.customer_details?.name || sessMeta.playerName;
-        if (!resolvedPlayerName || resolvedPlayerName.startsWith('pi_') || resolvedPlayerName === 'Student Athlete') {
-          if (resolvedEmail && resolvedEmail.includes('@')) {
+        if (!resolvedPlayerName || resolvedPlayerName.startsWith('pi_') || resolvedPlayerName === 'Student Athlete' || resolvedPlayerName === 'Athlete') {
+          if (resolvedEmail && resolvedEmail.includes('@') && !resolvedEmail.includes('example.com')) {
             const prefix = resolvedEmail.split('@')[0].replace(/[0-9._-]/g, ' ').trim();
             resolvedPlayerName = prefix.charAt(0).toUpperCase() + prefix.slice(1);
           } else {
@@ -3775,6 +3852,16 @@ Challengers Volleyball Academy
         };
 
         await saveRegistrationToDb(newRegistration);
+
+        if (resolvedEmail && resolvedEmail.includes('@') && !resolvedEmail.includes('example.com')) {
+          try {
+            await Promise.allSettled([
+              sendAdminNotificationEmail(newRegistration),
+              sendCustomerConfirmationEmail(newRegistration)
+            ]);
+          } catch { /* ignore */ }
+        }
+
         syncedCount++;
       }
 
