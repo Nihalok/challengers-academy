@@ -2422,19 +2422,9 @@ Temp Password: ${tempPassword}
     await saveLeadToDb(leads[leadId]);
     const stripe = getStripe();
     if (!stripe) {
-      const mockSecret = `mock_pi_${registrationId}_secret_${nanoid(8)}`;
-      const appUrl = process.env.APP_URL || `${req.protocol}://${req.get("host")}`;
-      return res.json({
-        success: true,
-        clientSecret: mockSecret,
-        checkoutUrl: `${appUrl}/register?completed=true&registrationId=${registrationId}`,
-        registrationId,
-        leadId,
-        amount: finalAmount,
-        basePrice: singlePrice,
-        hasSibling: isSibling,
-        discountAmount: siblingDiscount,
-        session
+      return res.status(500).json({
+        success: false,
+        message: "Stripe payments are not configured on the server. STRIPE_SECRET_KEY is required."
       });
     }
     const chargeAmount = Math.max(50, amountInCents);
@@ -2692,52 +2682,10 @@ Temp Password: ${tempPassword}
     }
     const stripe = getStripe();
     if (!stripe || reqPaymentIntentId && reqPaymentIntentId.startsWith("mock_")) {
-      const confirmedReg = {
-        registrationId: regId,
-        sessionId: session?.id || sessionId,
-        sessionName: session?.name || lead?.sessionName || "Challengers Coaching Session",
-        playerName,
-        parentName,
-        email,
-        phone,
-        dob,
-        location: resolvedLocation,
-        schedule: session?.schedule || lead?.schedule || "Weekend Sessions",
-        amountPaid: computedAmountPaid,
-        paymentStatus: "PAID",
-        paymentMethod: paymentMethod || "Card",
-        transactionId: transactionId || reqPaymentIntentId || `mock_pi_${regId}`,
-        stripePaymentIntentId: reqPaymentIntentId || `mock_pi_${regId}`,
-        emergencyContactName,
-        emergencyContactPhone,
-        waiverAccepted: true,
-        registeredAt: Date.now(),
-        // Sibling Details
-        hasSibling: isSibling,
-        siblingName,
-        siblingDob,
-        siblingGender,
-        discountAmount,
-        basePrice,
-        totalAthletes
-      };
-      await saveRegistrationToDb(confirmedReg);
-      if (session && session.filled < session.capacity) {
-        session.filled = Math.min(session.capacity, session.filled + totalAthletes);
-      }
-      if (lead) {
-        lead.status = "confirmed";
-        await saveLeadToDb(lead);
-      }
-      try {
-        await Promise.allSettled([
-          sendAdminNotificationEmail(confirmedReg),
-          sendCustomerConfirmationEmail(confirmedReg)
-        ]);
-      } catch (mailErr) {
-        console.error("Email dispatch error during mock verify-payment:", mailErr.message);
-      }
-      return res.json({ success: true, registration: confirmedReg });
+      return res.status(400).json({
+        success: false,
+        message: "Live Stripe verification is required. Payment has not been confirmed by Stripe."
+      });
     }
     try {
       let targetPaymentIntentId = reqPaymentIntentId || lead?.paymentIntentId || req.body.stripePaymentIntentId;
@@ -3302,7 +3250,11 @@ Temp Password: ${tempPassword}
   });
   app.get("/api/admin/stats", requireAuth, async (req, res) => {
     if (getStripe()) {
-      syncStripePaymentsWithDb().catch((e) => console.warn("Background sync warning:", e.message));
+      try {
+        await syncStripePaymentsWithDb();
+      } catch (e) {
+        console.warn("Stripe sync warning during stats load:", e.message);
+      }
     }
     let allRegistrations = Object.values(registrations);
     let allLeads = Object.values(leads);
