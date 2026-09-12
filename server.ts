@@ -3959,6 +3959,33 @@ Challengers Volleyball Academy
       }
     }
 
+    // Reconcile and synchronize lead statuses with confirmed registrations
+    const confirmedEmailSet = new Set(allRegistrations.map(r => String(r.email || '').toLowerCase().trim()).filter(Boolean));
+    const confirmedRegIdSet = new Set(allRegistrations.map(r => r.registrationId).filter(Boolean));
+    const confirmedTxIdSet = new Set(allRegistrations.map(r => r.stripePaymentIntentId || r.transactionId).filter(Boolean));
+
+    if (allLeads.length > 0) {
+      const leadsToConfirmIds: any[] = [];
+      for (const lead of allLeads) {
+        const leadEmail = String(lead.email || '').toLowerCase().trim();
+        const isPaid = (
+          (lead.registrationId && confirmedRegIdSet.has(lead.registrationId)) ||
+          (lead.paymentIntentId && confirmedTxIdSet.has(lead.paymentIntentId)) ||
+          (leadEmail && leadEmail !== 'customer@example.com' && leadEmail !== 'n/a' && confirmedEmailSet.has(leadEmail))
+        );
+        if (isPaid && lead.status !== 'confirmed') {
+          lead.status = 'confirmed';
+          if (lead._id) leadsToConfirmIds.push(lead._id);
+        }
+      }
+      if (db && leadsToConfirmIds.length > 0) {
+        db.collection('leads').updateMany(
+          { _id: { $in: leadsToConfirmIds } },
+          { $set: { status: 'confirmed' } }
+        ).catch(() => {});
+      }
+    }
+
     const totalConfirmed = allRegistrations.length;
     const totalLeads = allLeads.length;
     const totalRevenue = allRegistrations.reduce((sum, r) => sum + (Number(r.amountPaid) || 0), 0);

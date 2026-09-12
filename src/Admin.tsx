@@ -1327,11 +1327,21 @@ export default function Admin() {
                               {lead.sessionName || lead.sessionId || lead.programId}
                             </td>
                             <td className="px-6 py-5">
-                              <span className={`text-[8px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${
-                                lead.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                              }`}>
-                                {lead.status || 'pending'}
-                              </span>
+                              {(() => {
+                                const isPaid = lead.status === 'confirmed' || registrationsList.some(r => 
+                                  (r.email && lead.email && r.email.toLowerCase().trim() === lead.email.toLowerCase().trim() && lead.email.includes('@') && !lead.email.includes('example.com')) ||
+                                  (r.registrationId && lead.registrationId && r.registrationId === lead.registrationId) ||
+                                  (r.transactionId && lead.paymentIntentId && r.transactionId === lead.paymentIntentId) ||
+                                  (r.stripePaymentIntentId && lead.paymentIntentId && r.stripePaymentIntentId === lead.paymentIntentId)
+                                );
+                                return (
+                                  <span className={`text-[8px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${
+                                    isPaid ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                                  }`}>
+                                    {isPaid ? 'CONFIRMED (PAID)' : (lead.status || 'pending')}
+                                  </span>
+                                );
+                              })()}
                             </td>
                             <td className="px-6 py-5 text-xs text-espresso/40 font-medium">
                               {lead.createdAt ? new Date(lead.createdAt).toLocaleDateString() : 'Recent'}
