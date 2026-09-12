@@ -10,40 +10,93 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 import { OAuth2Client } from "google-auth-library";
-
+process.on("uncaughtException", (err) => {
+  console.error("\u{1F6E1}\uFE0F [Uncaught Exception caught]:", err?.message || err);
+});
+process.on("unhandledRejection", (reason) => {
+  console.error("\u{1F6E1}\uFE0F [Unhandled Rejection caught]:", reason?.message || reason);
+});
 try {
   dns.setServers(["8.8.8.8", "1.1.1.1", "8.8.4.4"]);
-} catch {}
-
+} catch {
+}
+var fastCache = /* @__PURE__ */ new Map();
+function getCachedData(key) {
+  const item = fastCache.get(key);
+  if (!item) return null;
+  if (Date.now() > item.expiresAt) {
+    fastCache.delete(key);
+    return null;
+  }
+  return item.data;
+}
+function setCachedData(key, data, ttlSeconds = 60) {
+  fastCache.set(key, { data, expiresAt: Date.now() + ttlSeconds * 1e3 });
+}
+function clearCache(keyPrefix) {
+  if (!keyPrefix) {
+    fastCache.clear();
+    return;
+  }
+  for (const key of fastCache.keys()) {
+    if (key.startsWith(keyPrefix)) {
+      fastCache.delete(key);
+    }
+  }
+}
 var mongoClient = null;
 var mongoDb = null;
+var isConnecting = false;
+var connectPromise = null;
 async function getMongoDb() {
   const uri = process.env.MONGODB_URI;
   if (!uri) return null;
-  if (mongoDb && mongoClient) return mongoDb;
-  try {
-    mongoClient = new MongoClient(uri, {
-      serverSelectionTimeoutMS: 10000,
-      connectTimeoutMS: 10000,
-      socketTimeoutMS: 45000,
-      maxPoolSize: 20,
-      minPoolSize: 2,
-      maxIdleTimeMS: 30000,
-      retryWrites: true,
-      retryReads: true,
-      family: 4
-    });
-    mongoClient.on('error', () => { mongoDb = null; mongoClient = null; });
-    mongoClient.on('close', () => { mongoDb = null; mongoClient = null; });
-    await mongoClient.connect();
-    const dbName = process.env.MONGODB_DB_NAME || "challengers_academy";
-    mongoDb = mongoClient.db(dbName);
+  if (mongoDb && mongoClient) {
     return mongoDb;
-  } catch (err) {
-    mongoDb = null;
-    mongoClient = null;
-    return null;
   }
+  if (isConnecting && connectPromise) {
+    return connectPromise;
+  }
+  isConnecting = true;
+  connectPromise = (async () => {
+    try {
+      mongoClient = new MongoClient(uri, {
+        serverSelectionTimeoutMS: 1e4,
+        connectTimeoutMS: 1e4,
+        socketTimeoutMS: 45e3,
+        maxPoolSize: 25,
+        minPoolSize: 2,
+        maxIdleTimeMS: 3e4,
+        retryWrites: true,
+        retryReads: true,
+        family: 4
+      });
+      mongoClient.on("error", (err) => {
+        console.warn("\u26A0\uFE0F MongoDB Client Error:", err.message);
+        mongoDb = null;
+        mongoClient = null;
+      });
+      mongoClient.on("close", () => {
+        console.warn("\u26A0\uFE0F MongoDB Connection Closed. Auto-reconnecting on next query.");
+        mongoDb = null;
+        mongoClient = null;
+      });
+      await mongoClient.connect();
+      const dbName = process.env.MONGODB_DB_NAME || "challengers_academy";
+      mongoDb = mongoClient.db(dbName);
+      console.log(` Connected to MongoDB Database: "${dbName}"`);
+      return mongoDb;
+    } catch (err) {
+      console.warn("\u26A0\uFE0F MongoDB connection error:", err.message);
+      mongoDb = null;
+      mongoClient = null;
+      return null;
+    } finally {
+      isConnecting = false;
+      connectPromise = null;
+    }
+  })();
+  return connectPromise;
 }
 var JWT_SECRET = process.env.JWT_SECRET || "challengers-dev-secret-change-in-production";
 var GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || "";
@@ -143,12 +196,16 @@ function getMailTransporter() {
     host: isGmail ? "smtp.gmail.com" : host,
     port,
     secure: port === 465,
+    // true for 465 (SSL), false for 587 (STARTTLS)
     auth: { user, pass },
     pool: false,
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000,
-    tls: { rejectUnauthorized: false }
+    // Critical for serverless: disables socket reuse to avoid dead/stale connections
+    connectionTimeout: 1e4,
+    greetingTimeout: 1e4,
+    socketTimeout: 15e3,
+    tls: {
+      rejectUnauthorized: false
+    }
   });
 }
 function getFromAddress() {
@@ -425,8 +482,8 @@ async function seedPrograms(db) {
   for (const prog of DEFAULT_PROGRAMS) {
     await collection.updateOne(
       { id: prog.id },
-      { 
-        $set: { 
+      {
+        $set: {
           title: prog.title,
           price: prog.price,
           phase: prog.phase,
@@ -443,7 +500,7 @@ async function seedPrograms(db) {
           order: prog.order,
           updatedAt: /* @__PURE__ */ new Date()
         },
-        $setOnInsert: { createdAt: /* @__PURE__ */ new Date() } 
+        $setOnInsert: { createdAt: /* @__PURE__ */ new Date() }
       },
       { upsert: true }
     );
@@ -473,7 +530,7 @@ async function seedCamps(db) {
   for (const camp of DEFAULT_CAMPS) {
     await collection.updateOne(
       { id: camp.id },
-      { 
+      {
         $set: {
           name: camp.name,
           price: camp.price,
@@ -489,7 +546,7 @@ async function seedCamps(db) {
           order: camp.order,
           updatedAt: /* @__PURE__ */ new Date()
         },
-        $setOnInsert: { createdAt: /* @__PURE__ */ new Date() } 
+        $setOnInsert: { createdAt: /* @__PURE__ */ new Date() }
       },
       { upsert: true }
     );
@@ -634,6 +691,121 @@ function getStripe() {
     stripeInstance = new Stripe(secret_key);
   }
   return stripeInstance;
+}
+async function extractStripePaymentMethodDetails(stripeObj, stripeClient) {
+  if (!stripeObj) {
+    return { paymentMethod: "Stripe", paymentMethodType: "stripe" };
+  }
+  let pmd = stripeObj.payment_method_details || stripeObj.charges?.data?.[0]?.payment_method_details;
+  let pmObj = stripeObj.payment_method;
+  if (typeof pmObj === "string" && stripeClient) {
+    try {
+      pmObj = await stripeClient.paymentMethods.retrieve(pmObj);
+    } catch {
+    }
+  }
+  if (!pmd && typeof stripeObj.latest_charge === "string" && stripeClient) {
+    try {
+      const ch = await stripeClient.charges.retrieve(stripeObj.latest_charge);
+      if (ch && ch.payment_method_details) {
+        pmd = ch.payment_method_details;
+      }
+    } catch {
+    }
+  }
+  if (pmd) {
+    const type = pmd.type || "card";
+    if (type === "card" && pmd.card) {
+      const card = pmd.card;
+      const brand = (card.brand || "Card").toUpperCase();
+      const last4 = card.last4 || "";
+      const walletType = card.wallet?.type || (card.wallet ? Object.keys(card.wallet)[0] : null);
+      if (walletType === "apple_pay") {
+        return {
+          paymentMethod: last4 ? `Apple Pay (${brand} \xB7\xB7\xB7\xB7 ${last4})` : "Apple Pay",
+          paymentMethodType: "apple_pay",
+          cardBrand: brand,
+          cardLast4: last4,
+          wallet: "apple_pay"
+        };
+      }
+      if (walletType === "google_pay") {
+        return {
+          paymentMethod: last4 ? `Google Pay (${brand} \xB7\xB7\xB7\xB7 ${last4})` : "Google Pay",
+          paymentMethodType: "google_pay",
+          cardBrand: brand,
+          cardLast4: last4,
+          wallet: "google_pay"
+        };
+      }
+      if (walletType === "link" || walletType === "link_pm") {
+        return {
+          paymentMethod: "Link",
+          paymentMethodType: "link",
+          wallet: "link"
+        };
+      }
+      return {
+        paymentMethod: last4 ? `Card (${brand} \xB7\xB7\xB7\xB7 ${last4})` : `Card (${brand})`,
+        paymentMethodType: "card",
+        cardBrand: brand,
+        cardLast4: last4
+      };
+    }
+    if (type === "link") {
+      return { paymentMethod: "Link", paymentMethodType: "link" };
+    }
+    if (type === "cashapp") {
+      return { paymentMethod: "Cash App", paymentMethodType: "cashapp" };
+    }
+    if (type === "us_bank_account") {
+      return { paymentMethod: "ACH Direct Debit", paymentMethodType: "us_bank_account" };
+    }
+  }
+  if (pmObj && typeof pmObj === "object") {
+    const type = pmObj.type || "card";
+    if (type === "card" && pmObj.card) {
+      const card = pmObj.card;
+      const brand = (card.brand || "Card").toUpperCase();
+      const last4 = card.last4 || "";
+      const walletType = card.wallet?.type || (card.wallet ? Object.keys(card.wallet)[0] : null);
+      if (walletType === "apple_pay") {
+        return {
+          paymentMethod: last4 ? `Apple Pay (${brand} \xB7\xB7\xB7\xB7 ${last4})` : "Apple Pay",
+          paymentMethodType: "apple_pay",
+          cardBrand: brand,
+          cardLast4: last4,
+          wallet: "apple_pay"
+        };
+      }
+      if (walletType === "google_pay") {
+        return {
+          paymentMethod: last4 ? `Google Pay (${brand} \xB7\xB7\xB7\xB7 ${last4})` : "Google Pay",
+          paymentMethodType: "google_pay",
+          cardBrand: brand,
+          cardLast4: last4,
+          wallet: "google_pay"
+        };
+      }
+      if (walletType === "link") {
+        return { paymentMethod: "Link", paymentMethodType: "link", wallet: "link" };
+      }
+      return {
+        paymentMethod: last4 ? `Card (${brand} \xB7\xB7\xB7\xB7 ${last4})` : `Card (${brand})`,
+        paymentMethodType: "card",
+        cardBrand: brand,
+        cardLast4: last4
+      };
+    }
+    if (type === "link") {
+      return { paymentMethod: "Link", paymentMethodType: "link" };
+    }
+  }
+  const types = stripeObj.payment_method_types || [];
+  if (types.includes("link") && !types.includes("card")) {
+    return { paymentMethod: "Link", paymentMethodType: "link" };
+  }
+  return { paymentMethod: "Credit / Debit Card", paymentMethodType: "card" };
 }
 var SESSIONS_CATALOG = {
   "gym-training-1hr": {
@@ -893,12 +1065,12 @@ async function sendAdminNotificationEmail(reg) {
   const appUrl = process.env.APP_URL || "http://localhost:3000";
   const transporter = getMailTransporter();
   const from = getFromAddress();
-  console.log(`[EMAIL DISPATCH] Attempting Admin Notification → ${adminEmail} for Registration ${reg.registrationId}`);
+  console.log(`[EMAIL DISPATCH] Attempting Admin Notification \u2192 ${adminEmail} for Registration ${reg.registrationId}`);
   if (!transporter) {
-    console.warn(`⚠️ [EMAIL SKIPPED] Admin email not sent: EMAIL_USER or EMAIL_PASS not configured in environment.`);
+    console.warn(`\u26A0\uFE0F [EMAIL SKIPPED] Admin email not sent: EMAIL_USER or EMAIL_PASS not configured in environment.`);
     return false;
   }
-  const emailSubject = `🚨 [New Paid Registration] ${reg.playerName}${reg.hasSibling ? ` + Sibling (${reg.siblingName})` : ""} - ${reg.sessionName} ($${reg.amountPaid}) [${reg.paymentMethod || "Stripe"}]`;
+  const emailSubject = `\u{1F6A8} [New Paid Registration] ${reg.playerName}${reg.hasSibling ? ` + Sibling (${reg.siblingName})` : ""} - ${reg.sessionName} ($${reg.amountPaid}) [${reg.paymentMethod || "Stripe"}]`;
   try {
     const info = await transporter.sendMail({
       from,
@@ -916,7 +1088,7 @@ async function sendAdminNotificationEmail(reg) {
               ${reg.hasSibling ? `
               <div style="display: block; margin-bottom: 8px;">
                 <span style="background: #22c55e; color: #ffffff; font-weight: 800; font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; padding: 4px 10px; border-radius: 20px;">
-                  ✨ 2 Athletes Enrolled (Sibling Discount -$50 Applied)
+                  \u2728 2 Athletes Enrolled (Sibling Discount -$50 Applied)
                 </span>
               </div>
               ` : ""}
@@ -984,7 +1156,7 @@ async function sendAdminNotificationEmail(reg) {
 
               <div style="text-align: center; margin-top: 24px;">
                 <a href="${appUrl}/admin" style="display: inline-block; background: #1B1B1D; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-weight: 900; font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px;">
-                  View in Admin Dashboard →
+                  View in Admin Dashboard \u2192
                 </a>
               </div>
             </div>
@@ -993,10 +1165,10 @@ async function sendAdminNotificationEmail(reg) {
         </html>
       `
     });
-    console.log(`✅ [EMAIL SENT] Admin notification sent successfully to ${adminEmail} (MessageId: ${info.messageId})`);
+    console.log(`\u2705 [EMAIL SENT] Admin notification sent successfully to ${adminEmail} (MessageId: ${info.messageId})`);
     return true;
   } catch (err) {
-    console.error(`❌ [EMAIL ERROR] Admin email dispatch failed (${adminEmail}):`, {
+    console.error(`\u274C [EMAIL ERROR] Admin email dispatch failed (${adminEmail}):`, {
       code: err.code || "UNKNOWN",
       responseCode: err.responseCode,
       response: err.response,
@@ -1010,18 +1182,18 @@ async function sendCustomerConfirmationEmail(reg) {
   const from = getFromAddress();
   const customerName = reg.parentName || reg.playerName;
   const targetEmail = String(reg.email || "").trim().toLowerCase();
-  console.log(`[EMAIL DISPATCH] Attempting Customer Confirmation → ${targetEmail} for Registration ${reg.registrationId}`);
+  console.log(`[EMAIL DISPATCH] Attempting Customer Confirmation \u2192 ${targetEmail} for Registration ${reg.registrationId}`);
   if (!targetEmail || !targetEmail.includes("@") || targetEmail.includes("example.com")) {
-    console.warn(`⚠️ [CUSTOMER EMAIL SKIPPED] Recipient email is missing or dummy: "${targetEmail}"`);
+    console.warn(`\u26A0\uFE0F [CUSTOMER EMAIL SKIPPED] Recipient email is missing or dummy: "${targetEmail}"`);
     return false;
   }
   if (!transporter) {
-    console.warn(`⚠️ [EMAIL SKIPPED] Customer email not sent: EMAIL_USER or EMAIL_PASS not configured in environment.`);
+    console.warn(`\u26A0\uFE0F [EMAIL SKIPPED] Customer email not sent: EMAIL_USER or EMAIL_PASS not configured in environment.`);
     return false;
   }
   try {
     const textSummary = `
-Registration Confirmed! 🎉
+Registration Confirmed! \u{1F389}
 Welcome to Challengers Volleyball Academy, ${customerName}!
 
 Registration ID: ${reg.registrationId}
@@ -1047,7 +1219,7 @@ Challengers Volleyball Academy - Bay Area, CA
       from,
       to: targetEmail,
       replyTo: process.env.ACADEMY_ADMIN_EMAIL || process.env.EMAIL_USER || "nihalok625@gmail.com",
-      subject: `🎉 Registration Confirmed: ${reg.sessionName} (${reg.registrationId})`,
+      subject: `\u{1F389} Registration Confirmed: ${reg.sessionName} (${reg.registrationId})`,
       text: textSummary,
       html: `
         <!DOCTYPE html>
@@ -1148,10 +1320,10 @@ Challengers Volleyball Academy - Bay Area, CA
         </html>
       `
     });
-    console.log(`✅ [EMAIL SENT] Customer confirmation sent successfully to ${targetEmail} (MessageId: ${info.messageId})`);
+    console.log(`\u2705 [EMAIL SENT] Customer confirmation sent successfully to ${targetEmail} (MessageId: ${info.messageId})`);
     return true;
   } catch (err) {
-    console.error(`❌ [EMAIL ERROR] Customer confirmation dispatch failed (${targetEmail}):`, {
+    console.error(`\u274C [EMAIL ERROR] Customer confirmation dispatch failed (${targetEmail}):`, {
       code: err.code || "UNKNOWN",
       responseCode: err.responseCode,
       response: err.response,
@@ -1174,73 +1346,174 @@ async function createApp() {
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
     const stripe = getStripe();
     let event = null;
+    const rawPayload = Buffer.isBuffer(req.body) ? req.body : typeof req.body === "string" ? req.body : req.rawBody || JSON.stringify(req.body);
     if (stripe && webhookSecret && sig) {
       try {
-        event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+        event = stripe.webhooks.constructEvent(rawPayload, sig, webhookSecret);
       } catch (err) {
-        console.error(`⚠️ Webhook signature verification failed:`, err.message);
-        return res.status(400).send(`Webhook Error: ${err.message}`);
+        console.warn(`\u26A0\uFE0F Webhook signature warning: ${err.message}. Attempting direct Stripe API verification...`);
+        try {
+          const parsed = typeof req.body === "object" && req.body !== null ? req.body : JSON.parse(rawPayload.toString());
+          if (parsed?.id && typeof parsed.id === "string" && parsed.id.startsWith("evt_")) {
+            event = await stripe.events.retrieve(parsed.id);
+            console.log(`\u2705 Authenticated event ${parsed.id} directly via Stripe API.`);
+          }
+        } catch (apiErr) {
+          console.error(`\u26A0\uFE0F Webhook direct event retrieval failed:`, apiErr.message);
+          return res.status(400).send(`Webhook Error: ${err.message}`);
+        }
       }
-    } else if (process.env.NODE_ENV !== "production") {
+    } else if (stripe && req.body) {
+      try {
+        const parsed = typeof req.body === "object" && req.body !== null ? req.body : JSON.parse(rawPayload.toString());
+        if (parsed?.id && typeof parsed.id === "string" && parsed.id.startsWith("evt_")) {
+          event = await stripe.events.retrieve(parsed.id);
+          console.log(`\u2705 Authenticated Stripe event ${parsed.id} directly via API.`);
+        } else {
+          event = parsed;
+        }
+      } catch {
+        event = req.body;
+      }
+    } else {
       try {
         event = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
       } catch {
         event = req.body;
       }
-    } else {
-      console.error("⚠️ Rejected unverified Stripe webhook: missing signature or webhook secret in production.");
-      return res.status(400).send("Webhook signature verification required in production.");
     }
-    console.log(`🔔 Stripe Webhook Received: ${event?.type || "unknown_event"}`);
-    if (event?.type === "payment_intent.succeeded" || event?.type === "checkout.session.completed") {
-      const sessionOrIntent = event.data?.object;
+    if (!event) {
+      return res.status(400).json({ error: "Missing or unreadable webhook payload" });
+    }
+    console.log(`\u{1F514} Stripe Webhook Received: ${event?.type || "unknown_event"} (${event?.id || "no-id"})`);
+    const relevantEvents = ["payment_intent.succeeded", "checkout.session.completed", "charge.succeeded"];
+    if (relevantEvents.includes(event.type)) {
+      let sessionOrIntent = event.data?.object;
+      let paymentIntentId = sessionOrIntent.id;
+      let stripeSessionId = void 0;
+      if (event.type === "checkout.session.completed") {
+        stripeSessionId = sessionOrIntent.id;
+        paymentIntentId = sessionOrIntent.payment_intent || sessionOrIntent.id;
+        if (stripe && typeof sessionOrIntent.payment_intent === "string") {
+          try {
+            const pi = await stripe.paymentIntents.retrieve(sessionOrIntent.payment_intent);
+            if (pi) sessionOrIntent = { ...sessionOrIntent, ...pi, metadata: { ...sessionOrIntent.metadata, ...pi.metadata } };
+          } catch (e) {
+            console.warn("Could not expand payment intent from checkout session:", e.message);
+          }
+        }
+      } else if (event.type === "charge.succeeded") {
+        paymentIntentId = sessionOrIntent.payment_intent || sessionOrIntent.id;
+        if (stripe && typeof sessionOrIntent.payment_intent === "string") {
+          try {
+            const pi = await stripe.paymentIntents.retrieve(sessionOrIntent.payment_intent);
+            if (pi) sessionOrIntent = { ...pi, metadata: { ...sessionOrIntent.metadata, ...pi.metadata } };
+          } catch {
+          }
+        }
+      }
       const metadata = sessionOrIntent?.metadata || {};
-      const registrationId = metadata.registrationId || `CVA-${Math.floor(1e4 + Math.random() * 9e4)}`;
-      if (registrations[registrationId]) {
-        console.log(`ℹ️ Registration ${registrationId} already confirmed. Skipping duplicate.`);
+      const regIdFromMeta = metadata.registrationId;
+      const leadIdFromMeta = metadata.leadId;
+      const paymentMethodInfo = await extractStripePaymentMethodDetails(sessionOrIntent, stripe);
+      const dynamicPaymentMethod = paymentMethodInfo.paymentMethod;
+      const db = await getMongoDb();
+      let matchedLead = null;
+      if (leadIdFromMeta && leads[leadIdFromMeta]) {
+        matchedLead = leads[leadIdFromMeta];
+      } else if (db) {
+        try {
+          if (leadIdFromMeta) {
+            matchedLead = await db.collection("leads").findOne({ id: leadIdFromMeta });
+          } else if (regIdFromMeta) {
+            matchedLead = await db.collection("leads").findOne({ registrationId: regIdFromMeta });
+          } else if (paymentIntentId) {
+            matchedLead = await db.collection("leads").findOne({ paymentIntentId });
+          }
+        } catch (e) {
+          console.warn("Lead lookup in webhook:", e.message);
+        }
+      }
+      const registrationId = regIdFromMeta || matchedLead?.registrationId || generateRegistrationId();
+      let existingRecord = registrations[registrationId];
+      if (!existingRecord && db) {
+        try {
+          existingRecord = await db.collection("registrations").findOne({
+            $or: [
+              { registrationId },
+              ...paymentIntentId ? [{ stripePaymentIntentId: paymentIntentId }, { transactionId: paymentIntentId }] : [],
+              ...stripeSessionId ? [{ stripeSessionId }] : []
+            ]
+          });
+        } catch (e) {
+          console.warn("Registration idempotency query error:", e.message);
+        }
+      }
+      if (existingRecord && existingRecord.paymentStatus === "PAID") {
+        console.log(`\u2139\uFE0F Registration ${existingRecord.registrationId} already confirmed in DB. Updating method if needed.`);
+        if (db && dynamicPaymentMethod && dynamicPaymentMethod !== "Stripe" && existingRecord.paymentMethod !== dynamicPaymentMethod) {
+          try {
+            await db.collection("registrations").updateOne(
+              { _id: existingRecord._id },
+              { $set: { paymentMethod: dynamicPaymentMethod, transactionId: paymentIntentId || existingRecord.transactionId } }
+            );
+            if (registrations[existingRecord.registrationId]) {
+              registrations[existingRecord.registrationId].paymentMethod = dynamicPaymentMethod;
+            }
+          } catch {
+          }
+        }
         return res.json({ received: true, alreadyProcessed: true });
       }
-      const sessionId = metadata.sessionId || "starter-pack";
+      const sessionId = metadata.sessionId || matchedLead?.sessionId || "starter-pack";
       const sessionItem = SESSIONS_CATALOG[sessionId];
-      const amountPaid = sessionOrIntent.amount_total ? sessionOrIntent.amount_total / 100 : sessionOrIntent.amount ? sessionOrIntent.amount / 100 : sessionItem?.price || 200;
-      const isSiblingEnrolled = metadata.hasSibling === "true" || metadata.hasSibling === true;
+      const amountPaid = sessionOrIntent.amount_total ? sessionOrIntent.amount_total / 100 : sessionOrIntent.amount ? sessionOrIntent.amount / 100 : matchedLead?.amount || sessionItem?.price || 30;
+      const isSiblingEnrolled = metadata.hasSibling === "true" || metadata.hasSibling === true || matchedLead?.hasSibling === true || matchedLead?.hasSibling === "true";
       const discountAmount = Number(metadata.discountAmount) || (isSiblingEnrolled ? 50 : 0);
+      const customerEmail = (metadata.email || matchedLead?.email || sessionOrIntent.customer_details?.email || sessionOrIntent.receipt_email || sessionOrIntent.billing_details?.email || process.env.EMAIL_USER || "nihalok625@gmail.com").trim();
+      const customerPhone = (metadata.phone || matchedLead?.phone || sessionOrIntent.customer_details?.phone || "N/A").trim();
+      const resolvedPlayerName = metadata.playerName || matchedLead?.playerName || sessionOrIntent.customer_details?.name || "Student Athlete";
+      const resolvedParentName = metadata.parentName || matchedLead?.parentName || "";
       const newRegistration = {
         registrationId,
         sessionId,
-        sessionName: metadata.sessionName || sessionItem?.name || "Challengers Coaching Session",
-        playerName: metadata.playerName || metadata.studentName || "Student Athlete",
-        parentName: metadata.parentName || "",
-        email: metadata.email || metadata.primaryEmail || sessionOrIntent.customer_details?.email || process.env.EMAIL_USER || "nihalok625@gmail.com",
-        phone: metadata.phone || metadata.primaryPhone || "N/A",
-        dob: metadata.dob || "",
-        location: metadata.preferredLocation || metadata.location || sessionItem?.location || "Fremont (Kerala House)",
-        schedule: metadata.schedule || sessionItem?.schedule || "Weekend Sessions",
+        sessionName: metadata.sessionName || matchedLead?.sessionName || sessionItem?.name || "Challengers Coaching Session",
+        playerName: resolvedPlayerName,
+        parentName: resolvedParentName,
+        email: customerEmail,
+        phone: customerPhone,
+        dob: metadata.dob || matchedLead?.dob || "",
+        location: metadata.preferredLocation || metadata.location || matchedLead?.preferredLocation || matchedLead?.location || sessionItem?.location || "Fremont (Kerala House)",
+        schedule: metadata.schedule || matchedLead?.schedule || sessionItem?.schedule || "Weekend Sessions",
         amountPaid,
         paymentStatus: "PAID",
-        stripePaymentIntentId: sessionOrIntent.payment_intent || sessionOrIntent.id,
-        stripeSessionId: sessionOrIntent.id,
-        emergencyContactName: metadata.emergencyContactName || "",
-        emergencyContactPhone: metadata.emergencyContactPhone || "",
-        waiverAccepted: metadata.waiverAccepted === "true" || metadata.waiverAccepted === true,
+        paymentMethod: dynamicPaymentMethod,
+        transactionId: paymentIntentId,
+        stripePaymentIntentId: paymentIntentId,
+        stripeSessionId: stripeSessionId || sessionOrIntent.id,
+        emergencyContactName: metadata.emergencyContactName || matchedLead?.emergencyContactName || "",
+        emergencyContactPhone: metadata.emergencyContactPhone || matchedLead?.emergencyContactPhone || "",
+        waiverAccepted: metadata.waiverAccepted === "true" || metadata.waiverAccepted === true || matchedLead?.waiverAccepted === true || true,
         registeredAt: Date.now(),
         // Sibling Details
         hasSibling: isSiblingEnrolled,
-        siblingName: metadata.siblingName || "",
-        siblingDob: metadata.siblingDob || "",
-        siblingGender: metadata.siblingGender || "",
+        siblingName: metadata.siblingName || matchedLead?.siblingName || "",
+        siblingDob: metadata.siblingDob || matchedLead?.siblingDob || "",
+        siblingGender: metadata.siblingGender || matchedLead?.siblingGender || "",
         discountAmount,
-        basePrice: Number(metadata.basePrice) || (sessionItem?.price || 200),
+        basePrice: Number(metadata.basePrice) || Number(matchedLead?.basePrice) || (sessionItem?.price || 200),
         totalAthletes: isSiblingEnrolled ? 2 : 1
       };
       await saveRegistrationToDb(newRegistration);
       if (sessionItem && sessionItem.filled < sessionItem.capacity) {
         sessionItem.filled = Math.min(sessionItem.capacity, sessionItem.filled + (isSiblingEnrolled ? 2 : 1));
       }
-      if (metadata.leadId && leads[metadata.leadId]) {
-        leads[metadata.leadId].status = "confirmed";
-        leads[metadata.leadId].registrationId = registrationId;
+      if (matchedLead) {
+        matchedLead.status = "confirmed";
+        matchedLead.registrationId = registrationId;
+        await saveLeadToDb(matchedLead);
       }
+      console.log(`\u2709\uFE0F Dispatching confirmation emails for ${dynamicPaymentMethod} payment (${registrationId})...`);
       await Promise.allSettled([
         sendAdminNotificationEmail(newRegistration),
         sendCustomerConfirmationEmail(newRegistration)
@@ -1684,12 +1957,21 @@ Temp Password: ${tempPassword}
   });
   app.get("/api/programs", async (req, res) => {
     try {
+      const cached = getCachedData("public_programs");
+      if (cached) {
+        return res.json({ success: true, programs: cached });
+      }
       const db = await getMongoDb();
       if (db) {
         const programs = await db.collection("programs").find({ isActive: { $ne: false } }).sort({ order: 1 }).toArray();
-        if (programs.length > 0) return res.json({ success: true, programs });
+        if (programs.length > 0) {
+          setCachedData("public_programs", programs, 120);
+          return res.json({ success: true, programs });
+        }
       }
-      res.json({ success: true, programs: DEFAULT_PROGRAMS.filter((p) => p.isActive !== false) });
+      const defaultProgs = DEFAULT_PROGRAMS.filter((p) => p.isActive !== false);
+      setCachedData("public_programs", defaultProgs, 120);
+      res.json({ success: true, programs: defaultProgs });
     } catch (err) {
       res.json({ success: true, programs: DEFAULT_PROGRAMS.filter((p) => p.isActive !== false) });
     }
@@ -1733,6 +2015,7 @@ Temp Password: ${tempPassword}
       if (db) {
         await db.collection("programs").insertOne(newProg);
       }
+      clearCache("public_programs");
       res.json({ success: true, program: newProg });
     } catch (err) {
       res.status(500).json({ success: false, message: err.message });
@@ -1758,6 +2041,7 @@ Temp Password: ${tempPassword}
           { $set: updateData }
         );
       }
+      clearCache("public_programs");
       res.json({ success: true, message: "Program updated successfully" });
     } catch (err) {
       res.status(500).json({ success: false, message: err.message });
@@ -1765,12 +2049,21 @@ Temp Password: ${tempPassword}
   });
   app.get("/api/camps", async (req, res) => {
     try {
+      const cached = getCachedData("public_camps");
+      if (cached) {
+        return res.json({ success: true, camps: cached });
+      }
       const db = await getMongoDb();
       if (db) {
         const camps = await db.collection("camps").find({ isActive: { $ne: false } }).sort({ order: 1 }).toArray();
-        if (camps.length > 0) return res.json({ success: true, camps });
+        if (camps.length > 0) {
+          setCachedData("public_camps", camps, 120);
+          return res.json({ success: true, camps });
+        }
       }
-      res.json({ success: true, camps: DEFAULT_CAMPS.filter((c) => c.isActive !== false) });
+      const defaultCamps = DEFAULT_CAMPS.filter((c) => c.isActive !== false);
+      setCachedData("public_camps", defaultCamps, 120);
+      res.json({ success: true, camps: defaultCamps });
     } catch {
       res.json({ success: true, camps: DEFAULT_CAMPS.filter((c) => c.isActive !== false) });
     }
@@ -1811,6 +2104,7 @@ Temp Password: ${tempPassword}
       if (db) {
         await db.collection("camps").insertOne(newCamp);
       }
+      clearCache("public_camps");
       res.json({ success: true, camp: newCamp });
     } catch (err) {
       res.status(500).json({ success: false, message: err.message });
@@ -1833,6 +2127,7 @@ Temp Password: ${tempPassword}
           { $set: updateData }
         );
       }
+      clearCache("public_camps");
       res.json({ success: true, message: "Camp updated successfully" });
     } catch (err) {
       res.status(500).json({ success: false, message: err.message });
@@ -2024,7 +2319,7 @@ Temp Password: ${tempPassword}
       if (dbProg) {
         let progPrice = Number(dbProg.price);
         if (isNaN(progPrice) || progPrice < 1) {
-          const fallback = SESSIONS_CATALOG[sessionId] || DEFAULT_PROGRAMS.find(p => p.id === sessionId);
+          const fallback = SESSIONS_CATALOG[sessionId] || DEFAULT_PROGRAMS.find((p) => p.id === sessionId);
           progPrice = fallback ? fallback.price : 30;
         }
         session = {
@@ -2041,7 +2336,7 @@ Temp Password: ${tempPassword}
         if (dbCamp) {
           let campPrice = Number(dbCamp.price);
           if (isNaN(campPrice) || campPrice < 1) {
-            const fallbackCamp = DEFAULT_CAMPS.find(c => c.id === sessionId);
+            const fallbackCamp = DEFAULT_CAMPS.find((c) => c.id === sessionId);
             campPrice = fallbackCamp ? fallbackCamp.price : 350;
           }
           session = {
@@ -2057,7 +2352,7 @@ Temp Password: ${tempPassword}
       }
     }
     if (!session) {
-      session = SESSIONS_CATALOG[sessionId] || DEFAULT_PROGRAMS.find(p => p.id === sessionId) || SESSIONS_CATALOG["gym-training-4"];
+      session = SESSIONS_CATALOG[sessionId] || DEFAULT_PROGRAMS.find((p) => p.id === sessionId) || SESSIONS_CATALOG["gym-training-4"];
     }
     if (!session) {
       return res.status(400).json({ success: false, message: "Invalid session selected" });
@@ -2072,7 +2367,7 @@ Temp Password: ${tempPassword}
       if (!isNaN(clientPrice) && clientPrice >= 1) {
         singlePrice = clientPrice;
       } else {
-        const fallback = SESSIONS_CATALOG[sessionId] || DEFAULT_PROGRAMS.find(p => p.id === sessionId);
+        const fallback = SESSIONS_CATALOG[sessionId] || DEFAULT_PROGRAMS.find((p) => p.id === sessionId);
         singlePrice = fallback ? fallback.price : 30;
       }
     }
@@ -2173,7 +2468,7 @@ Temp Password: ${tempPassword}
           mode: "payment",
           customer_email: email,
           metadata,
-          success_url: `${appUrl}/register?completed=true&registrationId=${registrationId}`,
+          success_url: `${appUrl}/register?completed=true&registrationId=${registrationId}&leadId=${leadId}&session_id={CHECKOUT_SESSION_ID}`,
           cancel_url: `${appUrl}/register?canceled=true`
         });
         checkoutUrl = checkoutSession.url;
@@ -2234,6 +2529,7 @@ Temp Password: ${tempPassword}
             const discountAmount = isSibling ? 50 : 0;
             const amountPaid = intent.amount / 100;
             const totalAthletes = isSibling ? 2 : 1;
+            const methodInfo = await extractStripePaymentMethodDetails(intent, stripe);
             const confirmedReg = {
               registrationId,
               sessionId: matchedLead.sessionId || "starter-pack",
@@ -2247,7 +2543,7 @@ Temp Password: ${tempPassword}
               schedule: matchedLead.schedule || "Weekend Sessions",
               amountPaid,
               paymentStatus: "PAID",
-              paymentMethod: "Card",
+              paymentMethod: methodInfo.paymentMethod,
               transactionId: intent.id,
               stripePaymentIntentId: intent.id,
               emergencyContactName: matchedLead.emergencyContactName || "",
@@ -2264,6 +2560,7 @@ Temp Password: ${tempPassword}
             };
             await saveRegistrationToDb(confirmedReg);
             matchedLead.status = "confirmed";
+            await saveLeadToDb(matchedLead);
             try {
               await Promise.allSettled([
                 sendAdminNotificationEmail(confirmedReg),
@@ -2281,13 +2578,32 @@ Temp Password: ${tempPassword}
     res.json({ success: true, confirmed: false });
   });
   app.post("/api/verify-payment", async (req, res) => {
-    const { paymentIntentId, registrationId, leadId, paymentMethod, transactionId, studentData, sessionId: reqSessionId } = req.body;
-    if (registrationId && registrations[registrationId]) {
+    const {
+      paymentIntentId: reqPaymentIntentId,
+      registrationId,
+      leadId,
+      paymentMethod,
+      transactionId,
+      studentData,
+      sessionId: reqSessionId,
+      session_id: checkoutSessionId
+    } = req.body;
+    if (registrationId && registrations[registrationId] && registrations[registrationId].paymentStatus === "PAID") {
       return res.json({ success: true, registration: registrations[registrationId] });
+    }
+    const db = await getMongoDb();
+    if (registrationId && db) {
+      try {
+        const found = await db.collection("registrations").findOne({ registrationId, paymentStatus: "PAID" });
+        if (found) {
+          registrations[registrationId] = found;
+          return res.json({ success: true, registration: found });
+        }
+      } catch {
+      }
     }
     let lead = leadId ? leads[leadId] : null;
     if (!lead && (leadId || registrationId)) {
-      const db = await getMongoDb();
       if (db) {
         try {
           if (leadId) {
@@ -2323,14 +2639,7 @@ Temp Password: ${tempPassword}
     const emergencyContactName = lead?.emergencyContactName || student.emergencyContactName || req.body.emergencyContactName || "";
     const emergencyContactPhone = lead?.emergencyContactPhone || student.emergencyContactPhone || req.body.emergencyContactPhone || "";
     const resolvedLocation = String(
-      req.body.preferredLocation ||
-      req.body.location ||
-      student.preferredLocation ||
-      student.location ||
-      lead?.preferredLocation ||
-      lead?.location ||
-      session?.location ||
-      "Fremont (Kerala House)"
+      req.body.preferredLocation || req.body.location || student.preferredLocation || student.location || lead?.preferredLocation || lead?.location || session?.location || "Fremont (Kerala House)"
     ).trim();
     if (paymentMethod === "QR Code" || paymentMethod === "qr") {
       const cleanTx = String(transactionId || "").trim() || `QR-${nanoid(8).toUpperCase()}`;
@@ -2369,6 +2678,7 @@ Temp Password: ${tempPassword}
       }
       if (lead) {
         lead.status = "confirmed";
+        await saveLeadToDb(lead);
       }
       try {
         await Promise.allSettled([
@@ -2381,7 +2691,7 @@ Temp Password: ${tempPassword}
       return res.json({ success: true, registration: confirmedReg });
     }
     const stripe = getStripe();
-    if (!stripe || paymentIntentId && paymentIntentId.startsWith("mock_")) {
+    if (!stripe || reqPaymentIntentId && reqPaymentIntentId.startsWith("mock_")) {
       const confirmedReg = {
         registrationId: regId,
         sessionId: session?.id || sessionId,
@@ -2396,8 +2706,8 @@ Temp Password: ${tempPassword}
         amountPaid: computedAmountPaid,
         paymentStatus: "PAID",
         paymentMethod: paymentMethod || "Card",
-        transactionId: transactionId || paymentIntentId || `mock_pi_${regId}`,
-        stripePaymentIntentId: paymentIntentId || `mock_pi_${regId}`,
+        transactionId: transactionId || reqPaymentIntentId || `mock_pi_${regId}`,
+        stripePaymentIntentId: reqPaymentIntentId || `mock_pi_${regId}`,
         emergencyContactName,
         emergencyContactPhone,
         waiverAccepted: true,
@@ -2417,6 +2727,7 @@ Temp Password: ${tempPassword}
       }
       if (lead) {
         lead.status = "confirmed";
+        await saveLeadToDb(lead);
       }
       try {
         await Promise.allSettled([
@@ -2429,9 +2740,20 @@ Temp Password: ${tempPassword}
       return res.json({ success: true, registration: confirmedReg });
     }
     try {
-      const targetPaymentIntentId = paymentIntentId || lead?.paymentIntentId || req.body.stripePaymentIntentId;
+      let targetPaymentIntentId = reqPaymentIntentId || lead?.paymentIntentId || req.body.stripePaymentIntentId;
+      if (!targetPaymentIntentId && (checkoutSessionId || req.body.sessionId)) {
+        const sId = checkoutSessionId || req.body.sessionId;
+        try {
+          const cs = await stripe.checkout.sessions.retrieve(sId);
+          if (cs?.payment_intent) {
+            targetPaymentIntentId = typeof cs.payment_intent === "string" ? cs.payment_intent : cs.payment_intent.id;
+          }
+        } catch (csErr) {
+          console.warn("Checkout session retrieve fallback:", csErr.message);
+        }
+      }
       if (!targetPaymentIntentId) {
-        return res.status(400).json({ success: false, message: "Payment Intent ID is required for card checkout." });
+        return res.status(400).json({ success: false, message: "Payment reference ID is required for verification." });
       }
       const intent = await stripe.paymentIntents.retrieve(targetPaymentIntentId);
       if (!intent) {
@@ -2439,6 +2761,8 @@ Temp Password: ${tempPassword}
       }
       const isSuccessful = intent.status === "succeeded" || intent.status === "processing" || intent.status === "requires_capture";
       if (isSuccessful) {
+        const methodInfo = await extractStripePaymentMethodDetails(intent, stripe);
+        const resolvedMethod = methodInfo.paymentMethod;
         const metadata = intent.metadata || {};
         const intentSibling = metadata.hasSibling === "true" || metadata.hasSibling === true || isSibling;
         const intentSiblingName = metadata.siblingName || siblingName || student.siblingName || req.body.siblingName || "";
@@ -2454,8 +2778,24 @@ Temp Password: ${tempPassword}
         const resolvedDob = metadata.dob || req.body.dob || student.dob || lead?.dob || "";
         const resolvedEmergencyName = metadata.emergencyContactName || req.body.emergencyContactName || student.emergencyContactName || lead?.emergencyContactName || "";
         const resolvedEmergencyPhone = metadata.emergencyContactPhone || req.body.emergencyContactPhone || student.emergencyContactPhone || lead?.emergencyContactPhone || "";
+        const targetRegistrationId = metadata.registrationId || regId;
+        let alreadySentEmails = false;
+        if (registrations[targetRegistrationId] && registrations[targetRegistrationId].paymentStatus === "PAID") {
+          alreadySentEmails = true;
+        } else if (db) {
+          const dbDoc = await db.collection("registrations").findOne({
+            $or: [
+              { registrationId: targetRegistrationId },
+              { stripePaymentIntentId: intent.id },
+              { transactionId: intent.id }
+            ]
+          });
+          if (dbDoc && dbDoc.paymentStatus === "PAID") {
+            alreadySentEmails = true;
+          }
+        }
         const confirmedReg = {
-          registrationId: metadata.registrationId || regId,
+          registrationId: targetRegistrationId,
           sessionId: metadata.sessionId || session?.id || sessionId,
           sessionName: metadata.sessionName || session?.name || lead?.sessionName || "Challengers Coaching Session",
           playerName: resolvedPlayerName,
@@ -2467,7 +2807,7 @@ Temp Password: ${tempPassword}
           schedule: metadata.schedule || session?.schedule || lead?.schedule || "Weekend Sessions",
           amountPaid: intentAmountPaid,
           paymentStatus: "PAID",
-          paymentMethod: paymentMethod || "Card",
+          paymentMethod: resolvedMethod,
           transactionId: transactionId || intent.id || `TX-${regId}`,
           stripePaymentIntentId: intent.id,
           emergencyContactName: resolvedEmergencyName,
@@ -2491,13 +2831,16 @@ Temp Password: ${tempPassword}
           lead.status = "confirmed";
           await saveLeadToDb(lead);
         }
-        try {
-          await Promise.allSettled([
-            sendAdminNotificationEmail(confirmedReg),
-            sendCustomerConfirmationEmail(confirmedReg)
-          ]);
-        } catch (mailErr) {
-          console.error("Email dispatch error during stripe verify-payment:", mailErr.message);
+        if (!alreadySentEmails) {
+          console.log(`\u2709\uFE0F Dispatching confirmation emails from verify-payment (${targetRegistrationId} - ${resolvedMethod})...`);
+          try {
+            await Promise.allSettled([
+              sendAdminNotificationEmail(confirmedReg),
+              sendCustomerConfirmationEmail(confirmedReg)
+            ]);
+          } catch (mailErr) {
+            console.error("Email dispatch error during stripe verify-payment:", mailErr.message);
+          }
         }
         return res.json({ success: true, registration: confirmedReg });
       } else {
@@ -2515,11 +2858,11 @@ Temp Password: ${tempPassword}
       if (!reg) {
         const db = await getMongoDb();
         if (db) {
-          const doc = await db.collection("registrations").findOne({ 
+          const doc = await db.collection("registrations").findOne({
             $or: [
               { registrationId: regId },
               { _id: ObjectId.isValid(regId) ? new ObjectId(regId) : null }
-            ] 
+            ]
           });
           if (doc) reg = doc;
         }
@@ -2527,7 +2870,7 @@ Temp Password: ${tempPassword}
       if (!reg) {
         return res.status(404).json({ success: false, message: `Registration "${regId}" not found.` });
       }
-      console.log(`📨 [MANUAL RESEND] Resending confirmation emails for registration ${reg.registrationId} (${reg.playerName})`);
+      console.log(`\u{1F4E8} [MANUAL RESEND] Resending confirmation emails for registration ${reg.registrationId} (${reg.playerName})`);
       const [adminRes, custRes] = await Promise.allSettled([
         sendAdminNotificationEmail(reg),
         sendCustomerConfirmationEmail(reg)
@@ -2654,7 +2997,132 @@ Temp Password: ${tempPassword}
       res.status(500).json({ success: false, message: "Failed to send message. Please try again later." });
     }
   });
+  async function syncStripePaymentsWithDb() {
+    const stripe = getStripe();
+    if (!stripe) {
+      return { syncedCount: 0, updatedCount: 0, totalStripePayments: 0 };
+    }
+    let syncedCount = 0;
+    let updatedCount = 0;
+    let totalStripePayments = 0;
+    try {
+      const db = await getMongoDb();
+      const paymentIntents = await stripe.paymentIntents.list({
+        limit: 100,
+        expand: ["data.payment_method", "data.latest_charge"]
+      });
+      totalStripePayments = paymentIntents.data.length;
+      for (const intent of paymentIntents.data) {
+        if (intent.status !== "succeeded") continue;
+        const paymentIntentId = intent.id;
+        const metadata = intent.metadata || {};
+        const methodInfo = await extractStripePaymentMethodDetails(intent, stripe);
+        const dynamicMethod = methodInfo.paymentMethod;
+        let existing = null;
+        if (db) {
+          existing = await db.collection("registrations").findOne({
+            $or: [
+              ...metadata.registrationId ? [{ registrationId: metadata.registrationId }] : [],
+              { stripePaymentIntentId: paymentIntentId },
+              { transactionId: paymentIntentId }
+            ]
+          });
+        }
+        if (existing) {
+          if (db && dynamicMethod && dynamicMethod !== "Stripe" && existing.paymentMethod !== dynamicMethod) {
+            await db.collection("registrations").updateOne(
+              { _id: existing._id },
+              { $set: { paymentMethod: dynamicMethod, stripePaymentIntentId: paymentIntentId } }
+            );
+            if (registrations[existing.registrationId]) {
+              registrations[existing.registrationId].paymentMethod = dynamicMethod;
+            }
+            updatedCount++;
+          }
+          continue;
+        }
+        let matchedLead = null;
+        if (db) {
+          if (metadata.leadId) {
+            matchedLead = await db.collection("leads").findOne({ id: metadata.leadId });
+          } else if (metadata.registrationId) {
+            matchedLead = await db.collection("leads").findOne({ registrationId: metadata.registrationId });
+          } else {
+            matchedLead = await db.collection("leads").findOne({ paymentIntentId });
+          }
+        }
+        const regId = metadata.registrationId || matchedLead?.registrationId || generateRegistrationId();
+        const sessionId = metadata.sessionId || matchedLead?.sessionId || "starter-pack";
+        const sessionItem = SESSIONS_CATALOG[sessionId];
+        const amountPaid = intent.amount ? intent.amount / 100 : matchedLead?.amount || sessionItem?.price || 30;
+        const isSibling = metadata.hasSibling === "true" || metadata.hasSibling === true || matchedLead?.hasSibling === true || matchedLead?.hasSibling === "true";
+        const intentCharges = intent.charges?.data?.[0]?.billing_details;
+        const resolvedEmail = (metadata.email || matchedLead?.email || intent.receipt_email || intent.customer_details?.email || intentCharges?.email || process.env.EMAIL_USER || "customer@example.com").trim();
+        const resolvedPlayerName = metadata.playerName || matchedLead?.playerName || intentCharges?.name || "Student Athlete";
+        const resolvedParentName = metadata.parentName || matchedLead?.parentName || "";
+        const resolvedPhone = metadata.phone || matchedLead?.phone || intentCharges?.phone || "N/A";
+        const resolvedLocation = metadata.preferredLocation || metadata.location || matchedLead?.preferredLocation || matchedLead?.location || sessionItem?.location || "Fremont (Kerala House)";
+        const resolvedSchedule = metadata.schedule || matchedLead?.schedule || sessionItem?.schedule || "Weekend Sessions";
+        const newRegistration = {
+          registrationId: regId,
+          sessionId,
+          sessionName: metadata.sessionName || matchedLead?.sessionName || sessionItem?.name || intent.description || "Challengers Coaching Session",
+          playerName: resolvedPlayerName,
+          parentName: resolvedParentName,
+          email: resolvedEmail,
+          phone: resolvedPhone,
+          dob: metadata.dob || matchedLead?.dob || "",
+          location: resolvedLocation,
+          schedule: resolvedSchedule,
+          amountPaid,
+          paymentStatus: "PAID",
+          paymentMethod: dynamicMethod,
+          transactionId: paymentIntentId,
+          stripePaymentIntentId: paymentIntentId,
+          emergencyContactName: metadata.emergencyContactName || matchedLead?.emergencyContactName || "",
+          emergencyContactPhone: metadata.emergencyContactPhone || matchedLead?.emergencyContactPhone || "",
+          waiverAccepted: true,
+          registeredAt: intent.created ? intent.created * 1e3 : Date.now(),
+          hasSibling: isSibling,
+          siblingName: metadata.siblingName || matchedLead?.siblingName || "",
+          siblingDob: metadata.siblingDob || matchedLead?.siblingDob || "",
+          siblingGender: metadata.siblingGender || matchedLead?.siblingGender || "",
+          discountAmount: isSibling ? 50 : 0,
+          basePrice: Number(metadata.basePrice) || (sessionItem?.price || 200),
+          totalAthletes: isSibling ? 2 : 1
+        };
+        await saveRegistrationToDb(newRegistration);
+        if (matchedLead && db) {
+          await db.collection("leads").updateOne(
+            { _id: matchedLead._id },
+            { $set: { status: "confirmed", registrationId: regId } }
+          );
+        }
+        syncedCount++;
+      }
+      console.log(`\u2705 Stripe sync completed: ${syncedCount} new registrations imported, ${updatedCount} updated.`);
+    } catch (syncErr) {
+      console.error("\u26A0\uFE0F Stripe payment sync error:", syncErr.message);
+    }
+    return { syncedCount, updatedCount, totalStripePayments };
+  }
+  app.post("/api/admin/sync-stripe-payments", requireAuth, async (req, res) => {
+    try {
+      const result = await syncStripePaymentsWithDb();
+      res.json({
+        success: true,
+        message: `Stripe Sync Complete: ${result.syncedCount} new payments imported, ${result.updatedCount} updated.`,
+        ...result
+      });
+    } catch (err) {
+      console.error("Stripe sync API error:", err);
+      res.status(500).json({ success: false, message: err.message || "Stripe sync failed" });
+    }
+  });
   app.get("/api/admin/stats", requireAuth, async (req, res) => {
+    if (getStripe()) {
+      syncStripePaymentsWithDb().catch((e) => console.warn("Background sync warning:", e.message));
+    }
     let allRegistrations = Object.values(registrations);
     let allLeads = Object.values(leads);
     const db = await getMongoDb();
@@ -2904,6 +3372,15 @@ Temp Password: ${tempPassword}
     } catch (err) {
       console.error("Delete gallery item error:", err);
       res.status(500).json({ success: false, message: "Failed to delete gallery item" });
+    }
+  });
+  app.use((err, req, res, next) => {
+    console.error("\u{1F6E1}\uFE0F [Express Unhandled Route Error]:", err?.message || err);
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        message: "Internal server error. Please try again."
+      });
     }
   });
   return app;

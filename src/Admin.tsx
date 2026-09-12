@@ -83,6 +83,10 @@ export default function Admin() {
   const [registrationsList, setRegistrationsList] = useState<any[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncSuccessMessage, setSyncSuccessMessage] = useState<string | null>(null);
+  const [paymentFilter, setPaymentFilter] = useState<'all' | 'card' | 'apple_pay' | 'google_pay' | 'link' | 'qr'>('all');
+  const [regSearchQuery, setRegSearchQuery] = useState('');
+  const [copiedStripeId, setCopiedStripeId] = useState<string | null>(null);
+  const [isSyncingStripe, setIsSyncingStripe] = useState(false);
 
   // Edit Student Registration Modal State
   const [isEditingStudent, setIsEditingStudent] = useState(false);
@@ -236,6 +240,77 @@ export default function Admin() {
     } finally {
       setIsSyncing(false);
     }
+  };
+
+  const handleSyncStripe = async () => {
+    setIsSyncingStripe(true);
+    const token = getToken();
+    try {
+      const res = await fetch('/api/admin/sync-stripe-payments', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSyncSuccessMessage(data.message || 'Stripe payments synced!');
+        await fetchData();
+        setTimeout(() => setSyncSuccessMessage(null), 4000);
+      } else {
+        alert(data.message || 'Stripe sync failed');
+      }
+    } catch (err: any) {
+      alert('Error syncing with Stripe: ' + err.message);
+    } finally {
+      setIsSyncingStripe(false);
+    }
+  };
+
+  const handleCopyStripeId = (id: string) => {
+    navigator.clipboard.writeText(id);
+    setCopiedStripeId(id);
+    setTimeout(() => setCopiedStripeId(null), 2000);
+  };
+
+  const renderPaymentMethodBadge = (reg: any) => {
+    const raw = String(reg.paymentMethod || '').toLowerCase();
+    if (raw.includes('apple pay') || raw.includes('apple_pay')) {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-slate-900 text-white shadow-sm border border-slate-700">
+          <span className="text-[12px] font-serif leading-none"></span>
+          <span>{reg.paymentMethod || 'Apple Pay'}</span>
+        </span>
+      );
+    }
+    if (raw.includes('google pay') || raw.includes('google_pay') || raw.includes('gpay')) {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200">
+          <Smartphone className="w-3.5 h-3.5 text-blue-600" />
+          <span>{reg.paymentMethod || 'Google Pay'}</span>
+        </span>
+      );
+    }
+    if (raw.includes('link')) {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-[#00D66F]/15 text-[#008746] border border-[#00D66F]/30">
+          <span className="w-2 h-2 rounded-full bg-[#00D66F] inline-block animate-pulse" />
+          <span>Link (Stripe)</span>
+        </span>
+      );
+    }
+    if (raw.includes('qr') || raw.includes('zelle') || raw.includes('venmo') || raw.includes('upi')) {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200">
+          <QrCode className="w-3.5 h-3.5 text-purple-600" />
+          <span>{reg.paymentMethod || 'QR Transfer'}</span>
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-800 border border-slate-200">
+        <CreditCard className="w-3.5 h-3.5 text-slate-600" />
+        <span>{reg.paymentMethod || 'Credit / Debit Card'}</span>
+      </span>
+    );
   };
 
 
@@ -876,14 +951,77 @@ export default function Admin() {
               >
                 {/* ── 1. CONFIRMED PAID REGISTRATIONS ── */}
                 <div className="bg-white rounded-[3rem] border border-espresso/5 shadow-xl overflow-hidden">
-                  <div className="p-8 sm:p-10 border-b border-espresso/5 flex justify-between items-center bg-sand/10">
+                  <div className="p-8 sm:p-10 border-b border-espresso/5 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-sand/10">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-green-700">Paid Enrollees</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-green-700">Live Stripe &amp; Enrollees</span>
                       </div>
-                      <h3 className="text-xl font-condensed font-black uppercase text-espresso">Confirmed Registrations ({registrationsList.length})</h3>
-                      <p className="text-espresso/40 text-[10px] font-black uppercase tracking-widest mt-0.5">Athletes who completed checkout and received booking codes</p>
+                      <h3 className="text-xl font-condensed font-black uppercase text-espresso">
+                        Confirmed Registrations ({registrationsList.length})
+                      </h3>
+                      <p className="text-espresso/40 text-[10px] font-black uppercase tracking-widest mt-0.5">
+                        All successful Stripe checkouts (Card, Link, Apple Pay, Google Pay) and QR payments
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2.5">
+                      <button
+                        onClick={handleSyncStripe}
+                        disabled={isSyncingStripe}
+                        className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all shadow-md active:scale-95 disabled:opacity-50 cursor-pointer"
+                        title="Directly pull and match all successful transactions from Stripe API"
+                      >
+                        <RefreshCcw className={`w-3.5 h-3.5 ${isSyncingStripe ? 'animate-spin text-orange' : ''}`} />
+                        <span>{isSyncingStripe ? 'Syncing Stripe...' : 'Sync with Stripe'}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* ── Filter and Search Bar ── */}
+                  <div className="px-8 py-4 bg-white border-b border-espresso/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    {/* Payment Method Filter Pills */}
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 no-scrollbar text-xs font-bold">
+                      {[
+                        { id: 'all', label: `All (${registrationsList.length})` },
+                        { id: 'card', label: '💳 Cards' },
+                        { id: 'apple_pay', label: ' Apple Pay' },
+                        { id: 'google_pay', label: 'GPay' },
+                        { id: 'link', label: '🟢 Link' },
+                        { id: 'qr', label: '📱 QR Code' },
+                      ].map((tab) => (
+                        <button
+                          key={tab.id}
+                          onClick={() => setPaymentFilter(tab.id as any)}
+                          className={`px-3 py-1.5 rounded-lg text-[11px] transition-all cursor-pointer whitespace-nowrap ${
+                            paymentFilter === tab.id
+                              ? 'bg-[#D62828] text-white shadow-sm font-black'
+                              : 'bg-sand/30 text-espresso/60 hover:bg-sand/60 hover:text-espresso'
+                          }`}
+                        >
+                          {tab.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Search Field */}
+                    <div className="relative min-w-[240px]">
+                      <Search className="w-3.5 h-3.5 text-espresso/40 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        placeholder="Search athlete, email, Stripe ID..."
+                        value={regSearchQuery}
+                        onChange={(e) => setRegSearchQuery(e.target.value)}
+                        className="w-full bg-sand/20 border border-espresso/10 rounded-xl pl-9 pr-7 py-1.5 text-xs text-espresso outline-none focus:border-[#D62828] transition-all"
+                      />
+                      {regSearchQuery && (
+                        <button
+                          onClick={() => setRegSearchQuery('')}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-espresso/40 hover:text-espresso"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      )}
                     </div>
                   </div>
 
@@ -893,103 +1031,177 @@ export default function Admin() {
                         <tr className="bg-sand/5 text-[10px] font-black uppercase tracking-widest text-espresso/40 border-b border-espresso/5">
                           <th className="px-8 py-5">Athlete &amp; Code</th>
                           <th className="px-6 py-5">Program / Session</th>
-                          <th className="px-6 py-5">Amount Paid</th>
-                          <th className="px-6 py-5">Contact</th>
-                          <th className="px-6 py-5">Payment Status</th>
+                          <th className="px-6 py-5">Amount</th>
+                          <th className="px-6 py-5">Customer Contact</th>
+                          <th className="px-6 py-5">Payment Method</th>
+                          <th className="px-6 py-5">Stripe / Ref ID</th>
                           <th className="px-6 py-5">Date</th>
                           <th className="px-8 py-5 text-right">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-espresso/5">
-                        {registrationsList.length === 0 ? (
+                        {registrationsList.filter(reg => {
+                          if (paymentFilter !== 'all') {
+                            const pm = String(reg.paymentMethod || '').toLowerCase();
+                            if (paymentFilter === 'apple_pay' && !pm.includes('apple')) return false;
+                            if (paymentFilter === 'google_pay' && !pm.includes('google') && !pm.includes('gpay')) return false;
+                            if (paymentFilter === 'link' && !pm.includes('link')) return false;
+                            if (paymentFilter === 'qr' && !pm.includes('qr') && !pm.includes('zelle') && !pm.includes('venmo')) return false;
+                            if (paymentFilter === 'card' && (pm.includes('apple') || pm.includes('google') || pm.includes('link') || pm.includes('qr'))) return false;
+                          }
+                          if (regSearchQuery.trim()) {
+                            const q = regSearchQuery.toLowerCase();
+                            const match = 
+                              (reg.playerName || '').toLowerCase().includes(q) ||
+                              (reg.parentName || '').toLowerCase().includes(q) ||
+                              (reg.email || '').toLowerCase().includes(q) ||
+                              (reg.phone || '').toLowerCase().includes(q) ||
+                              (reg.registrationId || '').toLowerCase().includes(q) ||
+                              (reg.stripePaymentIntentId || '').toLowerCase().includes(q) ||
+                              (reg.transactionId || '').toLowerCase().includes(q) ||
+                              (reg.paymentMethod || '').toLowerCase().includes(q) ||
+                              (reg.sessionName || '').toLowerCase().includes(q);
+                            if (!match) return false;
+                          }
+                          return true;
+                        }).length === 0 ? (
                           <tr>
-                            <td colSpan={7} className="px-8 py-16 text-center text-espresso/40 italic text-xs">
-                              No confirmed registrations yet. Completed checkouts will appear here instantly!
+                            <td colSpan={8} className="px-8 py-16 text-center text-espresso/40 italic text-xs">
+                              {regSearchQuery || paymentFilter !== 'all' 
+                                ? 'No registrations match your current filter criteria.' 
+                                : 'No confirmed registrations yet. Completed checkouts will appear here instantly!'}
                             </td>
                           </tr>
-                        ) : registrationsList.map((reg) => (
-                          <tr key={reg.registrationId || reg._id} className="hover:bg-sand/5 transition-colors group">
-                            <td className="px-8 py-5">
-                              <div className="flex items-center gap-3.5">
-                                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold text-sm">
-                                  {reg.playerName?.charAt(0) || 'A'}
+                        ) : registrationsList.filter(reg => {
+                          if (paymentFilter !== 'all') {
+                            const pm = String(reg.paymentMethod || '').toLowerCase();
+                            if (paymentFilter === 'apple_pay' && !pm.includes('apple')) return false;
+                            if (paymentFilter === 'google_pay' && !pm.includes('google') && !pm.includes('gpay')) return false;
+                            if (paymentFilter === 'link' && !pm.includes('link')) return false;
+                            if (paymentFilter === 'qr' && !pm.includes('qr') && !pm.includes('zelle') && !pm.includes('venmo')) return false;
+                            if (paymentFilter === 'card' && (pm.includes('apple') || pm.includes('google') || pm.includes('link') || pm.includes('qr'))) return false;
+                          }
+                          if (regSearchQuery.trim()) {
+                            const q = regSearchQuery.toLowerCase();
+                            const match = 
+                              (reg.playerName || '').toLowerCase().includes(q) ||
+                              (reg.parentName || '').toLowerCase().includes(q) ||
+                              (reg.email || '').toLowerCase().includes(q) ||
+                              (reg.phone || '').toLowerCase().includes(q) ||
+                              (reg.registrationId || '').toLowerCase().includes(q) ||
+                              (reg.stripePaymentIntentId || '').toLowerCase().includes(q) ||
+                              (reg.transactionId || '').toLowerCase().includes(q) ||
+                              (reg.paymentMethod || '').toLowerCase().includes(q) ||
+                              (reg.sessionName || '').toLowerCase().includes(q);
+                            if (!match) return false;
+                          }
+                          return true;
+                        }).map((reg) => {
+                          const stripeTxId = reg.stripePaymentIntentId || reg.transactionId || '';
+                          return (
+                            <tr key={reg.registrationId || reg._id} className="hover:bg-sand/5 transition-colors group">
+                              <td className="px-8 py-5">
+                                <div className="flex items-center gap-3.5">
+                                  <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold text-sm shrink-0">
+                                    {reg.playerName?.charAt(0) || 'A'}
+                                  </div>
+                                  <div>
+                                    <div className="text-sm font-bold text-espresso">
+                                      {reg.playerName}
+                                      {reg.hasSibling && (
+                                        <span className="ml-1.5 text-[9px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded">
+                                          + Sibling ({reg.siblingName || 'Sibling'})
+                                        </span>
+                                      )}
+                                    </div>
+                                    <span className="inline-block bg-espresso/5 text-espresso font-mono text-[10px] font-bold px-2 py-0.5 rounded mt-0.5">
+                                      {reg.registrationId}
+                                    </span>
+                                  </div>
                                 </div>
-                                <div>
-                                  <div className="text-sm font-bold text-espresso">{reg.playerName}</div>
-                                  <span className="inline-block bg-espresso/5 text-espresso font-mono text-[10px] font-bold px-2 py-0.5 rounded mt-0.5">
-                                    {reg.registrationId}
+                              </td>
+                              <td className="px-6 py-5">
+                                <div className="text-xs font-bold text-espresso">{reg.sessionName || reg.sessionId}</div>
+                                <div className="text-[10px] text-espresso/50 font-medium">{reg.schedule || 'Flexible'} · {reg.location || reg.preferredLocation || 'Fremont (Kerala House)'}</div>
+                              </td>
+                              <td className="px-6 py-5">
+                                <span className="text-sm font-black text-green-600 font-mono">
+                                  ${reg.amountPaid}
+                                </span>
+                              </td>
+                              <td className="px-6 py-5">
+                                <div className="text-xs font-bold text-espresso">{reg.email}</div>
+                                <div className="text-[10px] text-espresso/50">{reg.phone}</div>
+                              </td>
+                              <td className="px-6 py-5">
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-green-100 text-green-700 flex items-center gap-1 w-fit">
+                                    <CheckCircle2 className="w-3 h-3" /> {reg.paymentStatus || 'PAID'}
                                   </span>
+                                  <div>{renderPaymentMethodBadge(reg)}</div>
                                 </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-5">
-                              <div className="text-xs font-bold text-espresso">{reg.sessionName || reg.sessionId}</div>
-                              <div className="text-[10px] text-espresso/50 font-medium">{reg.schedule || 'Flexible'} · {reg.location || reg.preferredLocation || 'Fremont (Kerala House)'}</div>
-                            </td>
-                            <td className="px-6 py-5">
-                              <span className="text-sm font-black text-green-600 font-mono">
-                                ${reg.amountPaid}
-                              </span>
-                            </td>
-                            <td className="px-6 py-5">
-                              <div className="text-xs font-bold text-espresso">{reg.email}</div>
-                              <div className="text-[10px] text-espresso/50">{reg.phone}</div>
-                            </td>
-                            <td className="px-6 py-5">
-                              <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-green-100 text-green-700 flex items-center gap-1.5 w-fit">
-                                <CheckCircle2 className="w-3 h-3" /> {reg.paymentStatus || 'PAID'}
-                              </span>
-                              <div className="mt-1 flex items-center gap-1 text-[10px] font-bold">
-                                {reg.paymentMethod === 'QR Code' ? (
-                                  <span className="inline-flex items-center gap-1 text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
-                                    <QrCode className="w-3 h-3" /> QR Transfer
-                                    {reg.transactionId && <span className="font-mono text-[9px] font-normal">({reg.transactionId})</span>}
-                                  </span>
+                              </td>
+                              <td className="px-6 py-5">
+                                {stripeTxId ? (
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="font-mono text-[11px] text-slate-700 max-w-[140px] truncate" title={stripeTxId}>
+                                      {stripeTxId}
+                                    </span>
+                                    <button
+                                      onClick={() => handleCopyStripeId(stripeTxId)}
+                                      className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+                                      title="Copy Stripe / Transaction ID"
+                                    >
+                                      {copiedStripeId === stripeTxId ? (
+                                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                      ) : (
+                                        <Copy className="w-3.5 h-3.5" />
+                                      )}
+                                    </button>
+                                  </div>
                                 ) : (
-                                  <span className="inline-flex items-center gap-1 text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
-                                    <CreditCard className="w-3 h-3" /> Card
-                                  </span>
+                                  <span className="text-espresso/30 text-xs italic">N/A</span>
                                 )}
-                              </div>
-                            </td>
-                            <td className="px-6 py-5 text-xs text-espresso/40 font-medium">
-                              {reg.registeredAt ? new Date(reg.registeredAt).toLocaleDateString() : 'Recent'}
-                            </td>
-                            <td className="px-8 py-5 text-right">
-                              <div className="flex items-center justify-end gap-1.5">
-                                <button
-                                  type="button"
-                                  onClick={() => handleResendEmail(reg)}
-                                  disabled={resendingEmailId === (reg.registrationId || reg._id)}
-                                  className="p-2 text-espresso/40 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all cursor-pointer disabled:opacity-50"
-                                  title="Resend Confirmation & Admin Notification Email"
-                                >
-                                  {resendingEmailId === (reg.registrationId || reg._id) ? (
-                                    <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                                  ) : (
-                                    <Mail className="w-4 h-4" />
-                                  )}
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleOpenEditStudent(reg)}
-                                  className="p-2 text-espresso/40 hover:text-espresso hover:bg-espresso/5 rounded-xl transition-all cursor-pointer"
-                                  title="Edit Student Details"
-                                >
-                                  <Edit3 className="w-4 h-4" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleDeleteStudent(reg)}
-                                  className="p-2 text-espresso/40 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
-                                  title="Delete Permanently"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
+                              </td>
+                              <td className="px-6 py-5 text-xs text-espresso/40 font-medium">
+                                {reg.registeredAt ? new Date(reg.registeredAt).toLocaleDateString() : 'Recent'}
+                              </td>
+                              <td className="px-8 py-5 text-right">
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleResendEmail(reg)}
+                                    disabled={resendingEmailId === (reg.registrationId || reg._id)}
+                                    className="p-2 text-espresso/40 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all cursor-pointer disabled:opacity-50"
+                                    title="Resend Confirmation & Admin Notification Email"
+                                  >
+                                    {resendingEmailId === (reg.registrationId || reg._id) ? (
+                                      <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                                    ) : (
+                                      <Mail className="w-4 h-4" />
+                                    )}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenEditStudent(reg)}
+                                    className="p-2 text-espresso/40 hover:text-espresso hover:bg-espresso/5 rounded-xl transition-all cursor-pointer"
+                                    title="Edit Student Details"
+                                  >
+                                    <Edit3 className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteStudent(reg)}
+                                    className="p-2 text-espresso/40 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
+                                    title="Delete Permanently"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>

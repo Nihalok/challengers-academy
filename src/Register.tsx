@@ -339,16 +339,17 @@ export default function Register() {
     const completed = params.get('completed');
     const redirectStatus = params.get('redirect_status');
     const paymentIntentId = params.get('payment_intent');
+    const sessionIdParam = params.get('session_id');
     const regId = params.get('registrationId') || params.get('regId');
     const lId = params.get('leadId');
 
-    if (completed === 'true' || redirectStatus === 'succeeded' || paymentIntentId) {
+    if (completed === 'true' || redirectStatus === 'succeeded' || paymentIntentId || sessionIdParam) {
       // Clear URL params immediately so subsequent interactions/reloads are completely clean
       window.history.replaceState({}, document.title, window.location.pathname);
 
       const verifyPayload: any = {
-        paymentMethod: 'Card',
         paymentIntentId: paymentIntentId || undefined,
+        session_id: sessionIdParam || undefined,
         registrationId: regId || undefined,
         leadId: lId || undefined
       };
@@ -2167,7 +2168,6 @@ function StripeCardForm({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            paymentMethod: 'Card',
             paymentIntentId: paymentIntent.id,
             leadId,
             registrationId: activeRegistrationId,
