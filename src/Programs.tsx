@@ -19,7 +19,7 @@ export default function Programs() {
       .then(res => res.json())
       .then(data => {
         if (data.success && data.programs?.length) {
-          const uniqueProgs = Array.from(new Map(data.programs.map((p: any) => [p.id, p])).values());
+          const uniqueProgs = Array.from(new Map(data.programs.filter((p: any) => p.id !== 'large-group-training').map((p: any) => [p.id, p])).values());
           setProgramsList(uniqueProgs);
         }
       })
@@ -34,8 +34,7 @@ export default function Programs() {
     'gym-training-12',
     'open-park-private',
     'open-park-group',
-    'open-park-travel',
-    'large-group-training'
+    'open-park-travel'
   ];
 
   const sortedFrameworkPrograms = [...programsList].sort((a, b) => {

@@ -138,28 +138,6 @@ const OFFICIAL_PACKAGES = [
     badgeClass: 'bg-[#F3722C] text-white',
     btnClass: 'bg-[#F3722C] text-white hover:bg-white hover:text-espresso',
     bgImage: 'https://images.unsplash.com/photo-1593787467001-7394837e5814?auto=format&fit=crop&w=800&q=80'
-  },
-  {
-    id: 'large-group-training',
-    name: 'Large Group Training (13+)',
-    category: 'Team / Group',
-    students: '13+ Students',
-    duration: '2 Hours / session',
-    sessions: '4 Sessions',
-    price: 120,
-    priceNote: 'per student',
-    desc: 'Special group pricing for school squads, clubs, and large youth batches.',
-    features: [
-      '4 x 2-hour team & group sessions',
-      'Team rotation & system tactical play',
-      'Competitive squad scrimmages',
-      'Custom scheduling for groups'
-    ],
-    popular: false,
-    color: 'bg-gradient-to-br from-[#071A2D] via-[#04101D] to-[#02080F] border-blue-400/60 text-white',
-    badgeClass: 'bg-blue-600 text-white',
-    btnClass: 'bg-blue-600 text-white hover:bg-white hover:text-espresso',
-    bgImage: 'https://images.unsplash.com/photo-1547347298-1d74850778d1?auto=format&fit=crop&w=800&q=80'
   }
 ];
 
@@ -344,13 +322,6 @@ export default function Pricing() {
                   <td className="py-3.5 px-4">2 hours</td>
                   <td className="py-3.5 px-4">4 sessions</td>
                   <td className="py-3.5 px-4 text-right font-bold text-[#D62828] text-sm">$150 <span className="text-[10px] text-espresso/40">/ student</span></td>
-                </tr>
-                <tr className="hover:bg-[#FBF9F6] transition-colors">
-                  <td className="py-3.5 px-4 font-bold text-espresso">Large Group Training</td>
-                  <td className="py-3.5 px-4">13 or more students</td>
-                  <td className="py-3.5 px-4">2 hours</td>
-                  <td className="py-3.5 px-4">4 sessions</td>
-                  <td className="py-3.5 px-4 text-right font-bold text-[#D62828] text-sm">$120 <span className="text-[10px] text-espresso/40">/ student</span></td>
                 </tr>
                 <tr className="hover:bg-[#FBF9F6] transition-colors">
                   <td className="py-3.5 px-4 font-bold text-espresso">Tryout Session</td>

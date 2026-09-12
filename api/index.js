@@ -138,19 +138,16 @@ function getMailTransporter() {
   }
   const host = process.env.EMAIL_HOST?.trim() || "smtp.gmail.com";
   const isGmail = process.env.EMAIL_SERVICE === "gmail" || user.includes("@gmail.com") || host === "smtp.gmail.com";
-  if (isGmail) {
-    return nodemailer.createTransport({
-      service: "gmail",
-      auth: { user, pass },
-      tls: { rejectUnauthorized: false }
-    });
-  }
-  const port = parseInt(process.env.EMAIL_PORT || "587");
+  const port = parseInt(process.env.EMAIL_PORT || (isGmail ? "465" : "587"));
   return nodemailer.createTransport({
-    host,
+    host: isGmail ? "smtp.gmail.com" : host,
     port,
     secure: port === 465,
     auth: { user, pass },
+    pool: false,
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
     tls: { rejectUnauthorized: false }
   });
 }
@@ -354,25 +351,6 @@ var DEFAULT_PROGRAMS = [
     order: 5
   },
   {
-    id: "large-group-training",
-    title: "Large Group Training (13+ Students)",
-    phase: "TEAM / SQUAD",
-    description: "Economical team training for school squads, clubs, and large youth groups.",
-    longDescription: "4 sessions (2 hours each) designed for groups with 13 or more students. Focuses on team tactical systems, transition defense, communication, and scrimmage reps ($120 per student).",
-    image: "https://images.unsplash.com/photo-1592656670411-b91990822650?q=80&w=1200&auto=format&fit=crop",
-    ageRange: "13+ Students",
-    ageGroups: ["11-14", "15-18"],
-    features: ["4 x 2-Hour Sessions", "$120 Per Student", "Team Systems & Play", "Coach Mentorship"],
-    price: 120,
-    schedule: "Custom Team Schedule (2 Hours / Session)",
-    location: "Designated Gym / Park Court",
-    capacity: 40,
-    filled: 26,
-    coach: "Full Academy Coaching Staff",
-    isActive: true,
-    order: 6
-  },
-  {
     id: "tryout-session",
     title: "Tryout Session (2 Hours)",
     phase: "ASSESSMENT / TRYOUT",
@@ -470,7 +448,7 @@ async function seedPrograms(db) {
       { upsert: true }
     );
   }
-  const legacyIds = ["phase-1", "phase-2", "phase-3", "phase-4", "little-spikers", "foundations-clinic"];
+  const legacyIds = ["phase-1", "phase-2", "phase-3", "phase-4", "little-spikers", "foundations-clinic", "large-group-training"];
   await collection.deleteMany({
     id: { $in: legacyIds }
   });
@@ -760,23 +738,6 @@ var SESSIONS_CATALOG = {
     coach: "Academy Coaching Staff",
     description: "4 outdoor group training sessions (2 hours each). High reps, agility, ball control, and defense ($150 per student)."
   },
-  "large-group-training": {
-    id: "large-group-training",
-    name: "Large Group Training (13+ Students)",
-    category: "Large Group / Team",
-    ageGroup: "13 or More Students",
-    skillLevel: "Team & Squad Level",
-    location: "Designated Gym / Park Court",
-    locationAddress: "Bay Area Training Centers",
-    schedule: "Custom Team Schedule",
-    dates: "Scheduled with Coach",
-    time: "2 Hours per Session",
-    price: 120,
-    capacity: 40,
-    filled: 26,
-    coach: "Full Academy Coaching Staff",
-    description: "4 sessions (2 hours each) for teams, schools, or groups with 13+ athletes. $120 per student."
-  },
   "tryout-session": {
     id: "tryout-session",
     name: "Tryout Session (2 Hours)",
@@ -928,118 +889,120 @@ function generateRegistrationId() {
   return `CVA-${num}`;
 }
 async function sendAdminNotificationEmail(reg) {
-  const adminEmail = process.env.ACADEMY_ADMIN_EMAIL || process.env.ADMIN_SEED_EMAIL || process.env.EMAIL_USER || "kenznajeeb@gmail.com";
+  const adminEmail = (process.env.ACADEMY_ADMIN_EMAIL || process.env.ADMIN_SEED_EMAIL || process.env.EMAIL_USER || "nihalok625@gmail.com").trim();
   const appUrl = process.env.APP_URL || "http://localhost:3000";
   const transporter = getMailTransporter();
   const from = getFromAddress();
-  console.log(`
-======================================================`);
-  console.log(`\u{1F4E7} [EMAIL DISPATCH] \u2192 ADMIN NOTIFICATION`);
-  console.log(`To: ${adminEmail}`);
-  console.log(`From: ${from}`);
-  console.log(`Subject: New Registration: ${reg.playerName}${reg.hasSibling ? ` & ${reg.siblingName} (Sibling)` : ""} ($${reg.amountPaid})`);
-  console.log(`======================================================
-`);
-  const emailSubject = `\u{1F6A8} [New Paid Registration] ${reg.playerName}${reg.hasSibling ? ` + Sibling (${reg.siblingName})` : ""} - ${reg.sessionName} ($${reg.amountPaid}) [${reg.paymentMethod || "Stripe"}]`;
-  if (transporter) {
-    try {
-      await transporter.sendMail({
-        from,
-        to: adminEmail,
-        subject: emailSubject,
-        html: `
-          <!DOCTYPE html>
-          <html>
-          <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f7f5f0; margin: 0; padding: 24px;">
-            <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; border: 1px solid #eae5db; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
-              <div style="background: #1B1B1D; padding: 28px; text-align: center;">
-                <div style="display: inline-block; background: #ea580c; color: #ffffff; font-weight: 900; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; padding: 6px 14px; border-radius: 50px; margin-bottom: 12px;">
-                  New Paid Registration (${reg.paymentMethod || "Stripe"})
-                </div>
-                ${reg.hasSibling ? `
-                <div style="display: block; margin-bottom: 8px;">
-                  <span style="background: #22c55e; color: #ffffff; font-weight: 800; font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; padding: 4px 10px; border-radius: 20px;">
-                    \u2728 2 Athletes Enrolled (Sibling Discount -$50 Applied)
-                  </span>
-                </div>
-                ` : ""}
-                <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;">
-                  ${reg.playerName}${reg.hasSibling ? ` & ${reg.siblingName}` : ""}
-                </h1>
-                <p style="color: #ea580c; margin: 4px 0 0 0; font-size: 16px; font-weight: bold;">
-                  $${reg.amountPaid} USD - ${reg.sessionName}
-                </p>
+  console.log(`[EMAIL DISPATCH] Attempting Admin Notification → ${adminEmail} for Registration ${reg.registrationId}`);
+  if (!transporter) {
+    console.warn(`⚠️ [EMAIL SKIPPED] Admin email not sent: EMAIL_USER or EMAIL_PASS not configured in environment.`);
+    return false;
+  }
+  const emailSubject = `🚨 [New Paid Registration] ${reg.playerName}${reg.hasSibling ? ` + Sibling (${reg.siblingName})` : ""} - ${reg.sessionName} ($${reg.amountPaid}) [${reg.paymentMethod || "Stripe"}]`;
+  try {
+    const info = await transporter.sendMail({
+      from,
+      to: adminEmail,
+      subject: emailSubject,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f7f5f0; margin: 0; padding: 24px;">
+          <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; border: 1px solid #eae5db; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
+            <div style="background: #1B1B1D; padding: 28px; text-align: center;">
+              <div style="display: inline-block; background: #ea580c; color: #ffffff; font-weight: 900; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; padding: 6px 14px; border-radius: 50px; margin-bottom: 12px;">
+                New Paid Registration (${reg.paymentMethod || "Stripe"})
               </div>
+              ${reg.hasSibling ? `
+              <div style="display: block; margin-bottom: 8px;">
+                <span style="background: #22c55e; color: #ffffff; font-weight: 800; font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; padding: 4px 10px; border-radius: 20px;">
+                  ✨ 2 Athletes Enrolled (Sibling Discount -$50 Applied)
+                </span>
+              </div>
+              ` : ""}
+              <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;">
+                ${reg.playerName}${reg.hasSibling ? ` & ${reg.siblingName}` : ""}
+              </h1>
+              <p style="color: #ea580c; margin: 4px 0 0 0; font-size: 16px; font-weight: bold;">
+                $${reg.amountPaid} USD - ${reg.sessionName}
+              </p>
+            </div>
 
-              <div style="padding: 28px;">
+            <div style="padding: 28px;">
 
-                <h3 style="font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: #8c827a; margin: 0 0 16px 0;">
-                  Athlete & Parent Details
-                </h3>
-                <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 24px;">
-                  <tr style="border-bottom: 1px solid #f2ede4;">
-                    <td style="padding: 10px 0; color: #736b63; font-weight: 600; width: 40%;">Registration ID:</td>
-                    <td style="padding: 10px 0; color: #1B1B1D; font-weight: 900;">${reg.registrationId}</td>
-                  </tr>
-                  <tr style="border-bottom: 1px solid #f2ede4;">
-                    <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Primary Athlete:</td>
-                    <td style="padding: 10px 0; color: #1B1B1D; font-weight: bold;">${reg.playerName} ${reg.dob ? `(DOB: ${reg.dob})` : ""}</td>
-                  </tr>
-                  ${reg.hasSibling ? `
-                  <tr style="border-bottom: 1px solid #f2ede4; background-color: #f0fdf4;">
-                    <td style="padding: 10px 0; color: #166534; font-weight: 700;">Sibling Athlete (Athlete 2):</td>
-                    <td style="padding: 10px 0; color: #166534; font-weight: bold;">${reg.siblingName || "Sibling"} ${reg.siblingDob ? `(DOB: ${reg.siblingDob})` : ""}</td>
-                  </tr>
-                  ` : ""}
-                  <tr style="border-bottom: 1px solid #f2ede4;">
-                    <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Parent/Guardian:</td>
-                    <td style="padding: 10px 0; color: #1B1B1D;">${reg.parentName || "N/A"}</td>
-                  </tr>
-                  <tr style="border-bottom: 1px solid #f2ede4;">
-                    <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Email:</td>
-                    <td style="padding: 10px 0; color: #ea580c; font-weight: bold;">${reg.email}</td>
-                  </tr>
-                  <tr style="border-bottom: 1px solid #f2ede4;">
-                    <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Phone:</td>
-                    <td style="padding: 10px 0; color: #1B1B1D;">${reg.phone}</td>
-                  </tr>
-                  <tr style="border-bottom: 1px solid #f2ede4;">
-                    <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Emergency Contact:</td>
-                    <td style="padding: 10px 0; color: #1B1B1D;">${reg.emergencyContactName || "N/A"} (${reg.emergencyContactPhone || "N/A"})</td>
-                  </tr>
-                  <tr style="border-bottom: 1px solid #f2ede4;">
-                    <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Schedule & Location:</td>
-                    <td style="padding: 10px 0; color: #1B1B1D;">${reg.schedule} - ${reg.location}</td>
-                  </tr>
-                  <tr style="border-bottom: 1px solid #f2ede4;">
-                    <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Payment Method:</td>
-                    <td style="padding: 10px 0; color: #1B1B1D; font-weight: bold;">${reg.paymentMethod || "Card"}</td>
-                  </tr>
-                  <tr style="border-bottom: 1px solid #f2ede4;">
-                    <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Total Amount Paid:</td>
-                    <td style="padding: 10px 0; color: #16a34a; font-weight: 900;">$${reg.amountPaid} USD ${reg.hasSibling ? "($50 Sibling Discount Deducted)" : ""}</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Payment / Ref ID:</td>
-                    <td style="padding: 10px 0; color: #1B1B1D; font-family: monospace; font-size: 12px;">${reg.transactionId || reg.stripePaymentIntentId || "N/A"}</td>
-                  </tr>
-                </table>
+              <h3 style="font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: #8c827a; margin: 0 0 16px 0;">
+                Athlete & Parent Details
+              </h3>
+              <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 24px;">
+                <tr style="border-bottom: 1px solid #f2ede4;">
+                  <td style="padding: 10px 0; color: #736b63; font-weight: 600; width: 40%;">Registration ID:</td>
+                  <td style="padding: 10px 0; color: #1B1B1D; font-weight: 900;">${reg.registrationId}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f2ede4;">
+                  <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Primary Athlete:</td>
+                  <td style="padding: 10px 0; color: #1B1B1D; font-weight: bold;">${reg.playerName} ${reg.dob ? `(DOB: ${reg.dob})` : ""}</td>
+                </tr>
+                ${reg.hasSibling ? `
+                <tr style="border-bottom: 1px solid #f2ede4; background-color: #f0fdf4;">
+                  <td style="padding: 10px 0; color: #166534; font-weight: 700;">Sibling Athlete (Athlete 2):</td>
+                  <td style="padding: 10px 0; color: #166534; font-weight: bold;">${reg.siblingName || "Sibling"} ${reg.siblingDob ? `(DOB: ${reg.siblingDob})` : ""}</td>
+                </tr>
+                ` : ""}
+                <tr style="border-bottom: 1px solid #f2ede4;">
+                  <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Parent/Guardian:</td>
+                  <td style="padding: 10px 0; color: #1B1B1D;">${reg.parentName || "N/A"}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f2ede4;">
+                  <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Email:</td>
+                  <td style="padding: 10px 0; color: #ea580c; font-weight: bold;">${reg.email}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f2ede4;">
+                  <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Phone:</td>
+                  <td style="padding: 10px 0; color: #1B1B1D;">${reg.phone}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f2ede4;">
+                  <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Emergency Contact:</td>
+                  <td style="padding: 10px 0; color: #1B1B1D;">${reg.emergencyContactName || "N/A"} (${reg.emergencyContactPhone || "N/A"})</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f2ede4;">
+                  <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Schedule & Location:</td>
+                  <td style="padding: 10px 0; color: #1B1B1D;">${reg.schedule} - ${reg.location}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f2ede4;">
+                  <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Payment Method:</td>
+                  <td style="padding: 10px 0; color: #1B1B1D; font-weight: bold;">${reg.paymentMethod || "Card"}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f2ede4;">
+                  <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Total Amount Paid:</td>
+                  <td style="padding: 10px 0; color: #16a34a; font-weight: 900;">$${reg.amountPaid} USD ${reg.hasSibling ? "($50 Sibling Discount Deducted)" : ""}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Payment / Ref ID:</td>
+                  <td style="padding: 10px 0; color: #1B1B1D; font-family: monospace; font-size: 12px;">${reg.transactionId || reg.stripePaymentIntentId || "N/A"}</td>
+                </tr>
+              </table>
 
-                <div style="text-align: center; margin-top: 24px;">
-                  <a href="${appUrl}/admin" style="display: inline-block; background: #1B1B1D; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-weight: 900; font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px;">
-                    View in Admin Dashboard \u2192
-                  </a>
-                </div>
+              <div style="text-align: center; margin-top: 24px;">
+                <a href="${appUrl}/admin" style="display: inline-block; background: #1B1B1D; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-weight: 900; font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px;">
+                  View in Admin Dashboard →
+                </a>
               </div>
             </div>
-          </body>
-          </html>
-        `
-      });
-      console.log(` Admin notification email sent successfully to ${adminEmail}`);
-    } catch (err) {
-      console.error(" Admin email dispatch error:", err.message);
-    }
+          </div>
+        </body>
+        </html>
+      `
+    });
+    console.log(`✅ [EMAIL SENT] Admin notification sent successfully to ${adminEmail} (MessageId: ${info.messageId})`);
+    return true;
+  } catch (err) {
+    console.error(`❌ [EMAIL ERROR] Admin email dispatch failed (${adminEmail}):`, {
+      code: err.code || "UNKNOWN",
+      responseCode: err.responseCode,
+      response: err.response,
+      message: err.message
+    });
+    return false;
   }
 }
 async function sendCustomerConfirmationEmail(reg) {
@@ -1047,22 +1010,18 @@ async function sendCustomerConfirmationEmail(reg) {
   const from = getFromAddress();
   const customerName = reg.parentName || reg.playerName;
   const targetEmail = String(reg.email || "").trim().toLowerCase();
-  console.log(`
-======================================================`);
-  console.log(`\u{1F4E7} [EMAIL DISPATCH] \u2192 CUSTOMER CONFIRMATION`);
-  console.log(`To: ${targetEmail}`);
-  console.log(`From: ${from}`);
-  console.log(`Subject: Registration Confirmed! \u{1F389} - Challengers Volleyball Academy`);
-  console.log(`======================================================
-`);
+  console.log(`[EMAIL DISPATCH] Attempting Customer Confirmation → ${targetEmail} for Registration ${reg.registrationId}`);
   if (!targetEmail || !targetEmail.includes("@") || targetEmail.includes("example.com")) {
-    console.warn(`\u26A0\uFE0F [CUSTOMER EMAIL SKIPPED] Recipient email is missing or dummy: "${targetEmail}"`);
-    return;
+    console.warn(`⚠️ [CUSTOMER EMAIL SKIPPED] Recipient email is missing or dummy: "${targetEmail}"`);
+    return false;
   }
-  if (transporter) {
-    try {
-      const textSummary = `
-Registration Confirmed! \u{1F389}
+  if (!transporter) {
+    console.warn(`⚠️ [EMAIL SKIPPED] Customer email not sent: EMAIL_USER or EMAIL_PASS not configured in environment.`);
+    return false;
+  }
+  try {
+    const textSummary = `
+Registration Confirmed! 🎉
 Welcome to Challengers Volleyball Academy, ${customerName}!
 
 Registration ID: ${reg.registrationId}
@@ -1084,115 +1043,121 @@ What to Bring to Your First Session:
 If you have questions, reply to this email or call us at (510) 909-5834.
 Challengers Volleyball Academy - Bay Area, CA
 `;
-      const info = await transporter.sendMail({
-        from,
-        to: targetEmail,
-        replyTo: process.env.ACADEMY_ADMIN_EMAIL || process.env.EMAIL_USER || "nihalok625@gmail.com",
-        subject: `\u{1F389} Registration Confirmed: ${reg.sessionName} (${reg.registrationId})`,
-        text: textSummary,
-        html: `
-          <!DOCTYPE html>
-          <html>
-          <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f7f5f0; margin: 0; padding: 24px;">
-            <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 24px; overflow: hidden; border: 1px solid #eae5db; box-shadow: 0 4px 24px rgba(0,0,0,0.06);">
-              <div style="background: #1B1B1D; padding: 36px 28px; text-align: center;">
-                <div style="display: inline-block; background: #ea580c; color: #ffffff; font-weight: 900; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; padding: 6px 16px; border-radius: 50px; margin-bottom: 14px;">
-                  Official Receipt & Confirmation
+    const info = await transporter.sendMail({
+      from,
+      to: targetEmail,
+      replyTo: process.env.ACADEMY_ADMIN_EMAIL || process.env.EMAIL_USER || "nihalok625@gmail.com",
+      subject: `🎉 Registration Confirmed: ${reg.sessionName} (${reg.registrationId})`,
+      text: textSummary,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f7f5f0; margin: 0; padding: 24px;">
+          <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 24px; overflow: hidden; border: 1px solid #eae5db; box-shadow: 0 4px 24px rgba(0,0,0,0.06);">
+            <div style="background: #1B1B1D; padding: 36px 28px; text-align: center;">
+              <div style="display: inline-block; background: #ea580c; color: #ffffff; font-weight: 900; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; padding: 6px 16px; border-radius: 50px; margin-bottom: 14px;">
+                Official Receipt & Confirmation
+              </div>
+              <h1 style="color: #ffffff; margin: 0; font-size: 26px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px;">
+                Welcome to Challengers!
+              </h1>
+              <p style="color: #d4cfc7; margin: 8px 0 0 0; font-size: 14px;">
+                Hi ${customerName}, your registration is confirmed.
+              </p>
+            </div>
+
+            <div style="padding: 32px 28px;">
+              <div style="background: #fff8f5; border: 1px solid #fed7aa; border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 28px;">
+                <div style="font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: #ea580c; margin-bottom: 4px;">
+                  Registration Booking Code
                 </div>
-                <h1 style="color: #ffffff; margin: 0; font-size: 26px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px;">
-                  Welcome to Challengers!
-                </h1>
-                <p style="color: #d4cfc7; margin: 8px 0 0 0; font-size: 14px;">
-                  Hi ${customerName}, your registration is confirmed.
-                </p>
+                <div style="font-size: 28px; font-weight: 900; color: #1B1B1D; letter-spacing: 2px;">
+                  ${reg.registrationId}
+                </div>
+                <div style="font-size: 12px; color: #8c827a; margin-top: 4px;">
+                  Please present this code on your first day of training.
+                </div>
               </div>
 
-              <div style="padding: 32px 28px;">
-                <div style="background: #fff8f5; border: 1px solid #fed7aa; border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 28px;">
-                  <div style="font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: #ea580c; margin-bottom: 4px;">
-                    Registration Booking Code
-                  </div>
-                  <div style="font-size: 28px; font-weight: 900; color: #1B1B1D; letter-spacing: 2px;">
-                    ${reg.registrationId}
-                  </div>
-                  <div style="font-size: 12px; color: #8c827a; margin-top: 4px;">
-                    Please present this code on your first day of training.
-                  </div>
-                </div>
+              <h3 style="font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: #8c827a; margin: 0 0 16px 0;">
+                Session & Payment Summary
+              </h3>
 
-                <h3 style="font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: #8c827a; margin: 0 0 16px 0;">
-                  Session & Payment Summary
-                </h3>
+              <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 24px;">
+                <tr style="border-bottom: 1px solid #f2ede4;">
+                  <td style="padding: 10px 0; color: #736b63; font-weight: 600; width: 40%;">Program / Session:</td>
+                  <td style="padding: 10px 0; color: #1B1B1D; font-weight: bold;">${reg.sessionName}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f2ede4;">
+                  <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Primary Athlete:</td>
+                  <td style="padding: 10px 0; color: #1B1B1D; font-weight: bold;">${reg.playerName}</td>
+                </tr>
+                ${reg.hasSibling ? `
+                <tr style="border-bottom: 1px solid #f2ede4; background-color: #f0fdf4;">
+                  <td style="padding: 10px 0; color: #166534; font-weight: 700;">Sibling Athlete:</td>
+                  <td style="padding: 10px 0; color: #166534; font-weight: bold;">${reg.siblingName || "Sibling"} (Enrolled)</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f2ede4;">
+                  <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Sibling Family Discount:</td>
+                  <td style="padding: 10px 0; color: #16a34a; font-weight: bold;">-$50.00 USD (Deducted)</td>
+                </tr>
+                ` : ""}
+                <tr style="border-bottom: 1px solid #f2ede4;">
+                  <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Schedule & Timings:</td>
+                  <td style="padding: 10px 0; color: #1B1B1D;">${reg.schedule}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f2ede4;">
+                  <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Training Location:</td>
+                  <td style="padding: 10px 0; color: #1B1B1D;">${reg.location}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f2ede4;">
+                  <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Payment Method:</td>
+                  <td style="padding: 10px 0; color: #1B1B1D; font-weight: bold;">${reg.paymentMethod || "Card"}</td>
+                </tr>
+                ${reg.transactionId ? `
+                <tr style="border-bottom: 1px solid #f2ede4;">
+                  <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Transaction / Ref ID:</td>
+                  <td style="padding: 10px 0; color: #1B1B1D; font-family: monospace; font-size: 13px;">${reg.transactionId}</td>
+                </tr>
+                ` : ""}
+                <tr style="border-bottom: 1px solid #f2ede4;">
+                  <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Total Amount Paid:</td>
+                  <td style="padding: 10px 0; color: #16a34a; font-weight: 900; font-size: 16px;">$${reg.amountPaid} USD (PAID)</td>
+                </tr>
+              </table>
 
-                <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 24px;">
-                  <tr style="border-bottom: 1px solid #f2ede4;">
-                    <td style="padding: 10px 0; color: #736b63; font-weight: 600; width: 40%;">Program / Session:</td>
-                    <td style="padding: 10px 0; color: #1B1B1D; font-weight: bold;">${reg.sessionName}</td>
-                  </tr>
-                  <tr style="border-bottom: 1px solid #f2ede4;">
-                    <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Primary Athlete:</td>
-                    <td style="padding: 10px 0; color: #1B1B1D; font-weight: bold;">${reg.playerName}</td>
-                  </tr>
-                  ${reg.hasSibling ? `
-                  <tr style="border-bottom: 1px solid #f2ede4; background-color: #f0fdf4;">
-                    <td style="padding: 10px 0; color: #166534; font-weight: 700;">Sibling Athlete:</td>
-                    <td style="padding: 10px 0; color: #166534; font-weight: bold;">${reg.siblingName || "Sibling"} (Enrolled)</td>
-                  </tr>
-                  <tr style="border-bottom: 1px solid #f2ede4;">
-                    <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Sibling Family Discount:</td>
-                    <td style="padding: 10px 0; color: #16a34a; font-weight: bold;">-$50.00 USD (Deducted)</td>
-                  </tr>
-                  ` : ""}
-                  <tr style="border-bottom: 1px solid #f2ede4;">
-                    <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Schedule & Timings:</td>
-                    <td style="padding: 10px 0; color: #1B1B1D;">${reg.schedule}</td>
-                  </tr>
-                  <tr style="border-bottom: 1px solid #f2ede4;">
-                    <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Training Location:</td>
-                    <td style="padding: 10px 0; color: #1B1B1D;">${reg.location}</td>
-                  </tr>
-                  <tr style="border-bottom: 1px solid #f2ede4;">
-                    <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Payment Method:</td>
-                    <td style="padding: 10px 0; color: #1B1B1D; font-weight: bold;">${reg.paymentMethod || "Card"}</td>
-                  </tr>
-                  ${reg.transactionId ? `
-                  <tr style="border-bottom: 1px solid #f2ede4;">
-                    <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Transaction / Ref ID:</td>
-                    <td style="padding: 10px 0; color: #1B1B1D; font-family: monospace; font-size: 13px;">${reg.transactionId}</td>
-                  </tr>
-                  ` : ""}
-                  <tr style="border-bottom: 1px solid #f2ede4;">
-                    <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Total Amount Paid:</td>
-                    <td style="padding: 10px 0; color: #16a34a; font-weight: 900; font-size: 16px;">$${reg.amountPaid} USD (PAID)</td>
-                  </tr>
-                </table>
+              <div style="background: #f7f5f0; border-radius: 16px; padding: 20px; margin-bottom: 24px;">
+                <h4 style="margin: 0 0 8px 0; font-size: 13px; font-weight: 900; text-transform: uppercase; color: #1B1B1D;">
+                  What to Bring to Your First Session
+                </h4>
+                <ul style="margin: 0; padding-left: 18px; color: #5a534d; font-size: 13px; line-height: 1.6;">
+                  <li>Athletic shoes with good court grip (non-marking soles)</li>
+                  <li>Comfortable athletic clothing & knee pads (optional but recommended)</li>
+                  <li>Refillable water bottle & small towel</li>
+                  <li>Please arrive 10 minutes prior to session start time</li>
+                </ul>
+              </div>
 
-                <div style="background: #f7f5f0; border-radius: 16px; padding: 20px; margin-bottom: 24px;">
-                  <h4 style="margin: 0 0 8px 0; font-size: 13px; font-weight: 900; text-transform: uppercase; color: #1B1B1D;">
-                    What to Bring to Your First Session
-                  </h4>
-                  <ul style="margin: 0; padding-left: 18px; color: #5a534d; font-size: 13px; line-height: 1.6;">
-                    <li>Athletic shoes with good court grip (non-marking soles)</li>
-                    <li>Comfortable athletic clothing & knee pads (optional but recommended)</li>
-                    <li>Refillable water bottle & small towel</li>
-                    <li>Please arrive 10 minutes prior to session start time</li>
-                  </ul>
-                </div>
-
-                <div style="text-align: center; border-top: 1px solid #f2ede4; padding-top: 20px; color: #8c827a; font-size: 12px;">
-                  Have questions or need assistance? Reply directly to this email or call us at +1 (510) 909-5834.<br />
-                  <strong>Challengers Volleyball Academy</strong> - Bay Area, CA
-                </div>
+              <div style="text-align: center; border-top: 1px solid #f2ede4; padding-top: 20px; color: #8c827a; font-size: 12px;">
+                Have questions or need assistance? Reply directly to this email or call us at +1 (510) 909-5834.<br />
+                <strong>Challengers Volleyball Academy</strong> - Bay Area, CA
               </div>
             </div>
-          </body>
-          </html>
-        `
-      });
-      console.log(` Customer confirmation email sent successfully to ${targetEmail} (MessageId: ${info.messageId})`);
-    } catch (err) {
-      console.error(` Customer confirmation email dispatch error (${targetEmail}):`, err.message);
-    }
+          </div>
+        </body>
+        </html>
+      `
+    });
+    console.log(`✅ [EMAIL SENT] Customer confirmation sent successfully to ${targetEmail} (MessageId: ${info.messageId})`);
+    return true;
+  } catch (err) {
+    console.error(`❌ [EMAIL ERROR] Customer confirmation dispatch failed (${targetEmail}):`, {
+      code: err.code || "UNKNOWN",
+      responseCode: err.responseCode,
+      response: err.response,
+      message: err.message
+    });
+    return false;
   }
 }
 async function createApp() {
@@ -1213,7 +1178,7 @@ async function createApp() {
       try {
         event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
       } catch (err) {
-        console.error(`\u26A0\uFE0F Webhook signature verification failed:`, err.message);
+        console.error(`⚠️ Webhook signature verification failed:`, err.message);
         return res.status(400).send(`Webhook Error: ${err.message}`);
       }
     } else if (process.env.NODE_ENV !== "production") {
@@ -1223,16 +1188,16 @@ async function createApp() {
         event = req.body;
       }
     } else {
-      console.error("\u26A0\uFE0F Rejected unverified Stripe webhook: missing signature or webhook secret in production.");
+      console.error("⚠️ Rejected unverified Stripe webhook: missing signature or webhook secret in production.");
       return res.status(400).send("Webhook signature verification required in production.");
     }
-    console.log(`\u{1F514} Stripe Webhook Received: ${event?.type || "unknown_event"}`);
+    console.log(`🔔 Stripe Webhook Received: ${event?.type || "unknown_event"}`);
     if (event?.type === "payment_intent.succeeded" || event?.type === "checkout.session.completed") {
       const sessionOrIntent = event.data?.object;
       const metadata = sessionOrIntent?.metadata || {};
       const registrationId = metadata.registrationId || `CVA-${Math.floor(1e4 + Math.random() * 9e4)}`;
       if (registrations[registrationId]) {
-        console.log(`\u2139\uFE0F Registration ${registrationId} already confirmed. Skipping duplicate.`);
+        console.log(`ℹ️ Registration ${registrationId} already confirmed. Skipping duplicate.`);
         return res.json({ received: true, alreadyProcessed: true });
       }
       const sessionId = metadata.sessionId || "starter-pack";
@@ -1249,7 +1214,7 @@ async function createApp() {
         email: metadata.email || metadata.primaryEmail || sessionOrIntent.customer_details?.email || process.env.EMAIL_USER || "nihalok625@gmail.com",
         phone: metadata.phone || metadata.primaryPhone || "N/A",
         dob: metadata.dob || "",
-        location: metadata.location || sessionItem?.location || "Fremont Arena",
+        location: metadata.preferredLocation || metadata.location || sessionItem?.location || "Fremont (Kerala House)",
         schedule: metadata.schedule || sessionItem?.schedule || "Weekend Sessions",
         amountPaid,
         paymentStatus: "PAID",
@@ -1276,8 +1241,10 @@ async function createApp() {
         leads[metadata.leadId].status = "confirmed";
         leads[metadata.leadId].registrationId = registrationId;
       }
-      await sendAdminNotificationEmail(newRegistration);
-      await sendCustomerConfirmationEmail(newRegistration);
+      await Promise.allSettled([
+        sendAdminNotificationEmail(newRegistration),
+        sendCustomerConfirmationEmail(newRegistration)
+      ]);
     }
     res.json({ received: true });
   });
@@ -2022,7 +1989,9 @@ Temp Password: ${tempPassword}
       hasSibling,
       siblingName,
       siblingDob,
-      siblingGender
+      siblingGender,
+      preferredLocation,
+      location
     } = req.body;
     if (!playerName || !String(playerName).trim()) {
       return res.status(400).json({ success: false, message: "Athlete full name is required." });
@@ -2112,6 +2081,7 @@ Temp Password: ${tempPassword}
     const amountInCents = Math.round(finalAmount * 100);
     const registrationId = generateRegistrationId();
     const leadId = nanoid();
+    const chosenLocation = String(preferredLocation || location || req.body.preferredLocation || req.body.location || session.location || "Fremont (Kerala House)").trim();
     const metadata = {
       registrationId,
       leadId,
@@ -2122,7 +2092,8 @@ Temp Password: ${tempPassword}
       email: email || "",
       phone: phone || "",
       dob: dob || "",
-      location: session.location,
+      location: chosenLocation,
+      preferredLocation: chosenLocation,
       schedule: session.schedule,
       emergencyContactName: emergencyContactName || "",
       emergencyContactPhone: emergencyContactPhone || "",
@@ -2140,6 +2111,8 @@ Temp Password: ${tempPassword}
       id: leadId,
       registrationId,
       ...metadata,
+      location: chosenLocation,
+      preferredLocation: chosenLocation,
       amount: finalAmount,
       basePrice: singlePrice,
       hasSibling: isSibling,
@@ -2191,7 +2164,7 @@ Temp Password: ${tempPassword}
               currency: chargeCurrency,
               product_data: {
                 name: isSibling ? `Challengers Academy - ${session.name} (2 Athletes with $50 Sibling Discount)` : `Challengers Academy - ${session.name}`,
-                description: isSibling ? `Athletes: ${playerName} & ${siblingName} | Location: ${session.location} (Includes -$50 Sibling Family Discount)` : `Athlete: ${playerName || "Student Athlete"} | Schedule: ${session.schedule} | Location: ${session.location}`
+                description: isSibling ? `Athletes: ${playerName} & ${siblingName} | Location: ${chosenLocation} (Includes -$50 Sibling Family Discount)` : `Athlete: ${playerName || "Student Athlete"} | Schedule: ${session.schedule} | Location: ${chosenLocation}`
               },
               unit_amount: chargeAmount
             },
@@ -2270,7 +2243,7 @@ Temp Password: ${tempPassword}
               email: matchedLead.email || intent.receipt_email || process.env.EMAIL_USER || "nihalok625@gmail.com",
               phone: matchedLead.phone || "N/A",
               dob: matchedLead.dob || "",
-              location: matchedLead.location || "Fremont Arena",
+              location: matchedLead.preferredLocation || matchedLead.location || "Fremont (Kerala House)",
               schedule: matchedLead.schedule || "Weekend Sessions",
               amountPaid,
               paymentStatus: "PAID",
@@ -2291,8 +2264,14 @@ Temp Password: ${tempPassword}
             };
             await saveRegistrationToDb(confirmedReg);
             matchedLead.status = "confirmed";
-            sendAdminNotificationEmail(confirmedReg).catch((err) => console.error("Admin email error:", err.message));
-            sendCustomerConfirmationEmail(confirmedReg).catch((err) => console.error("Customer email error:", err.message));
+            try {
+              await Promise.allSettled([
+                sendAdminNotificationEmail(confirmedReg),
+                sendCustomerConfirmationEmail(confirmedReg)
+              ]);
+            } catch (mailErr) {
+              console.error("Email dispatch error during check-payment-status:", mailErr.message);
+            }
             return res.json({ success: true, confirmed: true, registration: confirmedReg });
           }
         } catch (stripeErr) {
@@ -2343,6 +2322,16 @@ Temp Password: ${tempPassword}
     const dob = lead?.dob || student.dob || req.body.dob || "";
     const emergencyContactName = lead?.emergencyContactName || student.emergencyContactName || req.body.emergencyContactName || "";
     const emergencyContactPhone = lead?.emergencyContactPhone || student.emergencyContactPhone || req.body.emergencyContactPhone || "";
+    const resolvedLocation = String(
+      req.body.preferredLocation ||
+      req.body.location ||
+      student.preferredLocation ||
+      student.location ||
+      lead?.preferredLocation ||
+      lead?.location ||
+      session?.location ||
+      "Fremont (Kerala House)"
+    ).trim();
     if (paymentMethod === "QR Code" || paymentMethod === "qr") {
       const cleanTx = String(transactionId || "").trim() || `QR-${nanoid(8).toUpperCase()}`;
       const confirmedReg = {
@@ -2354,7 +2343,7 @@ Temp Password: ${tempPassword}
         email,
         phone,
         dob,
-        location: session?.location || lead?.location || "Fremont Arena",
+        location: resolvedLocation,
         schedule: session?.schedule || lead?.schedule || "Weekend Sessions",
         amountPaid: computedAmountPaid,
         paymentStatus: "PAID",
@@ -2381,8 +2370,14 @@ Temp Password: ${tempPassword}
       if (lead) {
         lead.status = "confirmed";
       }
-      sendAdminNotificationEmail(confirmedReg).catch((e) => console.error("Admin email error:", e.message));
-      sendCustomerConfirmationEmail(confirmedReg).catch((e) => console.error("Customer email error:", e.message));
+      try {
+        await Promise.allSettled([
+          sendAdminNotificationEmail(confirmedReg),
+          sendCustomerConfirmationEmail(confirmedReg)
+        ]);
+      } catch (mailErr) {
+        console.error("Email dispatch error during QR verify-payment:", mailErr.message);
+      }
       return res.json({ success: true, registration: confirmedReg });
     }
     const stripe = getStripe();
@@ -2396,7 +2391,7 @@ Temp Password: ${tempPassword}
         email,
         phone,
         dob,
-        location: session?.location || lead?.location || "Fremont Arena",
+        location: resolvedLocation,
         schedule: session?.schedule || lead?.schedule || "Weekend Sessions",
         amountPaid: computedAmountPaid,
         paymentStatus: "PAID",
@@ -2423,8 +2418,14 @@ Temp Password: ${tempPassword}
       if (lead) {
         lead.status = "confirmed";
       }
-      sendAdminNotificationEmail(confirmedReg).catch((e) => console.error("Admin email error:", e.message));
-      sendCustomerConfirmationEmail(confirmedReg).catch((e) => console.error("Customer email error:", e.message));
+      try {
+        await Promise.allSettled([
+          sendAdminNotificationEmail(confirmedReg),
+          sendCustomerConfirmationEmail(confirmedReg)
+        ]);
+      } catch (mailErr) {
+        console.error("Email dispatch error during mock verify-payment:", mailErr.message);
+      }
       return res.json({ success: true, registration: confirmedReg });
     }
     try {
@@ -2462,7 +2463,7 @@ Temp Password: ${tempPassword}
           email: resolvedEmail,
           phone: resolvedPhone,
           dob: resolvedDob,
-          location: metadata.location || session?.location || lead?.location || "Fremont Arena",
+          location: metadata.preferredLocation || metadata.location || resolvedLocation,
           schedule: metadata.schedule || session?.schedule || lead?.schedule || "Weekend Sessions",
           amountPaid: intentAmountPaid,
           paymentStatus: "PAID",
@@ -2490,8 +2491,14 @@ Temp Password: ${tempPassword}
           lead.status = "confirmed";
           await saveLeadToDb(lead);
         }
-        sendAdminNotificationEmail(confirmedReg).catch((e) => console.error("Admin email error:", e.message));
-        sendCustomerConfirmationEmail(confirmedReg).catch((e) => console.error("Customer email error:", e.message));
+        try {
+          await Promise.allSettled([
+            sendAdminNotificationEmail(confirmedReg),
+            sendCustomerConfirmationEmail(confirmedReg)
+          ]);
+        } catch (mailErr) {
+          console.error("Email dispatch error during stripe verify-payment:", mailErr.message);
+        }
         return res.json({ success: true, registration: confirmedReg });
       } else {
         return res.status(400).json({ success: false, message: `Payment is not completed. Stripe status: ${intent.status}` });
@@ -2499,6 +2506,47 @@ Temp Password: ${tempPassword}
     } catch (err) {
       console.error("Payment verification failed:", err);
       res.status(500).json({ success: false, message: err.message || "Payment verification failed" });
+    }
+  });
+  app.post("/api/admin/registrations/:id/resend-email", requireAuth, async (req, res) => {
+    try {
+      const regId = req.params.id;
+      let reg = registrations[regId];
+      if (!reg) {
+        const db = await getMongoDb();
+        if (db) {
+          const doc = await db.collection("registrations").findOne({ 
+            $or: [
+              { registrationId: regId },
+              { _id: ObjectId.isValid(regId) ? new ObjectId(regId) : null }
+            ] 
+          });
+          if (doc) reg = doc;
+        }
+      }
+      if (!reg) {
+        return res.status(404).json({ success: false, message: `Registration "${regId}" not found.` });
+      }
+      console.log(`📨 [MANUAL RESEND] Resending confirmation emails for registration ${reg.registrationId} (${reg.playerName})`);
+      const [adminRes, custRes] = await Promise.allSettled([
+        sendAdminNotificationEmail(reg),
+        sendCustomerConfirmationEmail(reg)
+      ]);
+      const adminSent = adminRes.status === "fulfilled" && adminRes.value === true;
+      const customerSent = custRes.status === "fulfilled" && custRes.value === true;
+      res.json({
+        success: true,
+        message: `Dispatched: Customer (${customerSent ? "Sent" : "Failed"}), Admin (${adminSent ? "Sent" : "Failed"})`,
+        adminSent,
+        customerSent,
+        details: {
+          recipientEmail: reg.email,
+          adminEmail: process.env.ACADEMY_ADMIN_EMAIL || process.env.ADMIN_SEED_EMAIL || process.env.EMAIL_USER
+        }
+      });
+    } catch (err) {
+      console.error("Error in resend-email endpoint:", err);
+      res.status(500).json({ success: false, message: err.message || "Failed to resend emails" });
     }
   });
   app.get("/api/test-email", async (req, res) => {

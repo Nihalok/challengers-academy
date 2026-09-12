@@ -88,6 +88,7 @@ export default function Admin() {
   const [isEditingStudent, setIsEditingStudent] = useState(false);
   const [editingStudent, setEditingStudent] = useState<any>(null);
   const [isSavingStudent, setIsSavingStudent] = useState(false);
+  const [resendingEmailId, setResendingEmailId] = useState<string | null>(null);
   const [studentEditForm, setStudentEditForm] = useState({
     playerName: '',
     parentName: '',
@@ -703,6 +704,39 @@ export default function Admin() {
     }
   };
 
+  const handleResendEmail = async (reg: any) => {
+    const regId = reg.registrationId || reg._id;
+    const studentName = reg.playerName || 'this athlete';
+    const recipientEmail = reg.email || 'customer';
+
+    if (!confirm(`Resend enrollment confirmation and admin notification emails for "${studentName}" (${recipientEmail})?`)) {
+      return;
+    }
+
+    const token = getToken();
+    setResendingEmailId(regId);
+    try {
+      const response = await fetch(`/api/admin/registrations/${regId}/resend-email`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        }
+      });
+      const data = await response.json();
+      if (data.success) {
+        alert(`✅ Email Dispatch Status:\n\n${data.message}\nCustomer: ${data.details?.recipientEmail}\nAdmin: ${data.details?.adminEmail}`);
+      } else {
+        alert(`❌ Email dispatch failed: ${data.message || 'Unknown error'}`);
+      }
+    } catch (err: any) {
+      console.error('Error resending email:', err);
+      alert('Network or server error while dispatching email.');
+    } finally {
+      setResendingEmailId(null);
+    }
+  };
+
   const handleLogout = async () => {
     await logout();
     navigate('/login');
@@ -890,7 +924,7 @@ export default function Admin() {
                             </td>
                             <td className="px-6 py-5">
                               <div className="text-xs font-bold text-espresso">{reg.sessionName || reg.sessionId}</div>
-                              <div className="text-[10px] text-espresso/50 font-medium">{reg.schedule || 'Flexible'} · {reg.location || 'Fremont'}</div>
+                              <div className="text-[10px] text-espresso/50 font-medium">{reg.schedule || 'Flexible'} · {reg.location || reg.preferredLocation || 'Fremont (Kerala House)'}</div>
                             </td>
                             <td className="px-6 py-5">
                               <span className="text-sm font-black text-green-600 font-mono">
@@ -923,6 +957,19 @@ export default function Admin() {
                             </td>
                             <td className="px-8 py-5 text-right">
                               <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => handleResendEmail(reg)}
+                                  disabled={resendingEmailId === (reg.registrationId || reg._id)}
+                                  className="p-2 text-espresso/40 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all cursor-pointer disabled:opacity-50"
+                                  title="Resend Confirmation & Admin Notification Email"
+                                >
+                                  {resendingEmailId === (reg.registrationId || reg._id) ? (
+                                    <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                                  ) : (
+                                    <Mail className="w-4 h-4" />
+                                  )}
+                                </button>
                                 <button
                                   type="button"
                                   onClick={() => handleOpenEditStudent(reg)}

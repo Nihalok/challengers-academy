@@ -409,7 +409,7 @@ export default function Register() {
           const otherServerSessions: SessionItem[] = [];
 
           // Augment or add from database — split camps vs others
-          data.sessions.forEach((s: any) => {
+          data.sessions.filter((s: any) => s.id !== 'large-group-training').forEach((s: any) => {
             const isCamp = (s.category || '').toLowerCase().includes('summer') ||
                            (s.id || '').toLowerCase().includes('summer-camp') ||
                            (s.id || '').toLowerCase().includes('camp');
@@ -439,7 +439,7 @@ export default function Register() {
             };
             if (isCamp) {
               campSessions.push(sessionItem);
-            } else if (!OFFICIAL_SESSIONS.find(o => o.id === s.id) && !s.id.toLowerCase().includes('duplicate')) {
+            } else if (!OFFICIAL_SESSIONS.find(o => o.id === s.id) && !s.id.toLowerCase().includes('duplicate') && s.id !== 'large-group-training') {
               otherServerSessions.push(sessionItem);
             }
           });
@@ -773,6 +773,8 @@ export default function Register() {
         body: JSON.stringify({
           sessionId: selectedSession.id,
           price: selectedSession.price,
+          location: formData.preferredLocation,
+          preferredLocation: formData.preferredLocation,
           ...formData
         })
       });
@@ -2013,7 +2015,7 @@ export default function Register() {
 
                           <div className="flex justify-between py-2 border-b border-slate-100">
                             <span className="text-slate-500 font-medium">Location:</span>
-                            <strong className="text-slate-900 text-right">{registrationRecord?.location || selectedSession.location}</strong>
+                            <strong className="text-slate-900 text-right">{registrationRecord?.location || registrationRecord?.preferredLocation || formData.preferredLocation || selectedSession.location}</strong>
                           </div>
 
                           <div className="flex justify-between py-2 border-b border-slate-100">
@@ -2171,6 +2173,8 @@ function StripeCardForm({
             registrationId: activeRegistrationId,
             sessionId: selectedSession?.id,
             studentData: formData,
+            location: formData.preferredLocation,
+            preferredLocation: formData.preferredLocation,
             hasSibling: formData.hasSibling,
             siblingName: formData.siblingName,
             siblingDob: formData.siblingDob,
@@ -2193,7 +2197,7 @@ function StripeCardForm({
           email: formData.email,
           phone: formData.phone,
           dob: formData.dob,
-          location: selectedSession?.location,
+          location: formData.preferredLocation || selectedSession?.location,
           schedule: selectedSession?.schedule,
           amountPaid: totalAmount,
           paymentStatus: 'PAID',
