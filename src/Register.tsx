@@ -47,29 +47,6 @@ export interface SessionItem {
 // 7 Official Academy Training Packages
 const OFFICIAL_SESSIONS: SessionItem[] = [
   {
-    id: 'tryout-session',
-    name: 'Tryout Session & Evaluation',
-    category: 'Assessment',
-    students: '1 Student / Group',
-    sessionDuration: '2 Hours',
-    packageCount: '1 Session',
-    ageGroup: 'All Ages / Prospective Athletes',
-    skillLevel: 'Placement Evaluation',
-    location: 'Fremont · Manteca · Mountain House · San Jose',
-    locationAddress: 'Fremont (Kerala House) · Manteca (Courtside Sports) · Mountain House (Hansen Elementary) · San Jose',
-    schedule: 'Weekly Tryout Batches',
-    dates: 'Upcoming Weekend Batch',
-    time: '2 Hours Assessment',
-    price: 30,
-    priceNote: 'evaluation fee',
-    capacity: 20,
-    filled: 9,
-    coach: 'Head Coach Wilson Mathew',
-    description: 'Comprehensive court evaluation, baseline physical assessment, and coach feedback to determine ideal program placement.',
-    features: ['Court Evaluation', 'Mechanics & Skill Audit', 'Roster Level Recommendation', 'No Long-Term Commitment'],
-    popular: false
-  },
-  {
     id: 'gym-training-1hr',
     name: 'Gym Training Package',
     category: 'Gym Training',
@@ -137,6 +114,29 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     description: 'Comprehensive 12-session indoor gym training for full athlete progression.',
     features: ['Best Value Package', 'Position Specialization', 'School & Club Tryout Prep', 'Full Athlete Progression'],
     popular: true
+  },
+  {
+    id: 'tryout-session',
+    name: 'Tryout Session & Evaluation',
+    category: 'Assessment',
+    students: '1 Student / Group',
+    sessionDuration: '2 Hours',
+    packageCount: '1 Session',
+    ageGroup: 'All Ages / Prospective Athletes',
+    skillLevel: 'Placement Evaluation',
+    location: 'Fremont · Manteca · Mountain House · San Jose',
+    locationAddress: 'Fremont (Kerala House) · Manteca (Courtside Sports) · Mountain House (Hansen Elementary) · San Jose',
+    schedule: 'Weekly Tryout Batches',
+    dates: 'Upcoming Weekend Batch',
+    time: '2 Hours Assessment',
+    price: 30,
+    priceNote: 'evaluation fee',
+    capacity: 20,
+    filled: 9,
+    coach: 'Head Coach Wilson Mathew',
+    description: 'Comprehensive court evaluation, baseline physical assessment, and coach feedback to determine ideal program placement.',
+    features: ['Court Evaluation', 'Mechanics & Skill Audit', 'Roster Level Recommendation', 'No Long-Term Commitment'],
+    popular: false
   },
   {
     id: 'open-park-group',
@@ -896,7 +896,7 @@ export default function Register() {
           <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-6 no-scrollbar">
             {[
               { id: 'all', label: `All Packages (${sessions.length})` },
-              { id: 'gym', label: 'Gym Training ($200 - $550)' },
+              { id: 'gym', label: 'Gym Training ($100 - $550)' },
               { id: 'park', label: 'Open Park Groups ($150)' },
               { id: 'private', label: 'Private 1-on-1 ($320 - $360)' },
               { id: 'tryout', label: 'Tryout Session ($30)' },
@@ -959,17 +959,6 @@ export default function Register() {
                     btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#D62828]'
                   };
                 }
-                if (id.includes('park-group') || category.includes('Park')) {
-                  return {
-                    bgClass: 'bg-white border-espresso/15',
-                    badgeClass: 'bg-[#0B5D51] text-white font-black',
-                    bgImage: '/vb_park.jpg',
-                    btnBg: '#0B5D51',
-                    btnShadow: '#063A32',
-                    btnTextColor: '#FFFFFF',
-                    btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#0B5D51]'
-                  };
-                }
                 if (id.includes('private') || id.includes('travel') || category.includes('Private') || category.includes('Travel')) {
                   return {
                     bgClass: 'bg-white border-espresso/15',
@@ -979,6 +968,17 @@ export default function Register() {
                     btnShadow: '#B88500',
                     btnTextColor: '#1B1B1D',
                     btnIconClass: 'bg-espresso/15 text-espresso group-hover/btn:bg-espresso group-hover/btn:text-white'
+                  };
+                }
+                if (id.includes('park') || category.includes('Park')) {
+                  return {
+                    bgClass: 'bg-white border-espresso/15',
+                    badgeClass: 'bg-[#15803D] text-white font-black',
+                    bgImage: '/vb_park.jpg',
+                    btnBg: '#15803D',
+                    btnShadow: '#14532D',
+                    btnTextColor: '#FFFFFF',
+                    btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#15803D]'
                   };
                 }
                 if (id.includes('large-group') || category.includes('Large Group')) {
@@ -992,15 +992,26 @@ export default function Register() {
                     btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#D62828]'
                   };
                 }
-                // Fallback / Camp theme
+                if (id.includes('camp') || category.toLowerCase().includes('camp') || category.toLowerCase().includes('clinic')) {
+                  return {
+                    bgClass: 'bg-white border-espresso/15',
+                    badgeClass: 'bg-[#0284C7] text-white font-black',
+                    bgImage: '/vb_intensive.jpg',
+                    btnBg: '#0284C7',
+                    btnShadow: '#0369A1',
+                    btnTextColor: '#FFFFFF',
+                    btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#0284C7]'
+                  };
+                }
+                // Fallback / Default theme
                 return {
                   bgClass: 'bg-white border-espresso/15',
-                  badgeClass: 'bg-[#D62828] text-white font-black',
+                  badgeClass: 'bg-[#0284C7] text-white font-black',
                   bgImage: '/vb_intensive.jpg',
-                  btnBg: '#D62828',
-                  btnShadow: '#851010',
+                  btnBg: '#0284C7',
+                  btnShadow: '#0369A1',
                   btnTextColor: '#FFFFFF',
-                  btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#D62828]'
+                  btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#0284C7]'
                 };
               };
 

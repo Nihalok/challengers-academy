@@ -3,16 +3,6 @@ import { ASSETS } from './assets/images';
 
 export const PROGRAMS: Program[] = [
   {
-    id: 'tryout-session',
-    title: 'Tryout Session (Court Evaluation)',
-    description: 'Court evaluation to assess skill level, agility, and place athlete in the optimal academy group.',
-    longDescription: 'Our 2-hour court evaluation gives new players a complete skill assessment. Coaches evaluate passing, serving, setting, and court awareness to assign players to their ideal training group.',
-    image: ASSETS.HERO.ACTION_CARD_4,
-    ageRange: '5 - 18',
-    ageGroups: ['5-10', '11-14', '15-18'],
-    features: ['1 Court Evaluation ($30)', '2-Hour Session', 'Individual / Group', 'Roster Recommendation']
-  },
-  {
     id: 'gym-training-1hr',
     title: 'Gym Training (4 Sessions – 1 Hour)',
     description: 'Indoor gym training covering foundational volleyball mechanics and passing precision.',
@@ -41,6 +31,16 @@ export const PROGRAMS: Program[] = [
     ageRange: '5 - 18',
     ageGroups: ['5-10', '11-14', '15-18'],
     features: ['12 x 2-Hour Sessions ($550)', 'Save $50 vs 4-Pack', 'Position Specialization', 'School & Club Prep']
+  },
+  {
+    id: 'tryout-session',
+    title: 'Tryout Session (Court Evaluation)',
+    description: 'Court evaluation to assess skill level, agility, and place athlete in the optimal academy group.',
+    longDescription: 'Our 2-hour court evaluation gives new players a complete skill assessment. Coaches evaluate passing, serving, setting, and court awareness to assign players to their ideal training group.',
+    image: ASSETS.HERO.ACTION_CARD_4,
+    ageRange: '5 - 18',
+    ageGroups: ['5-10', '11-14', '15-18'],
+    features: ['1 Court Evaluation ($30)', '2-Hour Session', 'Individual / Group', 'Roster Recommendation']
   },
   {
     id: 'open-park-group',

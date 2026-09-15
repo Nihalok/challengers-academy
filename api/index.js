@@ -3589,11 +3589,9 @@ Temp Password: ${tempPassword}
   });
   app.get("/api/admin/stats", requireAuth, async (req, res) => {
     if (getStripe()) {
-      try {
-        await syncStripePaymentsWithDb();
-      } catch (e) {
-        console.warn("Stripe sync warning during stats load:", e.message);
-      }
+      syncStripePaymentsWithDb().catch((e) => {
+        console.warn("Background Stripe sync notice:", e.message);
+      });
     }
     let allRegistrations = Object.values(registrations);
     let allLeads = Object.values(leads);

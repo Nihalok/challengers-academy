@@ -201,28 +201,40 @@ export default function Admin() {
     const token = getToken();
 
     try {
-      const response = await fetch('/api/admin/stats', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await response.json();
-      if (data.success) {
-        setStats(data.stats);
-        setLeads(data.leads || []);
-        setRegistrationsList(data.registrations || []);
-        if (data.gallery?.length) {
-          setGalleryItems(data.gallery);
+      const [statsPromise, galleryPromise] = [
+        fetch('/api/admin/stats', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch('/api/gallery')
+      ];
+
+      const [statsRes, galleryRes] = await Promise.all([
+        statsPromise.catch(() => null),
+        galleryPromise.catch(() => null)
+      ]);
+
+      if (statsRes) {
+        if (statsRes.status === 401) {
+          await logout();
+          navigate('/login');
+          return;
         }
-      } else if (response.status === 401) {
-        await logout();
-        navigate('/login');
-        return;
+        const data = await statsRes.json();
+        if (data.success) {
+          setStats(data.stats);
+          setLeads(data.leads || []);
+          setRegistrationsList(data.registrations || []);
+          if (data.gallery?.length) {
+            setGalleryItems(data.gallery);
+          }
+        }
       }
 
-      // Fetch live gallery collection from MongoDB API
-      const galleryRes = await fetch('/api/gallery');
-      const galleryData = await galleryRes.json();
-      if (galleryData.success && Array.isArray(galleryData.items)) {
-        setGalleryItems(galleryData.items);
+      if (galleryRes && galleryRes.ok) {
+        const galleryData = await galleryRes.json();
+        if (galleryData.success && Array.isArray(galleryData.items)) {
+          setGalleryItems(galleryData.items);
+        }
       }
     } catch (err) {
       console.error('Fetch error:', err);
@@ -924,9 +936,9 @@ export default function Admin() {
   return (
     <>
     <SessionTimeoutModal onLogout={handleLogout} onExtend={() => {}} />
-    <div className="min-h-screen bg-sand/30 font-sans">
+    <div className="min-h-screen bg-sand/30 font-sans" data-lenis-prevent="true">
       {/* Admin Sidebar */}
-      <div className="fixed left-0 top-0 h-full w-64 md:w-72 bg-espresso text-white z-50 overflow-y-auto shadow-2xl">
+      <div data-lenis-prevent="true" className="fixed left-0 top-0 h-full w-64 md:w-72 bg-espresso text-white z-50 overflow-y-auto shadow-2xl">
         <div className="p-8 flex items-center gap-3">
           <div className="w-10 h-10 bg-orange rounded-xl flex items-center justify-center font-black">C</div>
           <span className="font-condensed font-black tracking-tighter text-2xl uppercase">Admin</span>
@@ -1161,7 +1173,10 @@ export default function Admin() {
                     </div>
                   </div>
 
-                  <div className="overflow-x-auto admin-table-scroll max-h-[580px] border-t border-espresso/5">
+                  <div 
+                    data-lenis-prevent="true"
+                    className="overflow-x-auto overflow-y-auto admin-table-scroll max-h-[580px] border-t border-espresso/5"
+                  >
                     <table className="w-full text-left border-collapse">
                       <thead className="sticky top-0 z-10 bg-[#FBF9F6] shadow-sm">
                         <tr className="bg-[#FBF9F6] text-[10px] font-black uppercase tracking-widest text-espresso/50 border-b border-espresso/10">
@@ -1357,7 +1372,10 @@ export default function Admin() {
                     </div>
                   </div>
 
-                  <div className="overflow-x-auto admin-table-scroll max-h-[440px] border-t border-espresso/5">
+                  <div 
+                    data-lenis-prevent="true"
+                    className="overflow-x-auto overflow-y-auto admin-table-scroll max-h-[440px] border-t border-espresso/5"
+                  >
                     <table className="w-full text-left border-collapse">
                       <thead className="sticky top-0 z-10 bg-[#FBF9F6] shadow-sm">
                         <tr className="bg-[#FBF9F6] text-[10px] font-black uppercase tracking-widest text-espresso/50 border-b border-espresso/10">
@@ -2518,7 +2536,10 @@ export default function Admin() {
                   </div>
                 )}
 
-                <div className="bg-white rounded-[3rem] border border-espresso/5 shadow-xl overflow-hidden">
+                <div 
+                  data-lenis-prevent="true"
+                  className="bg-white rounded-[3rem] border border-espresso/5 shadow-xl overflow-hidden overflow-x-auto admin-table-scroll"
+                >
                   <table className="w-full">
                     <thead>
                       <tr className="bg-sand/5 text-[10px] font-black uppercase tracking-widest text-espresso/40 border-b border-espresso/5">
@@ -2603,7 +2624,11 @@ export default function Admin() {
                 </button>
               </div>
 
-              <form onSubmit={handleSaveStudent} className="space-y-4 overflow-y-auto pr-1 flex-1">
+              <form 
+                data-lenis-prevent="true"
+                onSubmit={handleSaveStudent} 
+                className="space-y-4 overflow-y-auto pr-1 flex-1"
+              >
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[10px] font-black uppercase tracking-wider text-espresso/60 mb-1">

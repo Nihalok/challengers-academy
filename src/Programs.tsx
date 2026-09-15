@@ -29,12 +29,13 @@ export default function Programs() {
   }, []);
 
   const ORDERED_PROGRAM_IDS = [
-    'tryout-session',
+    'gym-training-1hr',
     'gym-training-4',
     'gym-training-12',
-    'open-park-private',
+    'tryout-session',
     'open-park-group',
-    'open-park-travel'
+    'open-park-travel',
+    'open-park-private'
   ];
 
   const sortedFrameworkPrograms = [...programsList].sort((a, b) => {
@@ -47,24 +48,6 @@ export default function Programs() {
   });
 
   const REGULAR_PACKAGES = [
-    {
-      id: 'tryout-session',
-      title: 'Tryout Session',
-      fee: '$30',
-      sessions: '1 Court Evaluation',
-      duration: '2 Hours Duration',
-      students: 'Individual / Group',
-      popular: false,
-      tag: 'EVALUATION',
-      bgImage: '/vb_tryout.jpg',
-      badgeStyle: 'bg-[#F3722C] text-white font-black',
-      btnBg: '#F3722C',
-      btnShadow: '#A84308',
-      btnTextColor: '#FFFFFF',
-      btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#F3722C]',
-      ageRange: '5 - 18',
-      ageGroups: ['5-10', '11-14', '15-18']
-    },
     {
       id: 'gym-training-1hr',
       title: 'Gym Training Package',
@@ -120,6 +103,24 @@ export default function Programs() {
       ageGroups: ['5-10', '11-14', '15-18']
     },
     {
+      id: 'tryout-session',
+      title: 'Tryout Session',
+      fee: '$30',
+      sessions: '1 Court Evaluation',
+      duration: '2 Hours Duration',
+      students: 'Individual / Group',
+      popular: false,
+      tag: 'EVALUATION',
+      bgImage: '/vb_tryout.jpg',
+      badgeStyle: 'bg-[#F3722C] text-white font-black',
+      btnBg: '#F3722C',
+      btnShadow: '#A84308',
+      btnTextColor: '#FFFFFF',
+      btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#F3722C]',
+      ageRange: '5 - 18',
+      ageGroups: ['5-10', '11-14', '15-18']
+    },
+    {
       id: 'open-park-group',
       title: 'Open Park – Group Training',
       fee: '$150',
@@ -129,11 +130,11 @@ export default function Programs() {
       popular: false,
       tag: 'OUTDOOR PARK',
       bgImage: '/vb_park.jpg',
-      badgeStyle: 'bg-[#0B5D51] text-white font-black',
-      btnBg: '#0B5D51',
-      btnShadow: '#063A32',
+      badgeStyle: 'bg-[#15803D] text-white font-black',
+      btnBg: '#15803D',
+      btnShadow: '#14532D',
       btnTextColor: '#FFFFFF',
-      btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#0B5D51]',
+      btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#15803D]',
       ageRange: '5 - 18',
       ageGroups: ['5-10', '11-14', '15-18']
     },
@@ -173,6 +174,60 @@ export default function Programs() {
       ageRange: '5 - 18',
       ageGroups: ['5-10', '11-14', '15-18']
     },
+    {
+      id: 'summer-camp-7day',
+      title: '7-Day Intensive Summer Clinic',
+      fee: '$350',
+      sessions: '7 Days Intensive',
+      duration: '4 Hours Daily',
+      students: 'Youth & Junior',
+      popular: false,
+      tag: 'SUMMER CAMP',
+      bgImage: '/vb_intensive.jpg',
+      badgeStyle: 'bg-[#0284C7] text-white font-black',
+      btnBg: '#0284C7',
+      btnShadow: '#0369A1',
+      btnTextColor: '#FFFFFF',
+      btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#0284C7]',
+      ageRange: '5 - 18',
+      ageGroups: ['5-10', '11-14', '15-18']
+    },
+    {
+      id: 'summer-camp-10day',
+      title: '10-Day Elite Summer Intensive',
+      fee: '$480',
+      sessions: '10 Days Elite Bootcamp',
+      duration: '4 Hours Daily',
+      students: 'Youth & Junior',
+      popular: true,
+      tag: 'SUMMER CAMP',
+      bgImage: '/vb_intensive.jpg',
+      badgeStyle: 'bg-[#0284C7] text-white font-black',
+      btnBg: '#0284C7',
+      btnShadow: '#0369A1',
+      btnTextColor: '#FFFFFF',
+      btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#0284C7]',
+      ageRange: '5 - 18',
+      ageGroups: ['5-10', '11-14', '15-18']
+    },
+    {
+      id: 'summer-camp-15day',
+      title: '15-Day Masterclass Camp',
+      fee: '$650',
+      sessions: '15 Days Masterclass',
+      duration: '4 Hours Daily',
+      students: 'Youth & Junior',
+      popular: false,
+      tag: 'SUMMER CAMP',
+      bgImage: '/vb_intensive.jpg',
+      badgeStyle: 'bg-[#0284C7] text-white font-black',
+      btnBg: '#0284C7',
+      btnShadow: '#0369A1',
+      btnTextColor: '#FFFFFF',
+      btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#0284C7]',
+      ageRange: '5 - 18',
+      ageGroups: ['5-10', '11-14', '15-18']
+    }
   ];
 
   const scrollRef = useRef<HTMLDivElement>(null);

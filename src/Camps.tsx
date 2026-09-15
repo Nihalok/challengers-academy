@@ -267,7 +267,7 @@ export default function Camps() {
                           
                           <NavLink
                             to={card.link}
-                            className="inline-flex items-center gap-2.5 bg-gradient-to-r from-[#F3722C] to-[#D62828] text-white px-5 sm:px-7 py-2.5 sm:py-3 rounded-full text-xs font-black uppercase tracking-widest shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all group/btn border-t border-white/30"
+                            className="inline-flex items-center gap-2.5 bg-gradient-to-r from-[#0284C7] to-[#0369A1] text-white px-5 sm:px-7 py-2.5 sm:py-3 rounded-full text-xs font-black uppercase tracking-widest shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all group/btn border-t border-white/30"
                           >
                             <span>Enroll for Camp</span>
                             <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />

@@ -7,26 +7,26 @@ import SEO from './components/SEO';
 
 const OFFICIAL_PACKAGES = [
   {
-    id: 'tryout-session',
-    name: 'Tryout Session',
-    category: 'Assessment',
-    students: 'Individual / Group',
-    duration: '2 Hours',
-    sessions: '1 Session',
-    price: 30,
-    priceNote: 'one-time',
-    desc: 'Perfect introduction to evaluate skills and experience our coaching style.',
+    id: 'gym-training-1hr',
+    name: 'Gym Training (1 Hour / 4 Sessions)',
+    category: 'Indoor Gym',
+    students: 'Group',
+    duration: '1 Hour / session',
+    sessions: '4 Sessions',
+    price: 100,
+    priceNote: '/ package',
+    desc: 'Foundational indoor academy training focusing on fundamentals and skill mechanics.',
     features: [
-      'Comprehensive 2-hour court evaluation',
-      'Coach skill & mechanics feedback',
-      'Placement recommendation',
-      'Zero long-term commitment'
+      '4 x 1-hour indoor gym sessions',
+      'Technical passing, serving & spiking',
+      'Rotations & footwork drills',
+      'Active coach mentorship'
     ],
     popular: false,
-    color: 'bg-gradient-to-br from-[#2E2400] via-[#1C1600] to-[#0A0800] border-[#F9BC00]/60 text-white',
+    color: 'bg-gradient-to-br from-[#1C1600] via-[#2E2400] to-[#121212] border-[#F9BC00]/50 text-white',
     badgeClass: 'bg-[#F9BC00] text-espresso',
     btnClass: 'bg-[#F9BC00] text-espresso hover:bg-white',
-    bgImage: 'https://images.unsplash.com/photo-1519766304817-4f37bda74a29?auto=format&fit=crop&w=800&q=80'
+    bgImage: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=800&q=80'
   },
   {
     id: 'gym-training-4',
@@ -72,6 +72,28 @@ const OFFICIAL_PACKAGES = [
     badgeClass: 'bg-[#D62828] text-white',
     btnClass: 'bg-white text-espresso hover:bg-[#F9BC00]',
     bgImage: 'https://images.unsplash.com/photo-1592656631147-f1aa2112bf7c?auto=format&fit=crop&w=800&q=80'
+  },
+  {
+    id: 'tryout-session',
+    name: 'Tryout Session',
+    category: 'Assessment',
+    students: 'Individual / Group',
+    duration: '2 Hours',
+    sessions: '1 Session',
+    price: 30,
+    priceNote: 'one-time',
+    desc: 'Perfect introduction to evaluate skills and experience our coaching style.',
+    features: [
+      'Comprehensive 2-hour court evaluation',
+      'Coach skill & mechanics feedback',
+      'Placement recommendation',
+      'Zero long-term commitment'
+    ],
+    popular: false,
+    color: 'bg-gradient-to-br from-[#2E2400] via-[#1C1600] to-[#0A0800] border-[#F9BC00]/60 text-white',
+    badgeClass: 'bg-[#F9BC00] text-espresso',
+    btnClass: 'bg-[#F9BC00] text-espresso hover:bg-white',
+    bgImage: 'https://images.unsplash.com/photo-1519766304817-4f37bda74a29?auto=format&fit=crop&w=800&q=80'
   },
   {
     id: 'open-park-group',
@@ -286,6 +308,13 @@ export default function Pricing() {
               </thead>
               <tbody className="divide-y divide-espresso/5 font-medium text-espresso/80">
                 <tr className="hover:bg-[#FBF9F6] transition-colors">
+                  <td className="py-3.5 px-4 font-bold text-espresso">Gym Training (1 Hour)</td>
+                  <td className="py-3.5 px-4">Group</td>
+                  <td className="py-3.5 px-4">1 hour</td>
+                  <td className="py-3.5 px-4">4 sessions</td>
+                  <td className="py-3.5 px-4 text-right font-bold text-[#D62828] text-sm">$100</td>
+                </tr>
+                <tr className="hover:bg-[#FBF9F6] transition-colors">
                   <td className="py-3.5 px-4 font-bold text-espresso">Gym Training</td>
                   <td className="py-3.5 px-4">Group</td>
                   <td className="py-3.5 px-4">2 hours</td>
@@ -301,6 +330,13 @@ export default function Pricing() {
                   <td className="py-3.5 px-4">2 hours</td>
                   <td className="py-3.5 px-4">12 sessions</td>
                   <td className="py-3.5 px-4 text-right font-bold text-[#D62828] text-sm">$550</td>
+                </tr>
+                <tr className="hover:bg-[#FBF9F6] transition-colors">
+                  <td className="py-3.5 px-4 font-bold text-espresso">Tryout Session</td>
+                  <td className="py-3.5 px-4">Individual / Group</td>
+                  <td className="py-3.5 px-4">2 hours</td>
+                  <td className="py-3.5 px-4">1 session</td>
+                  <td className="py-3.5 px-4 text-right font-bold text-[#D62828] text-sm">$30</td>
                 </tr>
                 <tr className="hover:bg-[#FBF9F6] transition-colors">
                   <td className="py-3.5 px-4 font-bold text-espresso">Open Park (Private Coaching)</td>
@@ -322,13 +358,6 @@ export default function Pricing() {
                   <td className="py-3.5 px-4">2 hours</td>
                   <td className="py-3.5 px-4">4 sessions</td>
                   <td className="py-3.5 px-4 text-right font-bold text-[#D62828] text-sm">$150 <span className="text-[10px] text-espresso/40">/ student</span></td>
-                </tr>
-                <tr className="hover:bg-[#FBF9F6] transition-colors">
-                  <td className="py-3.5 px-4 font-bold text-espresso">Tryout Session</td>
-                  <td className="py-3.5 px-4">Individual / Group</td>
-                  <td className="py-3.5 px-4">2 hours</td>
-                  <td className="py-3.5 px-4">1 session</td>
-                  <td className="py-3.5 px-4 text-right font-bold text-[#D62828] text-sm">$30</td>
                 </tr>
               </tbody>
             </table>

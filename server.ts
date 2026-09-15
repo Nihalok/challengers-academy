@@ -4284,13 +4284,11 @@ Challengers Volleyball Academy
 
   // Admin API (Secured with JWT)
   app.get('/api/admin/stats', requireAuth, async (req, res) => {
-    // Synchronize all genuine successful Stripe payments with database
+    // Run background Stripe sync asynchronously without blocking admin dashboard load time
     if (getStripe()) {
-      try {
-        await syncStripePaymentsWithDb();
-      } catch (e: any) {
-        console.warn('Stripe sync warning during stats load:', e.message);
-      }
+      syncStripePaymentsWithDb().catch((e: any) => {
+        console.warn('Background Stripe sync notice:', e.message);
+      });
     }
 
     let allRegistrations = Object.values(registrations);
