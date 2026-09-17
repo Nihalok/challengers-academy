@@ -195,7 +195,7 @@ export default function Programs() {
     {
       id: 'summer-camp-10day',
       title: '10-Day Elite Summer Intensive',
-      fee: '$480',
+      fee: '$500',
       sessions: '10 Days Elite Bootcamp',
       duration: '4 Hours Daily',
       students: 'Youth & Junior',
@@ -213,7 +213,7 @@ export default function Programs() {
     {
       id: 'summer-camp-15day',
       title: '15-Day Masterclass Camp',
-      fee: '$650',
+      fee: '$750',
       sessions: '15 Days Masterclass',
       duration: '4 Hours Daily',
       students: 'Youth & Junior',

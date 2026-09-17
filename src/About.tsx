@@ -30,7 +30,7 @@ const STATS = [
   { value: '35+', label: 'Years Experience', sub: 'Coaching & Playing' },
   { value: '500+', label: 'Athletes Mentored', sub: 'Youth to Advanced' },
   { value: 'FIVB L2', label: 'Certified Coaching', sub: 'International Standards' },
-  { value: '4 Centers', label: 'Bay Area Hubs', sub: 'Fremont, Manteca, MH, SJ' },
+  { value: '4 Centers', label: 'Bay Area Hubs', sub: 'Fremont, Manteca, Mountain House, San Jose' },
 ];
 
 const FOUNDER_PILLARS = [
@@ -75,7 +75,7 @@ const MILESTONES = [
     period: 'Elite Academy',
     title: 'Sports Authority of India (SAI)',
     location: 'National Centers',
-    desc: 'Selected for India’s premier SAI program, completing 5 years of rigorous, high-level volleyball coaching.'
+    desc: 'Selected for India’s premier SAI program, completing 5 years of rigorous, high-level Volleyball coaching.'
   },
   {
     period: 'National Camps',

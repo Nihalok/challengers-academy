@@ -103,7 +103,7 @@ From first-time players to competitive athletes, we help young volleyball player
               {/* San Jose */}
               <div>
                 <p className="text-white font-bold text-[11px] uppercase tracking-wider">San Jose</p>
-                <p className="text-white/50 mt-0.5">Starting September — details coming soon</p>
+                <p className="text-white/50 mt-0.5">Starting October — details coming soon</p>
               </div>
 
               {/* Direct Academy Email Transmission */}

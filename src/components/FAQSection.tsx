@@ -32,6 +32,10 @@ const faqs: FAQ[] = [
     question: "How does moving up to a higher level work?",
     answer: "We have 5 training levels. Players move up when they're genuinely ready - our coaches assess each player regularly and let families know when it's time to step up. It's always based on skill, not just how long they've been attending."
   },
+   {
+    question: "What if I need to take a break or discontinue the Volleyball program?",
+    answer: "If your child will be taking a one-month break or discontinuing the volleyball program, please notify us at least one month in advance so we can plan our groups and schedules accordingly"
+  },
   {
     question: "What is your attendance and makeup class policy?",
     answer: "Students who miss regular training classes are eligible for 1 makeup class quarterly, subject to academy scheduling and class availability. Please notify our staff prior to missing a session so we can coordinate availability."

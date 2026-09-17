@@ -244,7 +244,7 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     schedule: 'Mon - Fri (9:00 AM - 1:00 PM)',
     dates: 'June & July 2026',
     time: '9:00 AM - 1:00 PM',
-    price: 480,
+    price: 500,
     priceNote: 'intensive fee',
     capacity: 25,
     filled: 18,
@@ -267,7 +267,7 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     schedule: 'Mon - Fri (9:00 AM - 1:00 PM)',
     dates: 'June & July 2026',
     time: '9:00 AM - 1:00 PM',
-    price: 650,
+    price: 750,
     priceNote: 'masterclass fee',
     capacity: 25,
     filled: 19,
@@ -900,7 +900,7 @@ export default function Register() {
               { id: 'park', label: 'Open Park Groups ($150)' },
               { id: 'private', label: 'Private 1-on-1 ($320 - $360)' },
               { id: 'tryout', label: 'Tryout Session ($30)' },
-              { id: 'camp', label: 'Summer Camps ($350 - $650)' },
+              { id: 'camp', label: 'Summer Camps ($350 - $750)' },
             ].map(tab => {
               const isActive = activeCategory === tab.id;
               return (
