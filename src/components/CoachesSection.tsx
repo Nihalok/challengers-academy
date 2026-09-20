@@ -24,6 +24,7 @@ interface CoachData {
   tagline: string;
   description: string;
   image: string;
+  imagePosition?: string;
   cardBorder: string;
   topBannerBg: string;
   accentColor: string;
@@ -51,6 +52,7 @@ const COACHES: CoachData[] = [
     tagline: 'FIVB Certified • Former National Player',
     description: 'Over 35 years of high-performance Volleyball leadership. Dedicated to developing elite technical mechanics, court intelligence, and a championship mindset in every athlete.',
     image: ASSETS.ABOUT.COACH_WILSON_ABOUT,
+    imagePosition: 'object-top',
     cardBorder: 'border-red-100 hover:border-red-300/80 hover:shadow-red-500/10',
     topBannerBg: 'from-[#D62828] via-[#E63946] to-[#990D0D]',
     accentColor: 'text-[#D62828]',
@@ -67,7 +69,7 @@ const COACHES: CoachData[] = [
       { icon: Clock, label: 'Experience', value: '35+ Years', color: 'text-[#D62828]' },
       { icon: Medal, label: 'National Honor', value: 'Former National Player', color: 'text-[#D62828]' },
       { icon: Users, label: 'Athletes Mentored', value: '500+ Players', color: 'text-[#D62828]' },
-      { icon: Trophy, label: 'National Honor', value: 'MVP 2026', color: 'text-[#D62828]' }
+      { icon: Trophy, label: 'Championship', value: 'MVP 2026', color: 'text-[#D62828]' }
     ]
   },
   {
@@ -80,6 +82,7 @@ const COACHES: CoachData[] = [
     tagline: 'Varsity Decorated • Youth Specialist',
     description: 'Over 5 years of competitive Volleyball excellence across School, College, and Varsity levels. Specializes in youth skill progression, defensive agility, setting mechanics, and match confidence.',
     image: ASSETS.ABOUT.COACH_VARADHA,
+    imagePosition: 'object-top',
     cardBorder: 'border-sky-100 hover:border-sky-300/80 hover:shadow-sky-500/10',
     topBannerBg: 'from-[#0284C7] via-[#38BDF8] to-[#0369A1]',
     accentColor: 'text-[#0284C7]',
@@ -97,6 +100,36 @@ const COACHES: CoachData[] = [
       { icon: Medal, label: 'Accolades', value: 'Varsity Athlete', color: 'text-[#0284C7]' },
       { icon: Users, label: 'Athletes Trained', value: '100+ Players', color: 'text-[#0284C7]' },
       { icon: Trophy, label: 'Specialty', value: 'Youth Drills', color: 'text-[#0284C7]' }
+    ]
+  },
+  {
+    id: 'rohit-kumar',
+    number: '03',
+    role: 'Assistant Coach',
+    roleBadgeBg: 'bg-[#D97706] text-white shadow-amber-500/20',
+    roleIcon: Trophy,
+    name: 'Rohit Kumar',
+    tagline: 'SJSU • Mountain House HS • Tournament MVP',
+    description: 'San José State University student and Mountain House High School alumnus bringing 7 years of competitive Volleyball and 3 years of Coaching experience. A proven competitor with 2 years of Varsity High School and 1 year of Club Volleyball, earning MVP honors in CBVC 18u at Jimmy George, 1st place finishes at Jimmy George and Lukochan Memorials, and 2nd place at the 2023 Boys Junior Nationals Cup.',
+    image: ASSETS.ABOUT.COACH_ROHIT,
+    imagePosition: 'object-[center_20%]',
+    cardBorder: 'border-amber-100 hover:border-amber-300/80 hover:shadow-amber-500/10',
+    topBannerBg: 'from-[#D97706] via-[#F59E0B] to-[#B45309]',
+    accentColor: 'text-[#D97706]',
+    statsBg: 'bg-amber-50/90',
+    statsBorder: 'border-amber-200/80',
+    statsText: 'text-amber-950',
+    credentials: 'Mountain House HS & SJSU • 2x Champion • CBVC 18u MVP',
+    specialties: [
+      { icon: Target, label: 'Varsity & Club Mechanics' },
+      { icon: Zap, label: 'Tournament Preparation' },
+      { icon: ShieldCheck, label: 'Youth & HS Mentorship' }
+    ],
+    statPills: [
+      { icon: Clock, label: 'Experience', value: '7 Yrs Play • 3 Yrs Coach', color: 'text-[#D97706]' },
+      { icon: Trophy, label: 'National Honor', value: '2nd Pl Jr Nationals', color: 'text-[#D97706]' },
+      { icon: Medal, label: 'Tournament MVP', value: 'CBVC 18u MVP', color: 'text-[#D97706]' },
+      { icon: Award, label: 'Championships', value: '2x 1st Place Titles', color: 'text-[#D97706]' }
     ]
   }
 ];
@@ -126,7 +159,7 @@ export default function CoachesSection() {
         </div>
 
         {/* ── Coach Cards Grid ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 items-stretch">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 items-stretch">
           {COACHES.map((coach, index) => {
             const RoleIcon = coach.roleIcon;
             return (
@@ -136,14 +169,14 @@ export default function CoachesSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className={`bg-white rounded-3xl sm:rounded-[2rem] border-2 ${coach.cardBorder} p-6 sm:p-8 shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col justify-between group relative overflow-hidden h-full`}
+                className={`bg-white rounded-3xl sm:rounded-[2rem] border-2 ${coach.cardBorder} p-6 sm:p-7 shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col justify-between group relative overflow-hidden h-full ${index === 2 ? 'md:col-span-2 md:max-w-xl md:mx-auto lg:col-span-1 lg:max-w-none w-full' : ''}`}
               >
                 {/* Top color gradient accent strip */}
                 <div className={`absolute top-0 left-0 right-0 h-2 bg-gradient-to-r ${coach.topBannerBg}`} />
 
                 <div className="flex-1 flex flex-col">
                   {/* Card Header Badge Row */}
-                  <div className="flex items-center justify-between gap-3 mb-6">
+                  <div className="flex items-center justify-between gap-3 mb-5">
                     <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider shadow-sm ${coach.roleBadgeBg}`}>
                       <RoleIcon className="w-3.5 h-3.5 shrink-0" />
                       <span>{coach.number} • {coach.role}</span>
@@ -155,14 +188,14 @@ export default function CoachesSection() {
                   </div>
 
                   {/* Main Body: Portrait Image + Bio Content */}
-                  <div className="flex flex-col sm:flex-row gap-6 items-start flex-1">
+                  <div className="flex flex-col gap-5 flex-1">
                     
                     {/* Portrait Frame */}
-                    <div className="relative w-full sm:w-44 md:w-48 aspect-[4/5] rounded-2xl overflow-hidden shrink-0 border-2 border-slate-100 shadow-md bg-slate-100 group-hover:shadow-lg transition-all duration-500">
+                    <div className="relative w-full aspect-[4/4.8] rounded-2xl overflow-hidden shrink-0 border-2 border-slate-100 shadow-md bg-slate-100 group-hover:shadow-lg transition-all duration-500">
                       <img
                         src={coach.image}
                         alt={coach.name}
-                        className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700 ease-out"
+                        className={`w-full h-full object-cover ${coach.imagePosition || 'object-top'} group-hover:scale-105 transition-transform duration-700 ease-out`}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
                       <div className="absolute bottom-3 left-3 right-3 text-center">
@@ -173,7 +206,7 @@ export default function CoachesSection() {
                     </div>
 
                     {/* Bio & Details */}
-                    <div className="flex-1 min-w-0 flex flex-col justify-between h-full">
+                    <div className="flex-1 min-w-0 flex flex-col justify-between">
                       <div>
                         {/* Coach Name & Subtitle */}
                         <div className="mb-2.5">
@@ -218,19 +251,19 @@ export default function CoachesSection() {
                 </div>
 
                 {/* ── Fully Visible 2x2 Stats Grid with Icons ── */}
-                <div className="pt-6 mt-6 border-t border-slate-100 grid grid-cols-2 gap-3 sm:gap-3.5">
+                <div className="pt-5 mt-5 border-t border-slate-100 grid grid-cols-2 gap-2.5 sm:gap-3">
                   {coach.statPills.map((pill, i) => {
                     const PillIcon = pill.icon;
                     return (
                       <div
                         key={i}
-                        className="py-3 px-2.5 sm:px-3.5 rounded-2xl bg-slate-50/90 hover:bg-slate-100/90 border border-slate-200/80 text-center flex flex-col justify-center items-center transition-all duration-200"
+                        className="py-2.5 px-2 sm:px-3 rounded-2xl bg-slate-50/90 hover:bg-slate-100/90 border border-slate-200/80 text-center flex flex-col justify-center items-center transition-all duration-200"
                       >
                         <div className="flex items-center justify-center gap-1.5 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1 w-full">
                           <PillIcon className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                           <span className="truncate">{pill.label}</span>
                         </div>
-                        <span className={`text-xs sm:text-base font-black font-condensed tracking-tight ${pill.color} text-center leading-tight break-words sm:whitespace-nowrap`}>
+                        <span className={`text-xs sm:text-sm font-black font-condensed tracking-tight ${pill.color} text-center leading-tight break-words`}>
                           {pill.value}
                         </span>
                       </div>

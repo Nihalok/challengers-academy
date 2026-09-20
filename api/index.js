@@ -474,7 +474,7 @@ var DEFAULT_CAMPS = [
     duration: "10 Days",
     months: "June & July 2026",
     bestFor: "Game Strategy & Tactics",
-    price: 480,
+    price: 500,
     schedule: "Mon - Fri (9:00 AM - 1:00 PM)",
     location: "Fremont Arena / Regional Facility",
     capacity: 25,
@@ -490,7 +490,7 @@ var DEFAULT_CAMPS = [
     duration: "15 Days",
     months: "June & July 2026",
     bestFor: "Competitive Club & High School Prep",
-    price: 650,
+    price: 750,
     schedule: "Mon - Fri (9:00 AM - 1:00 PM)",
     location: "Fremont Arena / Regional Facility",
     capacity: 25,
@@ -1084,7 +1084,71 @@ function generateRegistrationId() {
   const num = Math.floor(1e4 + Math.random() * 9e4);
   return `CVA-${num}`;
 }
-async function sendAdminNotificationEmail(reg) {
+var dispatchedEmailKeys = /* @__PURE__ */ new Set();
+var recentEnquiriesMap = /* @__PURE__ */ new Map();
+async function hasEmailBeenDispatched(txOrRegId, type) {
+  const normalizedKey = String(txOrRegId || "").trim().toLowerCase();
+  if (!normalizedKey) return false;
+  const dedupeKey = `${normalizedKey}_${type}`;
+  if (dispatchedEmailKeys.has(dedupeKey)) {
+    return true;
+  }
+  const db = await getMongoDb();
+  if (db) {
+    try {
+      const existing = await db.collection("email_jobs").findOne({
+        $or: [
+          { dedupeKey },
+          { jobId: `${normalizedKey}_${type}` },
+          {
+            type,
+            status: "sent",
+            $or: [
+              { registrationId: normalizedKey },
+              { stripePaymentIntentId: normalizedKey },
+              { transactionId: normalizedKey }
+            ]
+          }
+        ],
+        status: "sent"
+      });
+      if (existing) {
+        dispatchedEmailKeys.add(dedupeKey);
+        return true;
+      }
+    } catch {
+    }
+  }
+  return false;
+}
+function markEmailDispatched(txOrRegId, type) {
+  const normalizedKey = String(txOrRegId || "").trim().toLowerCase();
+  if (!normalizedKey) return;
+  dispatchedEmailKeys.add(`${normalizedKey}_${type}`);
+}
+function unmarkEmailDispatched(txOrRegId, type) {
+  const normalizedKey = String(txOrRegId || "").trim().toLowerCase();
+  if (!normalizedKey) return;
+  dispatchedEmailKeys.delete(`${normalizedKey}_${type}`);
+}
+async function sendAdminNotificationEmail(reg, force = false) {
+  const txKeys = [
+    reg.stripePaymentIntentId,
+    reg.transactionId,
+    reg.registrationId
+  ].filter(Boolean).map((k) => String(k).trim().toLowerCase());
+  if (txKeys.length === 0) return false;
+  if (!force) {
+    for (const key of txKeys) {
+      if (await hasEmailBeenDispatched(key, "admin_notification")) {
+        console.log(`\u{1F512} [EMAIL DEDUPLICATED] Admin notification already sent for transaction ${key} (${reg.registrationId}). Skipping.`);
+        return true;
+      }
+    }
+  }
+  for (const key of txKeys) {
+    markEmailDispatched(key, "admin_notification");
+  }
   const adminEmail = (process.env.ACADEMY_ADMIN_EMAIL || process.env.ADMIN_SEED_EMAIL || process.env.EMAIL_USER || "nihalok625@gmail.com").trim();
   const appUrl = process.env.APP_URL || "http://localhost:3000";
   const transporter = getMailTransporter();
@@ -1190,8 +1254,35 @@ async function sendAdminNotificationEmail(reg) {
       `
     });
     console.log(`\u2705 [EMAIL SENT] Admin notification sent successfully to ${adminEmail} (MessageId: ${info.messageId})`);
+    const db = await getMongoDb();
+    if (db) {
+      for (const key of txKeys) {
+        db.collection("email_jobs").updateOne(
+          { jobId: `${key}_admin_notification` },
+          {
+            $set: {
+              jobId: `${key}_admin_notification`,
+              dedupeKey: `${key}_admin_notification`,
+              registrationId: reg.registrationId,
+              stripePaymentIntentId: reg.stripePaymentIntentId || null,
+              transactionId: reg.transactionId || null,
+              type: "admin_notification",
+              recipient: adminEmail,
+              status: "sent",
+              sentAt: Date.now(),
+              lastError: null
+            }
+          },
+          { upsert: true }
+        ).catch(() => {
+        });
+      }
+    }
     return true;
   } catch (err) {
+    for (const key of txKeys) {
+      unmarkEmailDispatched(key, "admin_notification");
+    }
     console.error(`\u274C [EMAIL ERROR] Admin email dispatch failed (${adminEmail}):`, {
       code: err.code || "UNKNOWN",
       responseCode: err.responseCode,
@@ -1201,16 +1292,33 @@ async function sendAdminNotificationEmail(reg) {
     return false;
   }
 }
-async function sendCustomerConfirmationEmail(reg) {
-  const transporter = getMailTransporter();
-  const from = getFromAddress();
-  const customerName = reg.parentName || reg.playerName;
+async function sendCustomerConfirmationEmail(reg, force = false) {
   const targetEmail = String(reg.email || "").trim().toLowerCase();
-  console.log(`[EMAIL DISPATCH] Attempting Customer Confirmation \u2192 ${targetEmail} for Registration ${reg.registrationId}`);
   if (!targetEmail || !targetEmail.includes("@") || targetEmail.includes("example.com")) {
     console.warn(`\u26A0\uFE0F [CUSTOMER EMAIL SKIPPED] Recipient email is missing or dummy: "${targetEmail}"`);
     return false;
   }
+  const txKeys = [
+    reg.stripePaymentIntentId,
+    reg.transactionId,
+    reg.registrationId
+  ].filter(Boolean).map((k) => String(k).trim().toLowerCase());
+  if (txKeys.length === 0) return false;
+  if (!force) {
+    for (const key of txKeys) {
+      if (await hasEmailBeenDispatched(key, "customer_confirmation")) {
+        console.log(`\u{1F512} [EMAIL DEDUPLICATED] Customer confirmation already sent for transaction ${key} (${reg.registrationId}). Skipping.`);
+        return true;
+      }
+    }
+  }
+  for (const key of txKeys) {
+    markEmailDispatched(key, "customer_confirmation");
+  }
+  const transporter = getMailTransporter();
+  const from = getFromAddress();
+  const customerName = reg.parentName || reg.playerName;
+  console.log(`[EMAIL DISPATCH] Attempting Customer Confirmation \u2192 ${targetEmail} for Registration ${reg.registrationId}`);
   if (!transporter) {
     console.warn(`\u26A0\uFE0F [EMAIL SKIPPED] Customer email not sent: EMAIL_USER or EMAIL_PASS not configured in environment.`);
     return false;
@@ -1281,25 +1389,21 @@ Challengers Volleyball Academy - Bay Area, CA
 
               <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 24px;">
                 <tr style="border-bottom: 1px solid #f2ede4;">
-                  <td style="padding: 10px 0; color: #736b63; font-weight: 600; width: 40%;">Program / Session:</td>
-                  <td style="padding: 10px 0; color: #1B1B1D; font-weight: bold;">${reg.sessionName}</td>
-                </tr>
-                <tr style="border-bottom: 1px solid #f2ede4;">
-                  <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Primary Athlete:</td>
-                  <td style="padding: 10px 0; color: #1B1B1D; font-weight: bold;">${reg.playerName}</td>
+                  <td style="padding: 10px 0; color: #736b63; font-weight: 600; width: 40%;">Enrolled Athlete:</td>
+                  <td style="padding: 10px 0; color: #1B1B1D; font-weight: 900;">${reg.playerName}</td>
                 </tr>
                 ${reg.hasSibling ? `
                 <tr style="border-bottom: 1px solid #f2ede4; background-color: #f0fdf4;">
-                  <td style="padding: 10px 0; color: #166534; font-weight: 700;">Sibling Athlete:</td>
-                  <td style="padding: 10px 0; color: #166534; font-weight: bold;">${reg.siblingName || "Sibling"} (Enrolled)</td>
-                </tr>
-                <tr style="border-bottom: 1px solid #f2ede4;">
-                  <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Sibling Family Discount:</td>
-                  <td style="padding: 10px 0; color: #16a34a; font-weight: bold;">-$50.00 USD (Deducted)</td>
+                  <td style="padding: 10px 0; color: #166534; font-weight: 700;">Sibling Athlete (Athlete 2):</td>
+                  <td style="padding: 10px 0; color: #166534; font-weight: bold;">${reg.siblingName || "Sibling"} ${reg.siblingDob ? `(DOB: ${reg.siblingDob})` : ""}</td>
                 </tr>
                 ` : ""}
                 <tr style="border-bottom: 1px solid #f2ede4;">
-                  <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Schedule & Timings:</td>
+                  <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Program / Session:</td>
+                  <td style="padding: 10px 0; color: #1B1B1D; font-weight: bold;">${reg.sessionName}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f2ede4;">
+                  <td style="padding: 10px 0; color: #736b63; font-weight: 600;">Schedule:</td>
                   <td style="padding: 10px 0; color: #1B1B1D;">${reg.schedule}</td>
                 </tr>
                 <tr style="border-bottom: 1px solid #f2ede4;">
@@ -1345,8 +1449,35 @@ Challengers Volleyball Academy - Bay Area, CA
       `
     });
     console.log(`\u2705 [EMAIL SENT] Customer confirmation sent successfully to ${targetEmail} (MessageId: ${info.messageId})`);
+    const db = await getMongoDb();
+    if (db) {
+      for (const key of txKeys) {
+        db.collection("email_jobs").updateOne(
+          { jobId: `${key}_customer_confirmation` },
+          {
+            $set: {
+              jobId: `${key}_customer_confirmation`,
+              dedupeKey: `${key}_customer_confirmation`,
+              registrationId: reg.registrationId,
+              stripePaymentIntentId: reg.stripePaymentIntentId || null,
+              transactionId: reg.transactionId || null,
+              type: "customer_confirmation",
+              recipient: targetEmail,
+              status: "sent",
+              sentAt: Date.now(),
+              lastError: null
+            }
+          },
+          { upsert: true }
+        ).catch(() => {
+        });
+      }
+    }
     return true;
   } catch (err) {
+    for (const key of txKeys) {
+      unmarkEmailDispatched(key, "customer_confirmation");
+    }
     console.error(`\u274C [EMAIL ERROR] Customer confirmation dispatch failed (${targetEmail}):`, {
       code: err.code || "UNKNOWN",
       responseCode: err.responseCode,
@@ -1492,13 +1623,23 @@ async function processEmailQueue(limit = 30) {
   }
   try {
     const now = Date.now();
+    const maxAgeMs = 24 * 60 * 60 * 1e3;
     const jobs = await db.collection("email_jobs").find({
       status: { $in: ["pending", "failed"] },
-      attempts: { $lt: 5 }
+      attempts: { $lt: 3 },
+      createdAt: { $gte: now - maxAgeMs }
     }).limit(limit).toArray();
     for (const rawJob of jobs) {
       const job = rawJob;
-      const backoffMs = Math.pow(2, job.attempts || 0) * 15e3;
+      if (await hasEmailBeenDispatched(job.registrationId, job.type)) {
+        await db.collection("email_jobs").updateOne(
+          { jobId: job.jobId },
+          { $set: { status: "sent", sentAt: Date.now(), lastError: null } }
+        ).catch(() => {
+        });
+        continue;
+      }
+      const backoffMs = Math.pow(2, job.attempts || 0) * 3e4;
       if (job.lastAttemptAt && now - job.lastAttemptAt < backoffMs) {
         continue;
       }
@@ -1790,6 +1931,45 @@ async function createApp() {
       if (!name || !email || !message) {
         return res.status(400).json({ success: false, message: "Name, email, and message are required." });
       }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(String(email).trim())) {
+        return res.status(400).json({ success: false, message: "Invalid email address." });
+      }
+      const cleanEmail = String(email).trim().toLowerCase();
+      const cleanMessage = String(message).trim();
+      const cleanSubject = String(subject || "General Inquiry").trim();
+      const cleanName = String(name).trim();
+      const enquiryFingerprint = `${cleanEmail}_${cleanMessage.toLowerCase().replace(/\s+/g, " ")}`;
+      const now = Date.now();
+      const lastSentTime = recentEnquiriesMap.get(enquiryFingerprint);
+      if (lastSentTime && now - lastSentTime < 24 * 60 * 60 * 1e3) {
+        console.log(`\u{1F512} [ENQUIRY DEDUPLICATED] Repeated enquiry from ${cleanEmail} within 24 hours. Acknowledging without re-sending.`);
+        return res.json({ success: true, message: "Your enquiry has already been received. Thank you!" });
+      }
+      const db = await getMongoDb();
+      if (db) {
+        try {
+          const oneDayAgo = new Date(now - 24 * 60 * 60 * 1e3);
+          const existingEnquiry = await db.collection("leads").findOne({
+            email: cleanEmail,
+            message: cleanMessage,
+            createdAt: { $gte: oneDayAgo }
+          });
+          if (existingEnquiry) {
+            recentEnquiriesMap.set(enquiryFingerprint, now);
+            console.log(`\u{1F512} [ENQUIRY DEDUPLICATED] Enquiry from ${cleanEmail} already present in MongoDB. Skipping duplicate email.`);
+            return res.json({ success: true, message: "Your enquiry has already been received. Thank you!" });
+          }
+        } catch (dbCheckErr) {
+          console.warn("\u26A0\uFE0F Lead deduplication check error:", dbCheckErr.message);
+        }
+      }
+      recentEnquiriesMap.set(enquiryFingerprint, now);
+      if (recentEnquiriesMap.size > 2e3) {
+        for (const [k, timestamp] of recentEnquiriesMap.entries()) {
+          if (now - timestamp > 24 * 60 * 60 * 1e3) recentEnquiriesMap.delete(k);
+        }
+      }
       const adminEmail = process.env.ACADEMY_ADMIN_EMAIL || process.env.EMAIL_USER || "challengersvolleyballacademy@gmail.com";
       const transporter = getMailTransporter();
       const from = getFromAddress();
@@ -1797,15 +1977,14 @@ async function createApp() {
       const newLead = {
         id: leadId,
         leadId,
-        name: String(name).trim(),
-        email: String(email).trim().toLowerCase(),
-        subject: String(subject || "General Inquiry").trim(),
-        message: String(message).trim(),
+        name: cleanName,
+        email: cleanEmail,
+        subject: cleanSubject,
+        message: cleanMessage,
         source: "Website Contact Form",
         status: "new",
         createdAt: /* @__PURE__ */ new Date()
       };
-      const db = await getMongoDb();
       if (db) {
         await db.collection("leads").insertOne(newLead).catch((e) => console.warn("\u26A0\uFE0F Failed to store lead in DB:", e.message));
       }
@@ -1814,17 +1993,17 @@ async function createApp() {
           await transporter.sendMail({
             from,
             to: adminEmail,
-            replyTo: email,
-            subject: `\u{1F3D0} New Website Enquiry: ${subject || "General Inquiry"} from ${name}`,
+            replyTo: cleanEmail,
+            subject: `\u{1F3D0} New Website Enquiry: ${cleanSubject} from ${cleanName}`,
             text: `
 New Website Contact Form Enquiry
 
-Name: ${name}
-Email: ${email}
-Subject: ${subject || "General Inquiry"}
+Name: ${cleanName}
+Email: ${cleanEmail}
+Subject: ${cleanSubject}
 
 Message:
-${message}
+${cleanMessage}
 
 ---
 Challengers Volleyball Academy
@@ -1843,31 +2022,31 @@ Challengers Volleyball Academy
                   <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 20px;">
                     <tr style="border-bottom: 1px solid #f2ede4;">
                       <td style="padding: 10px 0; color: #736b63; font-weight: bold; width: 35%;">Sender Name:</td>
-                      <td style="padding: 10px 0; color: #1B1B1D; font-weight: bold;">${escapeHtml(name)}</td>
+                      <td style="padding: 10px 0; color: #1B1B1D; font-weight: bold;">${escapeHtml(cleanName)}</td>
                     </tr>
                     <tr style="border-bottom: 1px solid #f2ede4;">
                       <td style="padding: 10px 0; color: #736b63; font-weight: bold;">Email Address:</td>
                       <td style="padding: 10px 0; color: #ea580c; font-weight: bold;">
-                        <a href="mailto:${escapeHtml(email)}" style="color: #ea580c; text-decoration: underline;">${escapeHtml(email)}</a>
+                        <a href="mailto:${escapeHtml(cleanEmail)}" style="color: #ea580c; text-decoration: underline;">${escapeHtml(cleanEmail)}</a>
                       </td>
                     </tr>
                     <tr style="border-bottom: 1px solid #f2ede4;">
                       <td style="padding: 10px 0; color: #736b63; font-weight: bold;">Subject:</td>
-                      <td style="padding: 10px 0; color: #1B1B1D;">${escapeHtml(subject || "General Inquiry")}</td>
+                      <td style="padding: 10px 0; color: #1B1B1D;">${escapeHtml(cleanSubject)}</td>
                     </tr>
                   </table>
                   <div style="background: #fbf9f6; border-left: 4px solid #ea580c; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
                     <h4 style="margin: 0 0 8px 0; font-size: 11px; text-transform: uppercase; color: #8c827a; letter-spacing: 1px;">Message:</h4>
-                    <p style="margin: 0; color: #1B1B1D; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${escapeHtml(message)}</p>
+                    <p style="margin: 0; color: #1B1B1D; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${escapeHtml(cleanMessage)}</p>
                   </div>
                   <p style="font-size: 12px; color: #8c827a; text-align: center; margin: 0;">
-                    Reply directly to this email to respond to <strong>${escapeHtml(name)}</strong>.
+                    Reply directly to this email to respond to <strong>${escapeHtml(cleanName)}</strong>.
                   </p>
                 </div>
               </div>
             `
           });
-          console.log(` Contact enquiry email sent to admin (${adminEmail}) from ${email}`);
+          console.log(`\u2709\uFE0F Contact enquiry email sent to admin (${adminEmail}) from ${cleanEmail}`);
         } catch (mailErr) {
           console.warn("\u26A0\uFE0F SMTP mail send error:", mailErr.message);
         }
@@ -2366,7 +2545,7 @@ Temp Password: ${tempPassword}
                 id: p.id,
                 name: p.title,
                 category: "Regular Program",
-                ageGroup: p.ageRange && !p.ageRange.toLowerCase().includes("all ages") ? (p.ageRange.toLowerCase().startsWith("age") ? p.ageRange : `Ages ${p.ageRange}`) : "Ages 5 - 18",
+                ageGroup: p.ageRange && !p.ageRange.toLowerCase().includes("all ages") ? p.ageRange.toLowerCase().startsWith("age") ? p.ageRange : `Ages ${p.ageRange}` : "Ages 5 - 18",
                 skillLevel: p.phase || "Foundations",
                 location: p.location || "Fremont Arena",
                 locationAddress: "Bay Area Facility",
@@ -2422,7 +2601,7 @@ Temp Password: ${tempPassword}
               id: prog.id,
               name: prog.title,
               category: "Regular Program",
-              ageGroup: prog.ageRange && !prog.ageRange.toLowerCase().includes("all ages") ? (prog.ageRange.toLowerCase().startsWith("age") ? prog.ageRange : `Ages ${prog.ageRange}`) : "Ages 5 - 18",
+              ageGroup: prog.ageRange && !prog.ageRange.toLowerCase().includes("all ages") ? prog.ageRange.toLowerCase().startsWith("age") ? prog.ageRange : `Ages ${prog.ageRange}` : "Ages 5 - 18",
               skillLevel: prog.phase || "Foundations",
               location: prog.location || "Fremont Arena",
               locationAddress: "Bay Area Facility",
@@ -3026,8 +3205,8 @@ Temp Password: ${tempPassword}
       }
       console.log(`\u{1F4E8} [MANUAL RESEND] Resending confirmation emails for registration ${reg.registrationId} (${reg.playerName})`);
       const [adminRes, custRes] = await Promise.allSettled([
-        sendAdminNotificationEmail(reg),
-        sendCustomerConfirmationEmail(reg)
+        sendAdminNotificationEmail(reg, true),
+        sendCustomerConfirmationEmail(reg, true)
       ]);
       const adminSent = adminRes.status === "fulfilled" && adminRes.value === true;
       const customerSent = custRes.status === "fulfilled" && custRes.value === true;
@@ -3088,67 +3267,6 @@ Temp Password: ${tempPassword}
       res.json({ success: true, registration: reg });
     } else {
       res.status(404).json({ success: false, message: "Registration not found" });
-    }
-  });
-  app.post("/api/contact", async (req, res) => {
-    try {
-      const { name, email, subject, message } = req.body || {};
-      if (!name || !email || !message) {
-        return res.status(400).json({ success: false, message: "Name, email, and message are required." });
-      }
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        return res.status(400).json({ success: false, message: "Invalid email address." });
-      }
-      const inquiryId = `INQ-${nanoid(8)}`;
-      const inquiryLead = {
-        id: inquiryId,
-        type: "contact_inquiry",
-        playerName: name.trim(),
-        email: email.trim().toLowerCase(),
-        subject: subject || "General Inquiry",
-        message: message.trim(),
-        createdAt: Date.now(),
-        status: "NEW"
-      };
-      await saveLeadToDb(inquiryLead);
-      console.log(` Saved contact inquiry from ${email} (${inquiryId})`);
-      const transporter = getMailTransporter();
-      if (transporter) {
-        const supportEmail = process.env.ACADEMY_ADMIN_EMAIL || process.env.EMAIL_TO || process.env.EMAIL_USER || "hello@challengerscoaching.com";
-        try {
-          const safeName = escapeHtml(name);
-          const safeEmail = escapeHtml(email);
-          const safeSubject = escapeHtml(subject || "General Inquiry");
-          const safeMessage = escapeHtml(message);
-          await transporter.sendMail({
-            from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
-            to: supportEmail,
-            replyTo: email,
-            subject: `[Contact Form] ${safeSubject} from ${safeName}`,
-            html: `
-              <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px;border:1px solid #eaeaea;border-radius:12px;background:#ffffff;">
-                <h2 style="color:#C1272D;margin-top:0;">\u{1F3D0} New Website Inquiry</h2>
-                <p style="margin:6px 0;"><strong>Name:</strong> ${safeName}</p>
-                <p style="margin:6px 0;"><strong>Email:</strong> <a href="mailto:${safeEmail}">${safeEmail}</a></p>
-                <p style="margin:6px 0;"><strong>Subject:</strong> ${safeSubject}</p>
-                <hr style="border:none;border-top:1px solid #eee;margin:16px 0;" />
-                <p style="margin:6px 0;"><strong>Message:</strong></p>
-                <p style="white-space:pre-wrap;background:#f8f8f8;padding:14px;border-radius:8px;line-height:1.6;color:#333;">${safeMessage}</p>
-                <hr style="border:none;border-top:1px solid #eee;margin:16px 0;" />
-                <p style="font-size:11px;color:#888;margin:0;">Submitted via Challengers Academy Contact Form at ${(/* @__PURE__ */ new Date()).toLocaleString()}</p>
-              </div>
-            `
-          });
-          console.log(`\u2709\uFE0F Contact notification email sent to ${supportEmail}`);
-        } catch (mailErr) {
-          console.warn("\u26A0\uFE0F Could not send contact email notification:", mailErr.message);
-        }
-      }
-      res.json({ success: true, message: "Message sent successfully." });
-    } catch (err) {
-      console.error("Contact form submission error:", err);
-      res.status(500).json({ success: false, message: "Failed to send message. Please try again later." });
     }
   });
   async function syncStripePaymentsWithDb() {
@@ -3289,10 +3407,6 @@ Temp Password: ${tempPassword}
           totalAthletes: sessMeta.hasSibling === "true" || sessMeta.hasSibling === true ? 2 : 1
         };
         await saveRegistrationToDb(newRegistration);
-        if (resolvedEmail && resolvedEmail.includes("@") && !resolvedEmail.includes("example.com")) {
-          queueAndDispatchEmails(newRegistration).catch(() => {
-          });
-        }
         syncedCount++;
       }
       for (const intent of allPaymentIntents) {
@@ -3432,10 +3546,6 @@ Temp Password: ${tempPassword}
             { $set: { status: "confirmed", registrationId: regId } }
           );
         }
-        if (resolvedEmail && resolvedEmail.includes("@") && !resolvedEmail.includes("example.com")) {
-          queueAndDispatchEmails(newRegistration).catch(() => {
-          });
-        }
         syncedCount++;
       }
       for (const ch of allCharges) {
@@ -3502,14 +3612,8 @@ Temp Password: ${tempPassword}
           totalAthletes: 1
         };
         await saveRegistrationToDb(newRegistration);
-        if (resolvedEmail && resolvedEmail.includes("@") && !resolvedEmail.includes("example.com")) {
-          queueAndDispatchEmails(newRegistration).catch(() => {
-          });
-        }
         syncedCount++;
       }
-      processEmailQueue(30).catch(() => {
-      });
       console.log(`\u2705 Stripe sync completed: ${syncedCount} new registrations imported, ${updatedCount} updated (${totalStripePayments} total Stripe transactions fetched).`);
     } catch (syncErr) {
       console.error("\u26A0\uFE0F Stripe payment sync error:", syncErr.message);

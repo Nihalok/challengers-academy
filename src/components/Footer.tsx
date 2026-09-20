@@ -54,7 +54,7 @@ export default function Footer() {
 
 **Volleyball Training for Ages 5–18 | Bay Area**
 
-From first-time players to competitive athletes, we help young volleyball players build skills, confidence, and a passion for the game.
+From first-time players to competitive athletes, we help young Volleyball players build skills, confidence, and a passion for the game.
 
 **Join us on the court — let’s get started!**
 

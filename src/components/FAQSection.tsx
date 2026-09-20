@@ -9,6 +9,10 @@ interface FAQ {
 
 const faqs: FAQ[] = [
   {
+    question: "What is your attendance and makeup class policy?",
+    answer: "If you miss your regular Volleyball training session at one location, you can attend a session at any of our other locations. This option is available for your convenience."
+  },
+  {
     question: "What age groups do you train?",
     answer: "We work with kids and teens from 5 to 18 years old. We split players into groups based on their age and skill level so everyone gets coaching that actually fits where they are."
   },
@@ -35,10 +39,6 @@ const faqs: FAQ[] = [
    {
     question: "What if I need to take a break or discontinue the Volleyball program?",
     answer: "If your child will be taking a one-month break or discontinuing the volleyball program, please notify us at least one month in advance so we can plan our groups and schedules accordingly"
-  },
-  {
-    question: "What is your attendance and makeup class policy?",
-    answer: "Students who miss regular training classes are eligible for 1 makeup class quarterly, subject to academy scheduling and class availability. Please notify our staff prior to missing a session so we can coordinate availability."
   }
 ];
 

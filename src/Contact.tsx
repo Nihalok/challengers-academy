@@ -9,6 +9,7 @@ export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
   const [emailCopied, setEmailCopied] = useState(false);
   const [phoneCopied, setPhoneCopied] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -46,27 +47,33 @@ export default function Contact() {
     }
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
 
-    const subjectStr = `${formData.subject} - Inquiry from ${formData.name}`;
-    const bodyStr = `Name: ${formData.name}\nEmail: ${formData.email}\nSubject: ${formData.subject}\n\nMessage:\n${formData.message}\n\n---\nSent via Challengers Volleyball Academy Portal`;
+    setIsSubmitting(true);
 
-    // 1. Instantly open user's email client directly to admin mail
-    triggerDirectEmail(subjectStr, bodyStr);
-
-    // 2. Also log to backend API in the background
     try {
-      fetch('/api/contact', {
+      const response = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
-      }).catch((err) => console.warn('Background contact log sync error:', err));
-    } catch {
-      // Ignore background sync errors
+      });
+      const data = await response.json();
+      if (data.success) {
+        setSubmitted(true);
+      } else {
+        alert(data.message || 'Failed to send message. Please try again.');
+      }
+    } catch (err) {
+      console.warn('Network error during contact submit, falling back to direct email:', err);
+      const subjectStr = `${formData.subject} - Inquiry from ${formData.name}`;
+      const bodyStr = `Name: ${formData.name}\nEmail: ${formData.email}\nSubject: ${formData.subject}\n\nMessage:\n${formData.message}\n\n---\nSent via Challengers Volleyball Academy Portal`;
+      triggerDirectEmail(subjectStr, bodyStr);
+      setSubmitted(true);
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setSubmitted(true);
   };
 
   return (
@@ -347,10 +354,20 @@ export default function Contact() {
 
                 <button 
                   type="submit" 
-                  className="w-full bg-[#1A1A1A] hover:bg-[#D62828] active:scale-[0.99] text-white py-3.5 px-4 rounded-xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg cursor-pointer mt-2"
+                  disabled={isSubmitting}
+                  className="w-full bg-[#1A1A1A] hover:bg-[#D62828] active:scale-[0.99] disabled:opacity-60 text-white py-3.5 px-4 rounded-xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg cursor-pointer mt-2 disabled:cursor-not-allowed"
                 >
-                  <Send className="w-3.5 h-3.5" />
-                  Send Direct Enquiry to Admin Mail
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Transmitting Enquiry...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-3.5 h-3.5" />
+                      <span>Send Direct Enquiry to Admin Mail</span>
+                    </>
+                  )}
                 </button>
 
                 <div className="flex items-center justify-center gap-2 pt-1 text-[11px] text-espresso/50 font-medium">

@@ -91,7 +91,7 @@ export default function Privacy() {
             <section className="pt-12 border-t border-espresso/5">
               <h3 className="text-xl font-serif text-espresso mb-4">Contact Information</h3>
               <p className="text-sm leading-relaxed">
-                For privacy-related inquiries, please contact our administrative team at <span className="text-orange font-bold">privacy@challengers.com</span>.
+                For privacy-related inquiries, please contact our administrative team at <span className="text-orange font-bold">challengersvolleyballacademy@gmail.com</span>.
               </p>
             </section>
           </div>

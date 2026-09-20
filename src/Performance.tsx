@@ -79,7 +79,7 @@ export default function Performance() {
                <div className="absolute bottom-5 right-5 flex items-center gap-3">
                  <div className="text-right">
                    <div className="text-[8px] font-black uppercase tracking-[0.3em] text-white/60">Peak Velocity</div>
-                   <div className="text-xl font-condensed font-black text-[#F9BC00]">94.2 KM/H</div>
+                   <div className="text-xl font-condensed font-black text-[#F9BC00]">80.24 mph</div>
                  </div>
                </div>
             </div>

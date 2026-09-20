@@ -3,7 +3,8 @@ import {
   Save, RefreshCcw, Plus, Trash2, ArrowLeft, BarChart3, Settings, Eye, 
   LayoutDashboard, Image as ImageIcon, Users, TrendingUp, Search, 
   ExternalLink, CheckCircle2, Clock, Filter, Trash, LogOut, Shield, UserPlus, Mail, ChevronDown,
-  Layers, Edit3, DollarSign, Calendar, MapPin, Check, X, Tag, QrCode, Smartphone, CreditCard, Copy, Upload
+  Layers, Edit3, DollarSign, Calendar, MapPin, Check, X, Tag, QrCode, Smartphone, CreditCard, Copy, Upload,
+  FileText, Download, Receipt, Sparkles
 } from 'lucide-react';
 import { usePerformance } from './PerformanceContext';
 import { NavLink, useNavigate } from 'react-router-dom';
@@ -11,6 +12,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ASSETS } from './assets/images';
 import { useAuth } from './hooks/useAuth';
 import SessionTimeoutModal from './components/SessionTimeoutModal';
+import DownloadStatementModal from './components/DownloadStatementModal';
+import { generateBankStatementPdf } from './utils/statementPdfGenerator';
 
 type MediaItem = {
   id: string;
@@ -90,6 +93,12 @@ export default function Admin() {
   const [isProcessingEmails, setIsProcessingEmails] = useState(false);
   const [onlyRealPayments, setOnlyRealPayments] = useState(true);
   const [isPurgingMock, setIsPurgingMock] = useState(false);
+
+  // Bank Statement PDF Modal & Real-time Export State
+  const [isStatementModalOpen, setIsStatementModalOpen] = useState(false);
+  const [initialStatementType, setInitialStatementType] = useState<'all' | 'payments_only' | 'leads_only'>('all');
+  const [isQuickDownloadingStatement, setIsQuickDownloadingStatement] = useState(false);
+  const [statementSuccessToast, setStatementSuccessToast] = useState<string | null>(null);
 
   // Edit Student Registration Modal State
   const [isEditingStudent, setIsEditingStudent] = useState(false);
@@ -351,6 +360,33 @@ export default function Admin() {
     navigator.clipboard.writeText(id);
     setCopiedStripeId(id);
     setTimeout(() => setCopiedStripeId(null), 2000);
+  };
+
+  const handleOpenStatementModal = (type: 'all' | 'payments_only' | 'leads_only' = 'all') => {
+    setInitialStatementType(type);
+    setIsStatementModalOpen(true);
+  };
+
+  const handleQuickDownloadPdf = async (type: 'all' | 'payments_only' | 'leads_only' = 'all') => {
+    setIsQuickDownloadingStatement(true);
+    try {
+      const realRegs = onlyRealPayments ? registrationsList.filter(r => !isMockPayment(r)) : registrationsList;
+      const res = await generateBankStatementPdf(realRegs, leads, {
+        statementType: type,
+        periodLabel: 'Live Dashboard Ledger',
+        generatedBy: `${user?.name || 'Administrator'} (${user?.role || 'Admin'})`,
+      });
+      if (res.success) {
+        setStatementSuccessToast(`Statement (${res.filename}) generated successfully!`);
+        setTimeout(() => setStatementSuccessToast(null), 4000);
+      } else {
+        alert(res.error || 'Failed to download statement');
+      }
+    } catch (e: any) {
+      alert(e?.message || 'Error generating statement');
+    } finally {
+      setIsQuickDownloadingStatement(false);
+    }
   };
 
   const renderPaymentMethodBadge = (reg: any) => {
@@ -1015,7 +1051,17 @@ export default function Admin() {
               <p className="text-espresso/40 text-[10px] font-black uppercase tracking-[0.3em] mt-1.5">Academy Management System v1.0.4</p>
             </div>
             
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-3">
+              {statementSuccessToast && (
+                <motion.span 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="text-xs font-black text-emerald-900 bg-emerald-100 px-3.5 py-2 rounded-xl border border-emerald-300 shadow-sm flex items-center gap-1.5"
+                >
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>{statementSuccessToast}</span>
+                </motion.span>
+              )}
               {syncSuccessMessage && (
                 <motion.span 
                   initial={{ opacity: 0, x: 10 }}
@@ -1025,6 +1071,19 @@ export default function Admin() {
                   ✓ {syncSuccessMessage}
                 </motion.span>
               )}
+
+              {/* Statement PDF Export Button */}
+              <button
+                type="button"
+                onClick={() => handleOpenStatementModal('all')}
+                className="px-4 h-10 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer border border-slate-700"
+                title="Download official bank-statement style PDF of payments and leads"
+              >
+                <FileText className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="hidden sm:inline">Export Statement (PDF)</span>
+                <span className="sm:hidden">Statement</span>
+              </button>
+
               <div className="bg-white p-2 rounded-2xl border border-espresso/5 shadow-sm flex gap-2">
                 <button 
                   onClick={handleSyncAll} 
@@ -1038,7 +1097,7 @@ export default function Admin() {
                 <button 
                   onClick={handleSyncAll}
                   disabled={isSyncing} 
-                  className="px-6 h-10 bg-espresso text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-orange transition-all shadow-sm flex items-center gap-2 disabled:opacity-75"
+                  className="px-6 h-10 bg-espresso text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-orange transition-all shadow-sm flex items-center gap-2 disabled:opacity-75 cursor-pointer"
                 >
                   {isSyncing ? 'Syncing...' : 'Sync Data'}
                 </button>
@@ -1112,6 +1171,32 @@ export default function Admin() {
                         <Mail className={`w-3.5 h-3.5 ${isProcessingEmails ? 'animate-bounce text-blue-600' : ''}`} />
                         <span>{isProcessingEmails ? 'Retrying...' : 'Retry Email Queue'}</span>
                       </button>
+
+                      {/* Statement PDF Export Buttons */}
+                      <div className="flex items-center gap-1.5 bg-emerald-50/80 p-1 rounded-2xl border border-emerald-200">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenStatementModal('payments_only')}
+                          className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
+                          title="Open statement export modal with custom filters"
+                        >
+                          <FileText className="w-3.5 h-3.5" />
+                          <span>Download Statement (PDF)</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleQuickDownloadPdf('payments_only')}
+                          disabled={isQuickDownloadingStatement}
+                          className="p-2 bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl transition-all shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer"
+                          title="Instant 1-Click Quick Download of Payment Ledger"
+                        >
+                          {isQuickDownloadingStatement ? (
+                            <div className="w-3.5 h-3.5 border-2 border-emerald-700 border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <Download className="w-3.5 h-3.5" />
+                          )}
+                        </button>
+                      </div>
 
                       {/* Sync With Stripe */}
                       <button
@@ -1365,10 +1450,35 @@ export default function Admin() {
 
                 {/* ── 2. ABANDONED / IN-PROGRESS CHECKOUT LEADS ── */}
                 <div className="bg-white rounded-[3rem] border border-espresso/5 shadow-xl overflow-hidden">
-                  <div className="p-8 sm:p-10 border-b border-espresso/5 flex justify-between items-center bg-sand/10">
+                  <div className="p-8 sm:p-10 border-b border-espresso/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-sand/10">
                     <div>
                       <h3 className="text-xl font-condensed font-black uppercase text-espresso">Checkout Inquiries &amp; Leads ({leads.length})</h3>
                       <p className="text-espresso/40 text-[10px] font-black uppercase tracking-widest mt-0.5">Users who entered details before final payment</p>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 bg-amber-50/80 p-1 rounded-2xl border border-amber-200">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenStatementModal('leads_only')}
+                        className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 active:scale-95 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
+                        title="Open leads statement export modal with custom filters"
+                      >
+                        <FileText className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Download Leads PDF</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleQuickDownloadPdf('leads_only')}
+                        disabled={isQuickDownloadingStatement}
+                        className="p-2 bg-white hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-xl transition-all shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer"
+                        title="Instant 1-Click Quick Download of Leads Statement"
+                      >
+                        {isQuickDownloadingStatement ? (
+                          <div className="w-3.5 h-3.5 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Download className="w-3.5 h-3.5" />
+                        )}
+                      </button>
                     </div>
                   </div>
 
@@ -2818,6 +2928,18 @@ export default function Admin() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Real-time Bank Statement PDF Modal */}
+      <DownloadStatementModal
+        isOpen={isStatementModalOpen}
+        onClose={() => setIsStatementModalOpen(false)}
+        registrations={registrationsList}
+        leads={leads}
+        isMockPayment={isMockPayment}
+        currentUserRole={user?.role || 'Admin'}
+        currentUserName={user?.name || 'Administrator'}
+        defaultStatementType={initialStatementType}
+      />
     </div>
     </>
   );

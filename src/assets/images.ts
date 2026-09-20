@@ -39,6 +39,7 @@ export const ASSETS = {
     COACH_MICHAEL: new URL('./images/coach_michael_chen_headshot_1784039879618.jpg', import.meta.url).href,
     COACH_WILSON_ABOUT: new URL('./images/wilson about.jpg', import.meta.url).href,
     COACH_VARADHA: new URL('./images/asst coach.png', import.meta.url).href,
+    COACH_ROHIT: new URL('./images/coach3.jpeg', import.meta.url).href,
   },
   PERFORMANCE: {
     ANALYTICS_HERO: new URL('./images/performance_analytics_visual_1785509230519.jpg', import.meta.url).href,
