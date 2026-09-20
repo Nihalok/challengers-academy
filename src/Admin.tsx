@@ -502,6 +502,27 @@ export default function Admin() {
       fetchCamps();
       fetchPaymentSettings();
       if (isOwner) fetchAdminUsers();
+
+      // Real-time automatic background synchronization every 15 seconds
+      const pollInterval = setInterval(() => {
+        fetchData();
+      }, 15000);
+
+      // Instant refresh when user returns to the tab or browser window
+      const handleWindowFocus = () => {
+        if (document.visibilityState === 'visible') {
+          fetchData();
+        }
+      };
+
+      window.addEventListener('focus', handleWindowFocus);
+      document.addEventListener('visibilitychange', handleWindowFocus);
+
+      return () => {
+        clearInterval(pollInterval);
+        window.removeEventListener('focus', handleWindowFocus);
+        document.removeEventListener('visibilitychange', handleWindowFocus);
+      };
     }
   }, [isAuthenticated, isOwner]);
 
@@ -1071,6 +1092,12 @@ export default function Admin() {
                   ✓ {syncSuccessMessage}
                 </motion.span>
               )}
+
+              {/* Live Real-Time Sync Indicator */}
+              <div className="hidden lg:inline-flex items-center gap-2 px-3.5 h-10 rounded-2xl bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-[10px] font-black uppercase tracking-wider shadow-xs">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Live Real-Time Sync</span>
+              </div>
 
               {/* Statement PDF Export Button */}
               <button

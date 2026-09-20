@@ -96,8 +96,8 @@ export async function generateBankStatementPdf(
       periodLabel = 'All Records to Date',
       generatedBy = 'Administrator',
       academyName = 'CHALLENGERS VOLLEYBALL ACADEMY',
-      academyAddress = '37171 Fremont Blvd, Fremont, CA 94536',
-      academyContact = 'info@challengersva.com | (510) 791-4351 | www.challengersva.com',
+      academyAddress = 'Fremont & Bay Area, CA',
+      academyContact = 'challengersvolleyballacademy@gmail.com | +1 (510) 909-5834',
     } = options;
 
     const doc = new jsPDF({
@@ -796,7 +796,7 @@ export async function generateBankStatementPdf(
     doc.setTextColor(100, 116, 139);
     const disclaimer1 = 'This document represents an official accounting and student admissions statement generated in real-time by Challengers Volleyball Academy.';
     const disclaimer2 = 'All registration fees have been processed via secure PCI-DSS Level 1 payment gateway infrastructure and reconciled with merchant ledgers.';
-    const disclaimer3 = 'For financial audits, corporate matching, or billing verification, please contact finance@challengersva.com.';
+    const disclaimer3 = 'For financial audits, corporate matching, or billing verification, please contact challengersvolleyballacademy@gmail.com.';
 
     doc.text(disclaimer1, textStartX, currentY + 10.5, { maxWidth: contentWidth - stampWidth - 12 });
     doc.text(disclaimer2, textStartX, currentY + 14, { maxWidth: contentWidth - stampWidth - 12 });

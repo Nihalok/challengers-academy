@@ -1983,11 +1983,9 @@ async function createApp() {
         message: cleanMessage,
         source: "Website Contact Form",
         status: "new",
-        createdAt: /* @__PURE__ */ new Date()
+        createdAt: Date.now()
       };
-      if (db) {
-        await db.collection("leads").insertOne(newLead).catch((e) => console.warn("\u26A0\uFE0F Failed to store lead in DB:", e.message));
-      }
+      await saveLeadToDb(newLead);
       if (transporter) {
         try {
           await transporter.sendMail({
@@ -3697,21 +3695,44 @@ Temp Password: ${tempPassword}
         console.warn("Background Stripe sync notice:", e.message);
       });
     }
-    let allRegistrations = Object.values(registrations);
-    let allLeads = Object.values(leads);
+    const regMap = /* @__PURE__ */ new Map();
+    for (const reg of Object.values(registrations)) {
+      if (reg.registrationId) regMap.set(reg.registrationId, reg);
+    }
+    const leadMap = /* @__PURE__ */ new Map();
+    for (const lead of Object.values(leads)) {
+      const key = lead.id || lead.leadId;
+      if (key) leadMap.set(key, lead);
+    }
     let emailJobs = [];
     const db = await getMongoDb();
     if (db) {
       try {
         const mongoRegs = await db.collection("registrations").find().toArray();
-        if (mongoRegs.length > 0) allRegistrations = mongoRegs;
+        for (const reg of mongoRegs) {
+          const key = reg.registrationId || (reg._id ? String(reg._id) : null);
+          if (key) {
+            const existing = regMap.get(key);
+            regMap.set(key, { ...existing, ...reg });
+            if (reg.registrationId) registrations[reg.registrationId] = reg;
+          }
+        }
         const mongoLeads = await db.collection("leads").find().toArray();
-        if (mongoLeads.length > 0) allLeads = mongoLeads;
+        for (const lead of mongoLeads) {
+          const key = lead.id || lead.leadId || (lead._id ? String(lead._id) : null);
+          if (key) {
+            const existing = leadMap.get(key);
+            leadMap.set(key, { ...existing, ...lead });
+            if (lead.id) leads[lead.id] = lead;
+          }
+        }
         emailJobs = await db.collection("email_jobs").find().toArray();
       } catch (err) {
         console.error("MongoDB stats query error:", err.message);
       }
     }
+    const allRegistrations = Array.from(regMap.values());
+    const allLeads = Array.from(leadMap.values());
     const emailJobStatusMap = /* @__PURE__ */ new Map();
     for (const job of emailJobs) {
       if (!emailJobStatusMap.has(job.registrationId) || job.status === "failed") {
@@ -3781,8 +3802,8 @@ Temp Password: ${tempPassword}
         sessions: SESSIONS_CATALOG,
         emailStats
       },
-      registrations: enrichedRegistrations.sort((a, b) => (b.registeredAt || 0) - (a.registeredAt || 0)),
-      leads: allLeads.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)),
+      registrations: enrichedRegistrations.sort((a, b) => new Date(b.registeredAt || 0).getTime() - new Date(a.registeredAt || 0).getTime()),
+      leads: allLeads.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()),
       gallery: galleryItemsList
     });
   });
