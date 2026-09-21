@@ -31,28 +31,21 @@ export default function ModernHero() {
         />
       </div>
 
-      {/* ── Desktop Artwork Image (modern1.png) ── */}
-      <div className="hidden lg:flex absolute inset-0 z-0 pointer-events-none items-center justify-end overflow-hidden">
+      {/* ── Responsive Artwork Image (Desktop modern1.png / Mobile hero mob.png) ── */}
+      {/* Downloads ONLY the screen-matched image, eliminating 2MB redundant transfer */}
+      <picture className="absolute inset-0 z-0 pointer-events-none flex items-center justify-center lg:justify-end overflow-hidden">
+        <source media="(min-width: 1024px)" srcSet={ASSETS.HERO.BACKGROUND} />
         <img
-          src={ASSETS.HERO.BACKGROUND}
-          alt="Challengers Volleyball Academy Desktop"
+          src={ASSETS.HERO.MOBILE_BACKGROUND}
+          alt="Challengers Volleyball Academy"
           loading="eager"
-          className="h-full w-auto max-w-none object-contain object-right opacity-100 min-h-full"
+          decoding="async"
+          className="h-full w-full object-cover object-center opacity-95 lg:opacity-100 lg:w-auto lg:max-w-none lg:object-contain lg:object-right lg:min-h-full"
           style={{
             maxHeight: 'calc(100vh - 96px)',
           }}
         />
-      </div>
-
-      {/* ── Mobile Artwork Image (hero mob.png) ── */}
-      <div className="lg:hidden absolute inset-0 z-0 pointer-events-none flex items-center justify-center overflow-hidden">
-        <img
-          src={ASSETS.HERO.MOBILE_BACKGROUND}
-          alt="Challengers Volleyball Academy Mobile"
-          loading="eager"
-          className="h-full w-full object-cover object-center opacity-95"
-        />
-      </div>
+      </picture>
 
       {/* ── Desktop Shading Overlay (Warm Light Fade) ── */}
       <div 

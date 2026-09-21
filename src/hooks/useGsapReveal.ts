@@ -25,6 +25,7 @@ export const useGsapReveal = () => {
               opacity: 1,
               duration: 0.5,
               ease: 'power2.out',
+              clearProps: 'transform',
               scrollTrigger: {
                 trigger: el,
                 start: 'top 95%',

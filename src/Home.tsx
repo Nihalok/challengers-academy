@@ -32,13 +32,6 @@ export default function Home() {
     offset: ["start start", "end end"]
   });
 
-  const { scrollYProgress: missionProgress } = useScroll({
-    target: missionRef,
-    offset: ["start end", "end start"]
-  });
-
-  const missionY = useTransform(missionProgress, [0, 1], [-100, 100]);
-
   const y1 = useTransform(scrollYProgress, [0, 0.2], [0, -100]);
   const y2 = useTransform(scrollYProgress, [0, 0.2], [0, -60]);
   const y3 = useTransform(scrollYProgress, [0, 0.2], [0, -140]);
@@ -261,10 +254,8 @@ export default function Home() {
 
       </section>
 
-      {/* Academy Journey Section */}
-      <div className="gsap-reveal">
-        <AcademyJourney />
-      </div>
+      {/* Academy Journey Section (unwrapped to preserve native sticky positioning without CSS transform interference) */}
+      <AcademyJourney />
 
       {/* Video Statement Section */}
       <section className="bg-espresso py-14 md:py-20 px-4 overflow-hidden gsap-reveal">
@@ -312,7 +303,13 @@ export default function Home() {
       {/* Mission Section */}
       <section ref={missionRef} className="h-[65vh] relative overflow-hidden flex items-center justify-center section-dark">
         <div className="absolute inset-0 z-0">
-          <img src={ASSETS.HERO.ACTION_CARD_4} className="w-full h-full object-cover opacity-30 grayscale" />
+          <img 
+            src={ASSETS.HERO.ACTION_CARD_4} 
+            alt="Action Card"
+            loading="lazy"
+            decoding="async"
+            className="w-full h-full object-cover opacity-30 grayscale" 
+          />
         </div>
         
         {/* Infinite Horizontal Marquee behind text */}
@@ -348,6 +345,8 @@ export default function Home() {
           <img 
             src={ASSETS.HERO.TEXTURE_BG} 
             alt="Texture" 
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover grayscale"
             referrerPolicy="no-referrer"
           />
@@ -395,6 +394,8 @@ export default function Home() {
                   <img 
                     src={ASSETS.JOURNEY.STYLIZED_BG} 
                     alt="Volleyball" 
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover grayscale brightness-200"
                     referrerPolicy="no-referrer"
                   />
@@ -525,6 +526,8 @@ export default function Home() {
           <img 
             src={ASSETS.HERO.TEXTURE_BG} 
             alt="Texture" 
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover mix-blend-multiply grayscale"
             referrerPolicy="no-referrer"
           />
@@ -608,7 +611,7 @@ function VideoCarousel() {
             controls
             playsInline
             muted
-            preload="metadata"
+            preload="none"
             className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
             style={{ opacity: i === active ? 1 : 0, pointerEvents: i === active ? 'auto' : 'none' }}
           />

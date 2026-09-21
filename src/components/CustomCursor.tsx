@@ -52,20 +52,21 @@ export default function CustomCursor() {
     const handleMouseMove = (e: MouseEvent) => {
       mousePos.current.x = e.clientX;
       mousePos.current.y = e.clientY;
-      if (cursorType === 'hidden') {
-        setCursorType('default');
-      }
+      setCursorType(prev => (prev === 'hidden' ? 'default' : prev));
     };
 
     const handleMouseLeave = () => {
-      setCursorType('hidden');
+      setCursorType(prev => (prev === 'hidden' ? prev : 'hidden'));
     };
 
     const handleMouseEnter = () => {
-      setCursorType('default');
+      setCursorType(prev => (prev === 'default' ? prev : 'default'));
     };
 
     const handleMouseOver = (e: MouseEvent) => {
+      // During active scrolling, skip expensive DOM tree traversal and state churn
+      if (document.body.classList.contains('is-scrolling')) return;
+
       const target = e.target as HTMLElement | null;
       if (!target) return;
 
@@ -73,11 +74,8 @@ export default function CustomCursor() {
         'button, a, [role="button"], input[type="submit"], input[type="button"], label, select, .cursor-pointer, [data-clickable]'
       );
 
-      if (isClickable) {
-        setCursorType('pointer');
-      } else {
-        setCursorType('default');
-      }
+      const nextType = isClickable ? 'pointer' : 'default';
+      setCursorType(prev => (prev === nextType ? prev : nextType));
     };
 
     const handleMouseDown = () => {

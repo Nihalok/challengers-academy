@@ -160,7 +160,7 @@ export default function AcademyJourney() {
     offset: ["start start", "end end"]
   });
 
-  const smoothProgress = useSpring(scrollYProgress, { stiffness: 100, damping: 28, restDelta: 0.001 });
+  const smoothProgress = useSpring(scrollYProgress, { stiffness: 240, damping: 30, restDelta: 0.001 });
   const pathFlowOffset = useTransform(smoothProgress, [0, 1], [0, -40]); 
 
   const [trail, setTrail] = useState<TrailImage[]>([]);
@@ -187,7 +187,7 @@ export default function AcademyJourney() {
   }, []);
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (isMobile) return;
+    if (isMobile || document.body.classList.contains('is-scrolling')) return;
     const x = e.clientX;
     const y = e.clientY;
 

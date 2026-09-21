@@ -27,6 +27,13 @@ export default function OptimizedImage({
   ...props 
 }: OptimizedImageProps & { imgClassName?: string }) {
   const [isLoaded, setIsLoaded] = useState(false);
+  const imgRef = React.useRef<HTMLImageElement>(null);
+
+  React.useEffect(() => {
+    if (imgRef.current?.complete) {
+      setIsLoaded(true);
+    }
+  }, []);
 
   // Helper to optimize Unsplash URLs
   const getOptimizedUrl = (url: string) => {
@@ -50,6 +57,7 @@ export default function OptimizedImage({
       )}
       
       <img
+        ref={imgRef}
         src={optimizedSrc}
         alt={alt}
         width={width}

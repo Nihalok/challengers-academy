@@ -43,16 +43,17 @@ export default function Navigation() {
         const y = window.scrollY;
         const diff = y - lastY.current;
 
-        setIsAtTop(y < 20);
+        const atTop = y < 20;
+        setIsAtTop(prev => (prev === atTop ? prev : atTop));
 
         if (y < TOP_THRESHOLD) {
-          setCollapsed(false);
+          setCollapsed(prev => (prev === false ? prev : false));
         } else if (diff > DELTA) {
           // scrolling down
-          setCollapsed(true);
+          setCollapsed(prev => (prev === true ? prev : true));
         } else if (diff < -DELTA) {
           // scrolling up
-          setCollapsed(false);
+          setCollapsed(prev => (prev === false ? prev : false));
         }
 
         lastY.current = y;

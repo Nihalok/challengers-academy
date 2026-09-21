@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import gsap from 'gsap';
@@ -16,14 +16,9 @@ export default function ExpertiseSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const leftColRef = useRef<HTMLDivElement>(null);
   const rightColRef = useRef<HTMLDivElement>(null);
-  const [activeIdx, setActiveIdx] = useState(0);
+  const activeIdxRef = useRef(0);
 
   useEffect(() => {
-    // Force refresh after all components are likely loaded
-    const timeoutId = setTimeout(() => {
-      ScrollTrigger.refresh();
-    }, 1000);
-
     const ctx = gsap.context(() => {
       const mm = gsap.matchMedia();
 
@@ -41,8 +36,8 @@ export default function ExpertiseSection() {
           const index = Math.round(scrollLeft / totalWidth);
           const safeIndex = Math.max(0, Math.min(index, BG_COLORS.length - 1));
           
-          if (activeIdx !== safeIndex) {
-            setActiveIdx(safeIndex);
+          if (activeIdxRef.current !== safeIndex) {
+            activeIdxRef.current = safeIndex;
             gsap.to(sectionRef.current, { 
               backgroundColor: BG_COLORS[safeIndex], 
               duration: 0.6,
@@ -51,7 +46,7 @@ export default function ExpertiseSection() {
           }
         };
 
-        scroller.addEventListener('scroll', handleMobileScroll);
+        scroller.addEventListener('scroll', handleMobileScroll, { passive: true });
         gsap.set('.expertise-card', { opacity: 1 });
         gsap.set(sectionRef.current, { backgroundColor: BG_COLORS[0] });
 
@@ -108,18 +103,18 @@ export default function ExpertiseSection() {
             end: "bottom center",
             onToggle: (self) => {
               if (self.isActive) {
-                setActiveIdx(index);
+                activeIdxRef.current = index;
                 // Crossfade images smoothly
-                gsap.to(images, { opacity: 0, scale: 1.05, duration: 0.6, ease: "power2.inOut", overwrite: "auto" });
-                gsap.to(images[index], { opacity: 1, scale: 1, duration: 0.6, ease: "power2.inOut", overwrite: "auto" });
+                gsap.to(images, { opacity: 0, scale: 1.05, duration: 0.5, ease: "power2.inOut", overwrite: "auto" });
+                gsap.to(images[index], { opacity: 1, scale: 1, duration: 0.5, ease: "power2.inOut", overwrite: "auto" });
 
                 // Update dots
                 gsap.to(dots, { backgroundColor: 'rgba(255, 255, 255, 0.3)', scale: 1, duration: 0.3, overwrite: "auto" });
                 gsap.to(dots[index], { backgroundColor: '#ffffff', scale: 1.5, duration: 0.3, overwrite: "auto" });
 
                 // Highlight active text, dim others
-                gsap.to(cards, { opacity: 0.25, duration: 0.4, ease: "power2.inOut", overwrite: "auto" });
-                gsap.to(card, { opacity: 1, duration: 0.4, ease: "power2.inOut", overwrite: "auto" });
+                gsap.to(cards, { opacity: 0.25, duration: 0.35, ease: "power2.inOut", overwrite: "auto" });
+                gsap.to(card, { opacity: 1, duration: 0.35, ease: "power2.inOut", overwrite: "auto" });
               }
             }
           });
@@ -130,7 +125,6 @@ export default function ExpertiseSection() {
 
     return () => {
       ctx.revert();
-      clearTimeout(timeoutId);
     };
   }, []);
 

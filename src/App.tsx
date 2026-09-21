@@ -53,25 +53,37 @@ function SmoothScroll() {
     if (isTouch) return;
 
     const lenis = new Lenis({
-      duration: 0.9,
+      duration: 0.85,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
-      wheelMultiplier: 0.9,
+      wheelMultiplier: 1.0,
+      touchMultiplier: 1.5,
       infinite: false,
     });
 
     lenisRef.current = lenis;
     (window as any).__lenis = lenis;
 
-    // Keep GSAP ScrollTrigger & Lenis in sync
-    lenis.on('scroll', ScrollTrigger.update);
+    // Keep GSAP ScrollTrigger & Lenis in sync with high-performance scroll handling
+    let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
+    lenis.on('scroll', () => {
+      ScrollTrigger.update();
+      if (!document.body.classList.contains('is-scrolling')) {
+        document.body.classList.add('is-scrolling');
+      }
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        document.body.classList.remove('is-scrolling');
+      }, 120);
+    });
 
     const updateLenis = (time: number) => {
       lenis.raf(time * 1000);
     };
 
     gsap.ticker.add(updateLenis);
-    gsap.ticker.lagSmoothing(0);
+    // Enable adaptive lag smoothing to prevent frame freezes during rapid scrolling
+    gsap.ticker.lagSmoothing(500, 33);
 
     // Auto-resize Lenis whenever ScrollTrigger recalculates (pinned sections, images loading, layout shifts)
     const handleScrollTriggerRefresh = () => {
@@ -80,6 +92,8 @@ function SmoothScroll() {
     ScrollTrigger.addEventListener('refresh', handleScrollTriggerRefresh);
 
     return () => {
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+      document.body.classList.remove('is-scrolling');
       ScrollTrigger.removeEventListener('refresh', handleScrollTriggerRefresh);
       gsap.ticker.remove(updateLenis);
       lenis.destroy();
