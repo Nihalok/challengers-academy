@@ -269,17 +269,19 @@ function getMailTransporter() {
 
   const host = process.env.EMAIL_HOST?.trim() || 'smtp.gmail.com';
   const isGmail = process.env.EMAIL_SERVICE === 'gmail' || user.includes('@gmail.com') || host === 'smtp.gmail.com';
-  const port = parseInt(process.env.EMAIL_PORT || (isGmail ? '465' : '587'));
+  // In serverless / cloud hosting, port 465 (direct SSL/TLS) is far more reliable and instant for Gmail than STARTTLS on 587
+  const port = isGmail ? 465 : parseInt(process.env.EMAIL_PORT || '587');
+  const secure = port === 465;
 
   return nodemailer.createTransport({
     host: isGmail ? 'smtp.gmail.com' : host,
-    port: port,
-    secure: port === 465, // true for 465 (SSL), false for 587 (STARTTLS)
+    port,
+    secure,
     auth: { user, pass },
     pool: false, // Critical for serverless: disables socket reuse to avoid dead/stale connections
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000,
+    connectionTimeout: 8000,
+    greetingTimeout: 8000,
+    socketTimeout: 12000,
     tls: {
       rejectUnauthorized: false
     }
@@ -2232,10 +2234,16 @@ export async function createApp() {
         await saveLeadToDb(matchedLead);
       }
 
-      // Decoupled Email Queue: Queues and dispatches confirmation emails safely
-      queueAndDispatchEmails(newRegistration).catch((e: any) => {
-        console.warn('⚠️ Non-blocking email queue dispatch notice:', e.message);
-      });
+      // Immediate synchronous email dispatch to prevent Vercel serverless freeze
+      try {
+        console.log(`✉️ [WEBHOOK] Dispatching instant confirmation & admin notification for ${registrationId}...`);
+        await Promise.allSettled([
+          sendAdminNotificationEmail(newRegistration),
+          sendCustomerConfirmationEmail(newRegistration)
+        ]);
+      } catch (mailErr: any) {
+        console.error('⚠️ [WEBHOOK] Email dispatch notice:', mailErr.message);
+      }
 
       // Mark Stripe event as processed in idempotency table
       if (eventId && db) {
@@ -3275,8 +3283,35 @@ Challengers Volleyball Academy
     const finalAmount = isSibling ? Math.max(0, (singlePrice * 2) - siblingDiscount) : singlePrice;
     const amountInCents = Math.round(finalAmount * 100);
 
-    const registrationId = generateRegistrationId();
-    const leadId = nanoid();
+    const cleanEmail = String(email || '').trim().toLowerCase();
+    const cleanPlayerName = String(playerName || '').trim();
+    const cleanPlayerNameLower = cleanPlayerName.toLowerCase();
+
+    // Check for existing pending lead to reuse and prevent duplicate orphan leads
+    let existingLead: any = null;
+    const reqLeadId = req.body.leadId ? String(req.body.leadId).trim() : null;
+    if (reqLeadId) {
+      existingLead = leads[reqLeadId] || (db ? await db.collection('leads').findOne({ id: reqLeadId }) : null);
+    }
+    if (!existingLead && cleanEmail && cleanPlayerNameLower) {
+      if (db) {
+        existingLead = await db.collection('leads').findOne({
+          email: { $regex: `^${cleanEmail.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, $options: 'i' },
+          playerName: { $regex: `^${cleanPlayerNameLower.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, $options: 'i' },
+          status: { $ne: 'confirmed' }
+        }, { sort: { createdAt: -1 } });
+      }
+      if (!existingLead) {
+        existingLead = Object.values(leads).find((l: any) =>
+          String(l.email || '').trim().toLowerCase() === cleanEmail &&
+          String(l.playerName || '').trim().toLowerCase() === cleanPlayerNameLower &&
+          l.status !== 'confirmed'
+        );
+      }
+    }
+
+    const registrationId = req.body.registrationId || existingLead?.registrationId || generateRegistrationId();
+    const leadId = existingLead?.id || reqLeadId || nanoid();
 
     const chosenLocation = String(preferredLocation || location || req.body.preferredLocation || req.body.location || session.location || 'Fremont (Kerala House)').trim();
 
@@ -3285,9 +3320,9 @@ Challengers Volleyball Academy
       leadId,
       sessionId: session.id,
       sessionName: session.name,
-      playerName: playerName || '',
+      playerName: cleanPlayerName,
       parentName: parentName || '',
-      email: email || '',
+      email: cleanEmail,
       phone: phone || '',
       dob: dob || '',
       location: chosenLocation,
@@ -3306,8 +3341,9 @@ Challengers Volleyball Academy
       finalAmount: String(finalAmount)
     };
 
-    // Pre-save lead in memory & MongoDB
+    // Pre-save or update lead in memory & MongoDB
     leads[leadId] = {
+      ...(existingLead || {}),
       id: leadId,
       registrationId,
       ...metadata,
@@ -3322,7 +3358,8 @@ Challengers Volleyball Academy
       discountAmount: siblingDiscount,
       totalAthletes: isSibling ? 2 : 1,
       status: 'pending_payment',
-      createdAt: Date.now()
+      createdAt: existingLead?.createdAt || Date.now(),
+      updatedAt: Date.now()
     };
     await saveLeadToDb(leads[leadId]);
 
@@ -3718,23 +3755,6 @@ Challengers Volleyball Academy
 
         const targetRegistrationId = metadata.registrationId || regId;
 
-        // Check if registration was already saved (e.g. by webhook)
-        let alreadySentEmails = false;
-        if (registrations[targetRegistrationId] && registrations[targetRegistrationId].paymentStatus === 'PAID') {
-          alreadySentEmails = true;
-        } else if (db) {
-          const dbDoc = await db.collection('registrations').findOne({ 
-            $or: [
-              { registrationId: targetRegistrationId },
-              { stripePaymentIntentId: intent.id },
-              { transactionId: intent.id }
-            ]
-          });
-          if (dbDoc && dbDoc.paymentStatus === 'PAID') {
-            alreadySentEmails = true;
-          }
-        }
-
         const confirmedReg: RegistrationRecord = {
           registrationId: targetRegistrationId,
           sessionId: metadata.sessionId || session?.id || sessionId,
@@ -3774,17 +3794,29 @@ Challengers Volleyball Academy
           await saveLeadToDb(lead);
         }
 
-        // Send notifications only if not already sent by webhook (avoids duplicates)
-        if (!alreadySentEmails) {
-          console.log(`✉️ Dispatching confirmation emails from verify-payment (${targetRegistrationId} - ${resolvedMethod})...`);
+        // Send notifications immediately if not yet successfully dispatched
+        const [adminAlreadySent, custAlreadySent] = await Promise.all([
+          hasEmailBeenDispatched(targetRegistrationId, 'admin_notification'),
+          hasEmailBeenDispatched(targetRegistrationId, 'customer_confirmation')
+        ]);
+
+        const emailDispatches: Promise<any>[] = [];
+        if (!adminAlreadySent) {
+          emailDispatches.push(sendAdminNotificationEmail(confirmedReg));
+        }
+        if (!custAlreadySent) {
+          emailDispatches.push(sendCustomerConfirmationEmail(confirmedReg));
+        }
+
+        if (emailDispatches.length > 0) {
+          console.log(`✉️ [VERIFY-PAYMENT] Dispatching immediate confirmation emails for ${targetRegistrationId}...`);
           try {
-            await Promise.allSettled([
-              sendAdminNotificationEmail(confirmedReg),
-              sendCustomerConfirmationEmail(confirmedReg)
-            ]);
+            await Promise.allSettled(emailDispatches);
           } catch (mailErr: any) {
             console.error('Email dispatch error during stripe verify-payment:', mailErr.message);
           }
+        } else {
+          console.log(`🔒 [VERIFY-PAYMENT] Confirmation emails already delivered for ${targetRegistrationId}.`);
         }
 
         return res.json({ success: true, registration: confirmedReg });
@@ -4334,7 +4366,62 @@ Challengers Volleyball Academy
     return { syncedCount, updatedCount, totalStripePayments };
   }
 
-  // POST /api/admin/clean-mock-records - Purge test / mock registrations
+  // Helper: Deduplicate leads in MongoDB and memory to prevent multiple duplicate rows
+  async function deduplicateLeadsInDb(): Promise<number> {
+    const db = await getMongoDb();
+    if (!db) return 0;
+    let removedCount = 0;
+    try {
+      const mongoLeads = await db.collection('leads').find().toArray();
+      const groups = new Map<string, any[]>();
+      for (const l of mongoLeads) {
+        const email = String(l.email || '').toLowerCase().trim();
+        const athlete = String(l.playerName || l.studentName || l.fullName || l.name || '').toLowerCase().trim().replace(/\s+/g, ' ');
+        if (!email && !athlete) continue;
+        const key = `${email}___${athlete}`;
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key)!.push(l);
+      }
+
+      const idsToDelete: any[] = [];
+      const memoryKeysToDelete: string[] = [];
+
+      for (const [, leadList] of groups.entries()) {
+        if (leadList.length > 1) {
+          // Sort: confirmed first, then latest timestamp
+          leadList.sort((a, b) => {
+            if (a.status === 'confirmed' && b.status !== 'confirmed') return -1;
+            if (b.status === 'confirmed' && a.status !== 'confirmed') return 1;
+            return (new Date(b.createdAt || 0).getTime()) - (new Date(a.createdAt || 0).getTime());
+          });
+          // Keep the primary canonical lead (index 0), mark others for deletion
+          for (let i = 1; i < leadList.length; i++) {
+            if (leadList[i]._id) {
+              idsToDelete.push(leadList[i]._id);
+            }
+            if (leadList[i].id) {
+              memoryKeysToDelete.push(leadList[i].id);
+            }
+          }
+        }
+      }
+
+      if (idsToDelete.length > 0) {
+        const delRes = await db.collection('leads').deleteMany({ _id: { $in: idsToDelete } });
+        removedCount = delRes.deletedCount || 0;
+        console.log(`🧹 [LEADS DEDUPLICATION] Removed ${removedCount} duplicate lead records from MongoDB.`);
+      }
+
+      for (const k of memoryKeysToDelete) {
+        delete leads[k];
+      }
+    } catch (err: any) {
+      console.error('Lead database deduplication error:', err.message);
+    }
+    return removedCount;
+  }
+
+  // POST /api/admin/clean-mock-records - Purge test / mock registrations & duplicate leads
   app.post('/api/admin/clean-mock-records', requireAuth, async (req, res) => {
     try {
       const db = await getMongoDb();
@@ -4352,6 +4439,14 @@ Challengers Volleyball Academy
         };
         const result = await db.collection('registrations').deleteMany(query);
         deletedCount = result.deletedCount;
+
+        // Also remove mock leads
+        await db.collection('leads').deleteMany({
+          $or: [
+            { email: 'customer@example.com' },
+            { playerName: 'Student Athlete' }
+          ]
+        }).catch(() => {});
       }
 
       // Also clean in-memory map
@@ -4368,10 +4463,14 @@ Challengers Volleyball Academy
         }
       }
 
+      // Automatically consolidate and purge duplicate leads
+      const duplicateLeadsRemoved = await deduplicateLeadsInDb();
+
       res.json({
         success: true,
-        message: `Successfully purged ${deletedCount} test / mock registrations.`,
-        deletedCount
+        message: `Successfully purged ${deletedCount} test records and removed ${duplicateLeadsRemoved} duplicate leads.`,
+        deletedCount,
+        duplicateLeadsRemoved
       });
     } catch (err: any) {
       console.error('Purge mock records error:', err);
@@ -4524,8 +4623,37 @@ Challengers Volleyball Academy
       }
     }
 
+    // Deduplicate leads: group by athlete identifier (email + normalized athlete name)
+    // Ensures admin dashboard never shows 2 or 3 duplicate rows for the same inquiry or applicant
+    const deduplicatedLeadsMap = new Map<string, any>();
+    for (const lead of allLeads) {
+      const emailKey = String(lead.email || '').toLowerCase().trim();
+      const athleteKey = String(lead.playerName || lead.studentName || lead.fullName || lead.name || '').toLowerCase().trim().replace(/\s+/g, ' ');
+      const groupKey = emailKey && athleteKey ? `${emailKey}___${athleteKey}` : (emailKey || lead.id || String(lead._id));
+
+      const existing = deduplicatedLeadsMap.get(groupKey);
+      if (!existing) {
+        deduplicatedLeadsMap.set(groupKey, lead);
+      } else {
+        // Prioritize confirmed status and latest timestamp
+        const isExistingConfirmed = existing.status === 'confirmed';
+        const isCurrentConfirmed = lead.status === 'confirmed';
+
+        if (!isExistingConfirmed && isCurrentConfirmed) {
+          deduplicatedLeadsMap.set(groupKey, { ...existing, ...lead, status: 'confirmed' });
+        } else if ((new Date(lead.createdAt || 0).getTime()) >= (new Date(existing.createdAt || 0).getTime())) {
+          deduplicatedLeadsMap.set(groupKey, {
+            ...existing,
+            ...lead,
+            status: (isExistingConfirmed || isCurrentConfirmed) ? 'confirmed' : (lead.status || existing.status)
+          });
+        }
+      }
+    }
+
+    const deduplicatedLeads = Array.from(deduplicatedLeadsMap.values());
     const totalConfirmed = allRegistrations.length;
-    const totalLeads = allLeads.length;
+    const totalLeads = deduplicatedLeads.length;
     const totalRevenue = allRegistrations.reduce((sum, r) => sum + (Number(r.amountPaid) || 0), 0);
 
     // Compute email delivery summary
@@ -4564,7 +4692,7 @@ Challengers Volleyball Academy
         emailStats
       },
       registrations: enrichedRegistrations.sort((a, b) => (new Date(b.registeredAt || 0).getTime()) - (new Date(a.registeredAt || 0).getTime())),
-      leads: allLeads.sort((a, b) => (new Date(b.createdAt || 0).getTime()) - (new Date(a.createdAt || 0).getTime())),
+      leads: deduplicatedLeads.sort((a, b) => (new Date(b.createdAt || 0).getTime()) - (new Date(a.createdAt || 0).getTime())),
       gallery: galleryItemsList
     });
   });

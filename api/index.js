@@ -8,6 +8,7 @@ import { nanoid } from "nanoid";
 import { MongoClient, ObjectId } from "mongodb";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import rateLimit from "express-rate-limit";
 import nodemailer from "nodemailer";
 import { OAuth2Client } from "google-auth-library";
 process.on("uncaughtException", (err) => {
@@ -17,7 +18,7 @@ process.on("unhandledRejection", (reason) => {
   console.error("\u{1F6E1}\uFE0F [Unhandled Rejection caught]:", reason?.message || reason);
 });
 try {
-  dns.setServers(["8.8.8.8", "1.1.1.1", "8.8.4.4"]);
+  dns.setServers(["1.1.1.1", "8.8.8.8", "1.0.0.1", "8.8.4.4"]);
 } catch {
 }
 var fastCache = /* @__PURE__ */ new Map();
@@ -61,15 +62,14 @@ async function getMongoDb() {
   connectPromise = (async () => {
     try {
       mongoClient = new MongoClient(uri, {
-        serverSelectionTimeoutMS: 1e4,
-        connectTimeoutMS: 1e4,
-        socketTimeoutMS: 45e3,
-        maxPoolSize: 25,
-        minPoolSize: 2,
+        serverSelectionTimeoutMS: 5e3,
+        connectTimeoutMS: 5e3,
+        socketTimeoutMS: 3e4,
+        maxPoolSize: 20,
+        minPoolSize: 0,
         maxIdleTimeMS: 3e4,
         retryWrites: true,
-        retryReads: true,
-        family: 4
+        retryReads: true
       });
       mongoClient.on("error", (err) => {
         console.warn("\u26A0\uFE0F MongoDB Client Error:", err.message);
@@ -216,18 +216,18 @@ function getMailTransporter() {
   }
   const host = process.env.EMAIL_HOST?.trim() || "smtp.gmail.com";
   const isGmail = process.env.EMAIL_SERVICE === "gmail" || user.includes("@gmail.com") || host === "smtp.gmail.com";
-  const port = parseInt(process.env.EMAIL_PORT || (isGmail ? "465" : "587"));
+  const port = isGmail ? 465 : parseInt(process.env.EMAIL_PORT || "587");
+  const secure = port === 465;
   return nodemailer.createTransport({
     host: isGmail ? "smtp.gmail.com" : host,
     port,
-    secure: port === 465,
-    // true for 465 (SSL), false for 587 (STARTTLS)
+    secure,
     auth: { user, pass },
     pool: false,
     // Critical for serverless: disables socket reuse to avoid dead/stale connections
-    connectionTimeout: 1e4,
-    greetingTimeout: 1e4,
-    socketTimeout: 15e3,
+    connectionTimeout: 8e3,
+    greetingTimeout: 8e3,
+    socketTimeout: 12e3,
     tls: {
       rejectUnauthorized: false
     }
@@ -293,7 +293,6 @@ Reset URL: ${resetUrl}
     `
   });
 }
-var devResetTokens = {};
 async function seedFirstAdmin(db) {
   const collection = db.collection("admin_users");
   const defaultEmail = (process.env.ADMIN_SEED_EMAIL || process.env.ACADEMY_ADMIN_EMAIL || "admin@challengersvolleyball.com").toLowerCase().trim();
@@ -310,7 +309,7 @@ async function seedFirstAdmin(db) {
       lastLogin: null,
       loginCount: 0
     });
-    console.log(`🛡️ [AUTH] Seed admin account created for ${defaultEmail}.`);
+    console.log(`\u{1F6E1}\uFE0F [AUTH] Seed admin account created for ${defaultEmail}.`);
   }
 }
 var DEFAULT_PROGRAMS = [
@@ -1485,43 +1484,6 @@ Challengers Volleyball Academy - Bay Area, CA
   }
 }
 var emailJobsMap = {};
-async function getOrCreateEmailJob(reg, type) {
-  const recipient = type === "customer_confirmation" ? String(reg.email || "").trim().toLowerCase() : (process.env.ACADEMY_ADMIN_EMAIL || process.env.ADMIN_SEED_EMAIL || process.env.EMAIL_USER || "nihalok625@gmail.com").trim();
-  const jobId = `${reg.registrationId}_${type}`;
-  const db = await getMongoDb();
-  if (db) {
-    try {
-      const existing = await db.collection("email_jobs").findOne({ jobId });
-      if (existing) return existing;
-    } catch {
-    }
-  } else if (emailJobsMap[jobId]) {
-    return emailJobsMap[jobId];
-  }
-  const newJob = {
-    jobId,
-    registrationId: reg.registrationId,
-    type,
-    recipient,
-    status: "pending",
-    attempts: 0,
-    maxAttempts: 5,
-    lastError: null,
-    createdAt: Date.now()
-  };
-  emailJobsMap[jobId] = newJob;
-  if (db) {
-    try {
-      await db.collection("email_jobs").updateOne(
-        { jobId },
-        { $setOnInsert: newJob },
-        { upsert: true }
-      );
-    } catch {
-    }
-  }
-  return newJob;
-}
 async function dispatchEmailJob(job, reg) {
   const db = await getMongoDb();
   let targetReg = reg;
@@ -1591,25 +1553,6 @@ async function dispatchEmailJob(job, reg) {
   }
   return success;
 }
-async function queueAndDispatchEmails(reg) {
-  let customerSent = false;
-  let adminSent = false;
-  try {
-    const [custJob, adminJob] = await Promise.all([
-      getOrCreateEmailJob(reg, "customer_confirmation"),
-      getOrCreateEmailJob(reg, "admin_notification")
-    ]);
-    const results = await Promise.allSettled([
-      custJob.status !== "sent" ? dispatchEmailJob(custJob, reg) : Promise.resolve(true),
-      adminJob.status !== "sent" ? dispatchEmailJob(adminJob, reg) : Promise.resolve(true)
-    ]);
-    customerSent = results[0].status === "fulfilled" && results[0].value === true;
-    adminSent = results[1].status === "fulfilled" && results[1].value === true;
-  } catch (err) {
-    console.warn(`\u26A0\uFE0F [EMAIL QUEUE NOTICE] Background email dispatch deferred for ${reg.registrationId}:`, err.message);
-  }
-  return { customerSent, adminSent };
-}
 async function processEmailQueue(limit = 30) {
   let processed = 0;
   let sent = 0;
@@ -1671,7 +1614,9 @@ async function createApp() {
   });
   const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1e3,
+    // 15 minutes
     max: 10,
+    // Max 10 attempts per IP per 15 minutes
     standardHeaders: true,
     legacyHeaders: false,
     message: { success: false, lockout: true, lockoutMs: 15 * 60 * 1e3, message: "Too many authentication attempts from this IP. Please try again in 15 minutes." }
@@ -1869,9 +1814,15 @@ async function createApp() {
         matchedLead.registrationId = registrationId;
         await saveLeadToDb(matchedLead);
       }
-      queueAndDispatchEmails(newRegistration).catch((e) => {
-        console.warn("\u26A0\uFE0F Non-blocking email queue dispatch notice:", e.message);
-      });
+      try {
+        console.log(`\u2709\uFE0F [WEBHOOK] Dispatching instant confirmation & admin notification for ${registrationId}...`);
+        await Promise.allSettled([
+          sendAdminNotificationEmail(newRegistration),
+          sendCustomerConfirmationEmail(newRegistration)
+        ]);
+      } catch (mailErr) {
+        console.error("\u26A0\uFE0F [WEBHOOK] Email dispatch notice:", mailErr.message);
+      }
       if (eventId && db) {
         await db.collection("stripe_events").updateOne(
           { eventId },
@@ -2100,7 +2051,7 @@ Challengers Volleyball Academy
     if (!validPassword) {
       const { lockout, lockoutMs: lMs } = recordFailedAttempt(identifier);
       if (lockout) {
-        return res.status(429).json({ success: false, lockout: true, lockoutMs: lMs, message: `Too many failed attempts. Account locked for 15 minutes.` });
+        return res.status(429).json({ success: false, lockout: true, lockoutMs: lMs, message: "Too many failed attempts. Account locked for 15 minutes." });
       }
       return res.status(401).json({ success: false, message: "Invalid email or password." });
     }
@@ -2118,25 +2069,31 @@ Challengers Volleyball Academy
       at: /* @__PURE__ */ new Date()
     }).catch(() => {
     });
-    const token2 = generateJWT({
+    const token = generateJWT({
       id: adminUser._id.toString(),
       email: adminUser.email,
       name: adminUser.name,
       role: adminUser.role
     }, !!rememberMe);
-    res.json({ success: true, token: token2, user: { email: adminUser.email, name: adminUser.name, role: adminUser.role } });
+    res.json({ success: true, token, user: { email: adminUser.email, name: adminUser.name, role: adminUser.role } });
   });
   app.post("/api/auth/google", authLimiter, async (req, res) => {
     const { credential, rememberMe } = req.body;
-    if (!credential || typeof credential !== "string") return res.status(400).json({ success: false, message: "No credential provided." });
-    if (!googleClient) return res.status(503).json({ success: false, message: "Google Sign-In is not configured." });
+    if (!credential || typeof credential !== "string") {
+      return res.status(400).json({ success: false, message: "No credential provided." });
+    }
+    if (!googleClient) {
+      return res.status(503).json({ success: false, message: "Google Sign-In is not configured." });
+    }
     try {
       const ticket = await googleClient.verifyIdToken({
         idToken: credential,
         audience: GOOGLE_CLIENT_ID
       });
       const payload = ticket.getPayload();
-      if (!payload?.email || !payload?.email_verified) return res.status(401).json({ success: false, message: "Google account email must be verified." });
+      if (!payload?.email || !payload?.email_verified) {
+        return res.status(401).json({ success: false, message: "Google account email must be verified." });
+      }
       const googleEmail = payload.email.toLowerCase().trim();
       const seedEmail = (process.env.ADMIN_SEED_EMAIL || process.env.ACADEMY_ADMIN_EMAIL || "").toLowerCase().trim();
       const isOwnerSeed = seedEmail && googleEmail === seedEmail;
@@ -2173,13 +2130,13 @@ Challengers Volleyball Academy
         at: /* @__PURE__ */ new Date()
       }).catch(() => {
       });
-      const token2 = generateJWT({
+      const token = generateJWT({
         id: adminUser._id.toString(),
         email: adminUser.email,
         name: adminUser.name || payload.name,
         role: adminUser.role || "owner"
       }, !!rememberMe);
-      res.json({ success: true, token: token2, user: { email: adminUser.email, name: adminUser.name || payload.name, role: adminUser.role || "owner" } });
+      res.json({ success: true, token, user: { email: adminUser.email, name: adminUser.name || payload.name, role: adminUser.role || "owner" } });
     } catch (err) {
       console.error("Google auth verification error:", err.message);
       res.status(401).json({ success: false, message: "Google authentication error: " + (err.message || "Invalid token") });
@@ -2205,7 +2162,9 @@ Challengers Volleyball Academy
   });
   app.post("/api/auth/forgot-password", authLimiter, async (req, res) => {
     const { email } = req.body;
-    if (!email || typeof email !== "string") return res.status(400).json({ success: false, message: "Email address is required." });
+    if (!email || typeof email !== "string") {
+      return res.status(400).json({ success: false, message: "Email address is required." });
+    }
     const normalizedEmail = email.toLowerCase().trim();
     const resetToken = nanoid(32);
     const db = await getMongoDb();
@@ -2228,17 +2187,23 @@ Challengers Volleyball Academy
   });
   app.post("/api/auth/reset-password", authLimiter, async (req, res) => {
     const { token, newPassword } = req.body;
-    if (!token || typeof token !== "string" || !newPassword || typeof newPassword !== "string") return res.status(400).json({ success: false, message: "Token and new password required." });
-    if (newPassword.length < 8) return res.status(400).json({ success: false, message: "Password must be at least 8 characters long." });
+    if (!token || typeof token !== "string" || !newPassword || typeof newPassword !== "string") {
+      return res.status(400).json({ success: false, message: "Token and new password required." });
+    }
+    if (newPassword.length < 8) {
+      return res.status(400).json({ success: false, message: "Password must be at least 8 characters long." });
+    }
     const db = await getMongoDb();
     if (!db) {
       return res.status(503).json({ success: false, message: "Database temporarily unavailable." });
     }
     const adminUser = await db.collection("admin_users").findOne({
       resetToken: token,
-      resetExpiry: { $gt: new Date() }
+      resetExpiry: { $gt: /* @__PURE__ */ new Date() }
     });
-    if (!adminUser) return res.status(400).json({ success: false, message: "Invalid or expired reset token." });
+    if (!adminUser) {
+      return res.status(400).json({ success: false, message: "Invalid or expired reset token." });
+    }
     const hashedPassword = await bcrypt.hash(newPassword, 12);
     await db.collection("admin_users").updateOne(
       { _id: adminUser._id },
@@ -2730,17 +2695,39 @@ Temp Password: ${tempPassword}
     const siblingDiscount = isSibling ? 50 : 0;
     const finalAmount = isSibling ? Math.max(0, singlePrice * 2 - siblingDiscount) : singlePrice;
     const amountInCents = Math.round(finalAmount * 100);
-    const registrationId = generateRegistrationId();
-    const leadId = nanoid();
+    const cleanEmail = String(email || "").trim().toLowerCase();
+    const cleanPlayerName = String(playerName || "").trim();
+    const cleanPlayerNameLower = cleanPlayerName.toLowerCase();
+    let existingLead = null;
+    const reqLeadId = req.body.leadId ? String(req.body.leadId).trim() : null;
+    if (reqLeadId) {
+      existingLead = leads[reqLeadId] || (db ? await db.collection("leads").findOne({ id: reqLeadId }) : null);
+    }
+    if (!existingLead && cleanEmail && cleanPlayerNameLower) {
+      if (db) {
+        existingLead = await db.collection("leads").findOne({
+          email: { $regex: `^${cleanEmail.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&")}$`, $options: "i" },
+          playerName: { $regex: `^${cleanPlayerNameLower.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&")}$`, $options: "i" },
+          status: { $ne: "confirmed" }
+        }, { sort: { createdAt: -1 } });
+      }
+      if (!existingLead) {
+        existingLead = Object.values(leads).find(
+          (l) => String(l.email || "").trim().toLowerCase() === cleanEmail && String(l.playerName || "").trim().toLowerCase() === cleanPlayerNameLower && l.status !== "confirmed"
+        );
+      }
+    }
+    const registrationId = req.body.registrationId || existingLead?.registrationId || generateRegistrationId();
+    const leadId = existingLead?.id || reqLeadId || nanoid();
     const chosenLocation = String(preferredLocation || location || req.body.preferredLocation || req.body.location || session.location || "Fremont (Kerala House)").trim();
     const metadata = {
       registrationId,
       leadId,
       sessionId: session.id,
       sessionName: session.name,
-      playerName: playerName || "",
+      playerName: cleanPlayerName,
       parentName: parentName || "",
-      email: email || "",
+      email: cleanEmail,
       phone: phone || "",
       dob: dob || "",
       location: chosenLocation,
@@ -2759,6 +2746,7 @@ Temp Password: ${tempPassword}
       finalAmount: String(finalAmount)
     };
     leads[leadId] = {
+      ...existingLead || {},
       id: leadId,
       registrationId,
       ...metadata,
@@ -2773,7 +2761,8 @@ Temp Password: ${tempPassword}
       discountAmount: siblingDiscount,
       totalAthletes: isSibling ? 2 : 1,
       status: "pending_payment",
-      createdAt: Date.now()
+      createdAt: existingLead?.createdAt || Date.now(),
+      updatedAt: Date.now()
     };
     await saveLeadToDb(leads[leadId]);
     const stripe = getStripe();
@@ -3083,21 +3072,6 @@ Temp Password: ${tempPassword}
         const resolvedEmergencyName = metadata.emergencyContactName || req.body.emergencyContactName || student.emergencyContactName || lead?.emergencyContactName || "";
         const resolvedEmergencyPhone = metadata.emergencyContactPhone || req.body.emergencyContactPhone || student.emergencyContactPhone || lead?.emergencyContactPhone || "";
         const targetRegistrationId = metadata.registrationId || regId;
-        let alreadySentEmails = false;
-        if (registrations[targetRegistrationId] && registrations[targetRegistrationId].paymentStatus === "PAID") {
-          alreadySentEmails = true;
-        } else if (db) {
-          const dbDoc = await db.collection("registrations").findOne({
-            $or: [
-              { registrationId: targetRegistrationId },
-              { stripePaymentIntentId: intent.id },
-              { transactionId: intent.id }
-            ]
-          });
-          if (dbDoc && dbDoc.paymentStatus === "PAID") {
-            alreadySentEmails = true;
-          }
-        }
         const confirmedReg = {
           registrationId: targetRegistrationId,
           sessionId: metadata.sessionId || session?.id || sessionId,
@@ -3135,16 +3109,26 @@ Temp Password: ${tempPassword}
           lead.status = "confirmed";
           await saveLeadToDb(lead);
         }
-        if (!alreadySentEmails) {
-          console.log(`\u2709\uFE0F Dispatching confirmation emails from verify-payment (${targetRegistrationId} - ${resolvedMethod})...`);
+        const [adminAlreadySent, custAlreadySent] = await Promise.all([
+          hasEmailBeenDispatched(targetRegistrationId, "admin_notification"),
+          hasEmailBeenDispatched(targetRegistrationId, "customer_confirmation")
+        ]);
+        const emailDispatches = [];
+        if (!adminAlreadySent) {
+          emailDispatches.push(sendAdminNotificationEmail(confirmedReg));
+        }
+        if (!custAlreadySent) {
+          emailDispatches.push(sendCustomerConfirmationEmail(confirmedReg));
+        }
+        if (emailDispatches.length > 0) {
+          console.log(`\u2709\uFE0F [VERIFY-PAYMENT] Dispatching immediate confirmation emails for ${targetRegistrationId}...`);
           try {
-            await Promise.allSettled([
-              sendAdminNotificationEmail(confirmedReg),
-              sendCustomerConfirmationEmail(confirmedReg)
-            ]);
+            await Promise.allSettled(emailDispatches);
           } catch (mailErr) {
             console.error("Email dispatch error during stripe verify-payment:", mailErr.message);
           }
+        } else {
+          console.log(`\u{1F512} [VERIFY-PAYMENT] Confirmation emails already delivered for ${targetRegistrationId}.`);
         }
         return res.json({ success: true, registration: confirmedReg });
       } else {
@@ -3591,6 +3575,53 @@ Temp Password: ${tempPassword}
     }
     return { syncedCount, updatedCount, totalStripePayments };
   }
+  async function deduplicateLeadsInDb() {
+    const db = await getMongoDb();
+    if (!db) return 0;
+    let removedCount = 0;
+    try {
+      const mongoLeads = await db.collection("leads").find().toArray();
+      const groups = /* @__PURE__ */ new Map();
+      for (const l of mongoLeads) {
+        const email = String(l.email || "").toLowerCase().trim();
+        const athlete = String(l.playerName || l.studentName || l.fullName || l.name || "").toLowerCase().trim().replace(/\s+/g, " ");
+        if (!email && !athlete) continue;
+        const key = `${email}___${athlete}`;
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(l);
+      }
+      const idsToDelete = [];
+      const memoryKeysToDelete = [];
+      for (const [, leadList] of groups.entries()) {
+        if (leadList.length > 1) {
+          leadList.sort((a, b) => {
+            if (a.status === "confirmed" && b.status !== "confirmed") return -1;
+            if (b.status === "confirmed" && a.status !== "confirmed") return 1;
+            return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+          });
+          for (let i = 1; i < leadList.length; i++) {
+            if (leadList[i]._id) {
+              idsToDelete.push(leadList[i]._id);
+            }
+            if (leadList[i].id) {
+              memoryKeysToDelete.push(leadList[i].id);
+            }
+          }
+        }
+      }
+      if (idsToDelete.length > 0) {
+        const delRes = await db.collection("leads").deleteMany({ _id: { $in: idsToDelete } });
+        removedCount = delRes.deletedCount || 0;
+        console.log(`\u{1F9F9} [LEADS DEDUPLICATION] Removed ${removedCount} duplicate lead records from MongoDB.`);
+      }
+      for (const k of memoryKeysToDelete) {
+        delete leads[k];
+      }
+    } catch (err) {
+      console.error("Lead database deduplication error:", err.message);
+    }
+    return removedCount;
+  }
   app.post("/api/admin/clean-mock-records", requireAuth, async (req, res) => {
     try {
       const db = await getMongoDb();
@@ -3608,16 +3639,25 @@ Temp Password: ${tempPassword}
         };
         const result = await db.collection("registrations").deleteMany(query);
         deletedCount = result.deletedCount;
+        await db.collection("leads").deleteMany({
+          $or: [
+            { email: "customer@example.com" },
+            { playerName: "Student Athlete" }
+          ]
+        }).catch(() => {
+        });
       }
       for (const [key, val] of Object.entries(registrations)) {
         if (val.stripePaymentIntentId?.startsWith("mock_") || val.transactionId?.startsWith("mock_") || val.paymentMethod?.toLowerCase().includes("mock") || val.registrationId?.startsWith("mock_") || val.playerName === "Student Athlete" || val.email === "customer@example.com") {
           delete registrations[key];
         }
       }
+      const duplicateLeadsRemoved = await deduplicateLeadsInDb();
       res.json({
         success: true,
-        message: `Successfully purged ${deletedCount} test / mock registrations.`,
-        deletedCount
+        message: `Successfully purged ${deletedCount} test records and removed ${duplicateLeadsRemoved} duplicate leads.`,
+        deletedCount,
+        duplicateLeadsRemoved
       });
     } catch (err) {
       console.error("Purge mock records error:", err);
@@ -3742,8 +3782,31 @@ Temp Password: ${tempPassword}
         });
       }
     }
+    const deduplicatedLeadsMap = /* @__PURE__ */ new Map();
+    for (const lead of allLeads) {
+      const emailKey = String(lead.email || "").toLowerCase().trim();
+      const athleteKey = String(lead.playerName || lead.studentName || lead.fullName || lead.name || "").toLowerCase().trim().replace(/\s+/g, " ");
+      const groupKey = emailKey && athleteKey ? `${emailKey}___${athleteKey}` : emailKey || lead.id || String(lead._id);
+      const existing = deduplicatedLeadsMap.get(groupKey);
+      if (!existing) {
+        deduplicatedLeadsMap.set(groupKey, lead);
+      } else {
+        const isExistingConfirmed = existing.status === "confirmed";
+        const isCurrentConfirmed = lead.status === "confirmed";
+        if (!isExistingConfirmed && isCurrentConfirmed) {
+          deduplicatedLeadsMap.set(groupKey, { ...existing, ...lead, status: "confirmed" });
+        } else if (new Date(lead.createdAt || 0).getTime() >= new Date(existing.createdAt || 0).getTime()) {
+          deduplicatedLeadsMap.set(groupKey, {
+            ...existing,
+            ...lead,
+            status: isExistingConfirmed || isCurrentConfirmed ? "confirmed" : lead.status || existing.status
+          });
+        }
+      }
+    }
+    const deduplicatedLeads = Array.from(deduplicatedLeadsMap.values());
     const totalConfirmed = allRegistrations.length;
-    const totalLeads = allLeads.length;
+    const totalLeads = deduplicatedLeads.length;
     const totalRevenue = allRegistrations.reduce((sum, r) => sum + (Number(r.amountPaid) || 0), 0);
     const emailStats = {
       sent: emailJobs.filter((j) => j.status === "sent").length,
@@ -3776,7 +3839,7 @@ Temp Password: ${tempPassword}
         emailStats
       },
       registrations: enrichedRegistrations.sort((a, b) => new Date(b.registeredAt || 0).getTime() - new Date(a.registeredAt || 0).getTime()),
-      leads: allLeads.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()),
+      leads: deduplicatedLeads.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()),
       gallery: galleryItemsList
     });
   });
@@ -4032,14 +4095,23 @@ async function startServer() {
     });
   }
   listen(DEFAULT_PORT);
-  const db = await getMongoDb();
-  if (db) {
-    await seedFirstAdmin(db);
-    await seedPrograms(db);
-    await seedCamps(db);
-    await seedGallery(db);
-    await loadPaymentSettingsFromDb();
-  }
+  (async () => {
+    try {
+      const db = await getMongoDb();
+      if (db) {
+        await Promise.allSettled([
+          seedFirstAdmin(db),
+          seedPrograms(db),
+          seedCamps(db),
+          seedGallery(db),
+          loadPaymentSettingsFromDb()
+        ]);
+        console.log("\u26A1 Background database sync and seeding complete.");
+      }
+    } catch (err) {
+      console.warn("\u26A0\uFE0F Background database initialization notice:", err?.message || err);
+    }
+  })();
 }
 if (!process.env.VERCEL && !process.env.VERCEL_ENV && !process.env.AWS_LAMBDA_FUNCTION_NAME && !process.env.NOW_REGION) {
   startServer().catch((err) => {

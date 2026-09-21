@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Save, RefreshCcw, Plus, Trash2, ArrowLeft, BarChart3, Settings, Eye, 
   LayoutDashboard, Image as ImageIcon, Users, TrendingUp, Search, 
@@ -93,6 +93,7 @@ export default function Admin() {
   const [isProcessingEmails, setIsProcessingEmails] = useState(false);
   const [onlyRealPayments, setOnlyRealPayments] = useState(true);
   const [isPurgingMock, setIsPurgingMock] = useState(false);
+  const [leadsFilter, setLeadsFilter] = useState<'all' | 'pending' | 'confirmed'>('all');
 
   // Bank Statement PDF Modal & Real-time Export State
   const [isStatementModalOpen, setIsStatementModalOpen] = useState(false);
@@ -130,6 +131,57 @@ export default function Admin() {
   });
   const [isSavingPaymentSettings, setIsSavingPaymentSettings] = useState(false);
   const [paymentSettingsSaved, setPaymentSettingsSaved] = useState(false);
+
+  // Deduplicate and filter leads safely for clean, non-repetitive administrative viewing
+  const deduplicatedLeads = useMemo(() => {
+    const map = new Map<string, any>();
+    for (const lead of leads) {
+      const emailKey = String(lead.email || '').toLowerCase().trim();
+      const athleteKey = String(lead.playerName || lead.studentName || lead.fullName || lead.name || '').toLowerCase().trim().replace(/\s+/g, ' ');
+      const key = emailKey && athleteKey ? `${emailKey}___${athleteKey}` : (emailKey || lead.id);
+      const existing = map.get(key);
+      if (!existing) {
+        map.set(key, lead);
+      } else {
+        const isExistingPaid = existing.status === 'confirmed';
+        const isCurrentPaid = lead.status === 'confirmed';
+        if (!isExistingPaid && isCurrentPaid) {
+          map.set(key, { ...existing, ...lead, status: 'confirmed' });
+        } else if (new Date(lead.createdAt || 0).getTime() > new Date(existing.createdAt || 0).getTime()) {
+          map.set(key, { ...existing, ...lead, status: (isExistingPaid || isCurrentPaid) ? 'confirmed' : (lead.status || existing.status) });
+        }
+      }
+    }
+    return Array.from(map.values());
+  }, [leads]);
+
+  const displayedLeads = useMemo(() => {
+    return deduplicatedLeads.filter(l => {
+      const isPaid = l.status === 'confirmed' || registrationsList.some(r =>
+        (r.email && l.email && r.email.toLowerCase().trim() === l.email.toLowerCase().trim() && l.email.includes('@') && !l.email.includes('example.com')) ||
+        (r.registrationId && l.registrationId && r.registrationId === l.registrationId) ||
+        (r.transactionId && l.paymentIntentId && r.transactionId === l.paymentIntentId) ||
+        (r.stripePaymentIntentId && l.paymentIntentId && r.stripePaymentIntentId === l.paymentIntentId)
+      );
+      if (leadsFilter === 'pending') return !isPaid;
+      if (leadsFilter === 'confirmed') return isPaid;
+      return true;
+    });
+  }, [deduplicatedLeads, registrationsList, leadsFilter]);
+
+  const pendingLeadsCount = useMemo(() => {
+    return deduplicatedLeads.filter(l => {
+      const isPaid = l.status === 'confirmed' || registrationsList.some(r =>
+        (r.email && l.email && r.email.toLowerCase().trim() === l.email.toLowerCase().trim() && l.email.includes('@') && !l.email.includes('example.com')) ||
+        (r.registrationId && l.registrationId && r.registrationId === l.registrationId) ||
+        (r.transactionId && l.paymentIntentId && r.transactionId === l.paymentIntentId) ||
+        (r.stripePaymentIntentId && l.paymentIntentId && r.stripePaymentIntentId === l.paymentIntentId)
+      );
+      return !isPaid;
+    }).length;
+  }, [deduplicatedLeads, registrationsList]);
+
+  const confirmedLeadsCount = deduplicatedLeads.length - pendingLeadsCount;
 
   // Editable Academy Settings
   const [academySettings, setAcademySettings] = useState(() => {
@@ -1477,10 +1529,51 @@ export default function Admin() {
 
                 {/* ── 2. ABANDONED / IN-PROGRESS CHECKOUT LEADS ── */}
                 <div className="bg-white rounded-[3rem] border border-espresso/5 shadow-xl overflow-hidden">
-                  <div className="p-8 sm:p-10 border-b border-espresso/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-sand/10">
+                  <div className="p-8 sm:p-10 border-b border-espresso/5 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-sand/10">
                     <div>
-                      <h3 className="text-xl font-condensed font-black uppercase text-espresso">Checkout Inquiries &amp; Leads ({leads.length})</h3>
-                      <p className="text-espresso/40 text-[10px] font-black uppercase tracking-widest mt-0.5">Users who entered details before final payment</p>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <h3 className="text-xl font-condensed font-black uppercase text-espresso">
+                          Checkout Inquiries &amp; Leads ({displayedLeads.length})
+                        </h3>
+                        <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-espresso/10 text-xs">
+                          <button
+                            type="button"
+                            onClick={() => setLeadsFilter('all')}
+                            className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+                              leadsFilter === 'all'
+                                ? 'bg-orange text-white shadow-xs'
+                                : 'text-espresso/60 hover:text-espresso'
+                            }`}
+                          >
+                            All ({deduplicatedLeads.length})
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setLeadsFilter('pending')}
+                            className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+                              leadsFilter === 'pending'
+                                ? 'bg-amber-500 text-white shadow-xs'
+                                : 'text-espresso/60 hover:text-espresso'
+                            }`}
+                          >
+                            Pending ({pendingLeadsCount})
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setLeadsFilter('confirmed')}
+                            className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+                              leadsFilter === 'confirmed'
+                                ? 'bg-emerald-600 text-white shadow-xs'
+                                : 'text-espresso/60 hover:text-espresso'
+                            }`}
+                          >
+                            Converted ({confirmedLeadsCount})
+                          </button>
+                        </div>
+                      </div>
+                      <p className="text-espresso/40 text-[10px] font-black uppercase tracking-widest mt-0.5">
+                        Deduplicated prospective athlete inquiries (1 canonical record per applicant)
+                      </p>
                     </div>
 
                     <div className="flex items-center gap-1.5 bg-amber-50/80 p-1 rounded-2xl border border-amber-200">
@@ -1524,11 +1617,13 @@ export default function Admin() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-espresso/5">
-                        {leads.length === 0 ? (
+                        {displayedLeads.length === 0 ? (
                           <tr>
-                            <td colSpan={5} className="px-8 py-12 text-center text-espresso/40 italic text-xs">No pending leads found.</td>
+                            <td colSpan={5} className="px-8 py-12 text-center text-espresso/40 italic text-xs">
+                              No {leadsFilter !== 'all' ? `${leadsFilter} ` : ''}leads found.
+                            </td>
                           </tr>
-                        ) : leads.map((lead) => (
+                        ) : displayedLeads.map((lead) => (
                           <tr key={lead.id} className="hover:bg-sand/5 transition-colors group">
                             <td className="px-8 py-5">
                               <div className="flex items-center gap-3">

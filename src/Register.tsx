@@ -776,6 +776,8 @@ export default function Register() {
           price: selectedSession.price,
           location: formData.preferredLocation,
           preferredLocation: formData.preferredLocation,
+          leadId: leadId || undefined,
+          registrationId: activeRegistrationId || undefined,
           ...formData
         })
       });

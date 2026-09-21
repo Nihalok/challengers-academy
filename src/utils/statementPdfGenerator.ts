@@ -128,6 +128,21 @@ export async function generateBankStatementPdf(
       hour12: true,
     });
 
+    // Deduplicate leads to ensure clean, non-repetitive reports
+    const deduplicatedLeadsMap = new Map<string, StatementLead>();
+    for (const lead of leads) {
+      const emailKey = String(lead.email || lead.primaryEmail || '').toLowerCase().trim();
+      const athleteKey = String(lead.playerName || lead.studentName || lead.fullName || '').toLowerCase().trim().replace(/\s+/g, ' ');
+      const key = emailKey && athleteKey ? `${emailKey}___${athleteKey}` : (emailKey || String(lead.id || ''));
+      const existing = deduplicatedLeadsMap.get(key);
+      if (!existing) {
+        deduplicatedLeadsMap.set(key, lead);
+      } else if (existing.status !== 'confirmed' && lead.status === 'confirmed') {
+        deduplicatedLeadsMap.set(key, lead);
+      }
+    }
+    leads = Array.from(deduplicatedLeadsMap.values());
+
     // Compute Financial Metrics
     const totalRevenue = registrations.reduce((sum, r) => sum + (Number(r.amountPaid ?? r.amount) || 0), 0);
     const totalRegistrations = registrations.length;
