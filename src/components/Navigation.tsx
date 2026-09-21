@@ -15,6 +15,7 @@ const NAV_LINKS = [
   { label: 'Waiver', path: '/waiver' },
   { label: 'Gallery', path: '/gallery' },
   { label: 'Camps', path: '/camps' },
+  { label: 'FAQ', path: '/faq' },
   { label: 'Contact', path: '/contact' },
 ];
 
@@ -405,7 +406,7 @@ export default function Navigation() {
           margin: 0;
           padding: 0;
           overflow: hidden;
-          max-width: 720px;
+          max-width: 820px;
           opacity: 1;
           transition: max-width 0.4s ease, opacity 0.25s ease, gap 0.4s ease;
         }

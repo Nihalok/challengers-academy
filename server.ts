@@ -22,7 +22,7 @@ process.on('unhandledRejection', (reason: any) => {
 
 // Fix for Node.js SRV record DNS query failures (querySrv ESERVFAIL) on Windows/ISP resolvers
 try {
-  dns.setServers(['8.8.8.8', '1.1.1.1', '8.8.4.4']);
+  dns.setServers(['1.1.1.1', '8.8.8.8', '1.0.0.1', '8.8.4.4']);
 } catch {
   // Fallback if environment restricts setting custom DNS servers
 }
@@ -76,15 +76,14 @@ async function getMongoDb(): Promise<Db | null> {
   connectPromise = (async () => {
     try {
       mongoClient = new MongoClient(uri, {
-        serverSelectionTimeoutMS: 10000,
-        connectTimeoutMS: 10000,
-        socketTimeoutMS: 45000,
-        maxPoolSize: 25,
-        minPoolSize: 2,
+        serverSelectionTimeoutMS: 5000,
+        connectTimeoutMS: 5000,
+        socketTimeoutMS: 30000,
+        maxPoolSize: 20,
+        minPoolSize: 0,
         maxIdleTimeMS: 30000,
         retryWrites: true,
         retryReads: true,
-        family: 4,
       });
 
       mongoClient.on('error', (err) => {
@@ -4872,15 +4871,24 @@ async function startServer() {
 
   listen(DEFAULT_PORT);
 
-  // Seed first admin, programs, camps & gallery after DB connects
-  const db = await getMongoDb();
-  if (db) {
-    await seedFirstAdmin(db);
-    await seedPrograms(db);
-    await seedCamps(db);
-    await seedGallery(db);
-    await loadPaymentSettingsFromDb();
-  }
+  // Seed first admin, programs, camps & gallery asynchronously in background without blocking server responsiveness
+  (async () => {
+    try {
+      const db = await getMongoDb();
+      if (db) {
+        await Promise.allSettled([
+          seedFirstAdmin(db),
+          seedPrograms(db),
+          seedCamps(db),
+          seedGallery(db),
+          loadPaymentSettingsFromDb()
+        ]);
+        console.log('⚡ Background database sync and seeding complete.');
+      }
+    } catch (err: any) {
+      console.warn('⚠️ Background database initialization notice:', err?.message || err);
+    }
+  })();
 }
 
 // Only start standalone HTTP server when not running inside Vercel serverless environment

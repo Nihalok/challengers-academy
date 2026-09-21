@@ -4,7 +4,6 @@ import { ASSETS } from './assets/images';
 import { useGsapReveal } from './hooks/useGsapReveal';
 import SEO from './components/SEO';
 import CoachesSection from './components/CoachesSection';
-import FAQSection from './components/FAQSection';
 import { 
   Award, 
   Trophy, 
@@ -639,21 +638,6 @@ export default function About() {
       <div className="w-full relative bg-white">
         <CoachesSection />
       </div>
-
-      {/* ── FAQ SECTION ────────────────────────────────────────── */}
-      <section className="relative py-20 bg-[#FBF9F6] border-t border-[#1B1B1D]/10">
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="text-center mb-12">
-            <span data-anim="hand" className="font-hand text-[#D62828] text-[36px] uppercase block mb-1">
-              Have Questions?
-            </span>
-            <h2 className="text-3xl sm:text-5xl font-display font-bold uppercase text-[#1B1B1D]">
-              Frequently Asked Questions
-            </h2>
-          </div>
-          <FAQSection />
-        </div>
-      </section>
     </div>
   );
 }

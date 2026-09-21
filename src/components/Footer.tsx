@@ -71,6 +71,7 @@ From first-time players to competitive athletes, we help young Volleyball player
               <li><NavLink to="/camps" className="hover:text-yellow transition-colors">Elite Camps</NavLink></li>
               <li><NavLink to="/waiver" className="hover:text-yellow transition-colors">Safety Waiver</NavLink></li>
               <li><NavLink to="/pricing" className="hover:text-yellow transition-colors">Pricing</NavLink></li>
+              <li><NavLink to="/faq" className="hover:text-yellow transition-colors">FAQ</NavLink></li>
               <li><NavLink to="/about" className="hover:text-yellow transition-colors">Our Story</NavLink></li>
             </ul>
           </nav>
@@ -103,6 +104,7 @@ From first-time players to competitive athletes, we help young Volleyball player
               {/* San Jose */}
               <div>
                 <p className="text-white font-bold text-[11px] uppercase tracking-wider">San Jose</p>
+                 <p className="text-white/60 text-[10px]">1000 South Bascom Ave, San Jose, CA 95128</p>
                 <p className="text-white/50 mt-0.5">Starting October — details coming soon</p>
               </div>
 
