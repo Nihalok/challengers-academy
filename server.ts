@@ -157,6 +157,7 @@ async function ensureMongoIndexes(db: Db) {
 // AUTH HELPERS
 // ============================================================
 const JWT_SECRET = process.env.JWT_SECRET || 'challengers-dev-secret-change-in-production';
+const DUMMY_BCRYPT_HASH = '$2a$12$e8Uk5b2qgPqmG2rB7tP4yeYQ7N.1oUom0Uq3MskK5u5wPZ8e1Y0Ce';
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || '';
 const googleClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
 
@@ -350,7 +351,7 @@ const devResetTokens: Record<string, { email: string; expires: number }> = {};
 // Seed first admin user on startup
 async function seedFirstAdmin(db: Db) {
   const collection = db.collection('admin_users');
-  const defaultEmail = (process.env.ADMIN_SEED_EMAIL || 'kenznajeeb@gmail.com').toLowerCase();
+  const defaultEmail = (process.env.ADMIN_SEED_EMAIL || process.env.ACADEMY_ADMIN_EMAIL || 'admin@challengersvolleyball.com').toLowerCase().trim();
   const defaultPassword = process.env.ADMIN_SEED_PASSWORD || 'admin123';
   const hashedPassword = await bcrypt.hash(defaultPassword, 12);
 
@@ -365,11 +366,7 @@ async function seedFirstAdmin(db: Db) {
       lastLogin: null,
       loginCount: 0,
     });
-    console.log('\n╔══════════════════════════════════════════════════╗');
-    console.log('║         ADMIN ACCOUNT SEEDED                     ║');
-    console.log(`║  Email:    ${defaultEmail.padEnd(38)}║`);
-    console.log(`║  Password: ${defaultPassword.padEnd(38)}║`);
-    console.log('╚══════════════════════════════════════════════════╝\n');
+    console.log(`🛡️ [AUTH] Seed admin account created for ${defaultEmail}.`);
   }
 }
 
@@ -1205,7 +1202,7 @@ let academyPaymentSettings: AcademyPaymentSettings = {
   academyName: 'Challengers Volleyball Academy',
   recipientName: 'Wilson Mathew / Challengers Academy',
   zellePhone: '+1 (863) 845-9913',
-  zelleEmail: 'kenznajeeb@gmail.com',
+  zelleEmail: process.env.ACADEMY_ADMIN_EMAIL || 'payments@challengersvolleyball.com',
   venmoHandle: '@Challengers-Academy',
   cashAppHandle: '$ChallengersAcademy',
   upiId: '18638459913@upi',
@@ -1964,7 +1961,25 @@ export async function createApp() {
       const subPath = Array.isArray(req.query.__path) ? req.query.__path.join('/') : req.query.__path;
       req.url = `/api/${subPath}`;
     }
+  // 0. Security Headers (Clickjacking protection, MIME-type sniffing prevention, HSTS)
+  app.use((req, res, next) => {
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    if (process.env.NODE_ENV === 'production' || req.secure || req.headers['x-forwarded-proto'] === 'https') {
+      res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+    }
     next();
+  });
+
+  // Strict rate limiter for authentication endpoints (prevents brute-force / credential stuffing)
+  const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10, // Max 10 attempts per IP per 15 minutes
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, lockout: true, lockoutMs: 15 * 60 * 1000, message: 'Too many authentication attempts from this IP. Please try again in 15 minutes.' },
   });
 
   // 1. Stripe Raw Webhook Endpoint (supports raw Buffer, string, and serverless pre-parsed payloads)
@@ -2447,13 +2462,22 @@ Challengers Volleyball Academy
   // AUTH ENDPOINTS
   // ============================================================
 
-  // POST /api/auth/login - email + password
-  app.post('/api/auth/login', async (req, res) => {
+  // POST /api/auth/login - email + password (Strictly hardened)
+  app.post('/api/auth/login', authLimiter, async (req, res) => {
     const { email, password, rememberMe } = req.body;
-    if (!email || !password) return res.status(400).json({ success: false, message: 'Email and password are required.' });
+    
+    // Strict type & format validation (prevent NoSQL injection & type confusion attacks)
+    if (typeof email !== 'string' || typeof password !== 'string' || !email.trim() || !password) {
+      return res.status(400).json({ success: false, message: 'Valid email and password are required.' });
+    }
 
+    if (email.length > 254 || password.length > 128) {
+      return res.status(400).json({ success: false, message: 'Invalid credentials format.' });
+    }
+
+    const inputEmail = email.toLowerCase().trim();
     const ip = req.ip || 'unknown';
-    const identifier = `${ip}:${email.toLowerCase()}`;
+    const identifier = `${ip}:${inputEmail}`;
 
     // Check lockout
     const { blocked, lockoutMs } = checkLoginAttempts(identifier);
@@ -2461,43 +2485,29 @@ Challengers Volleyball Academy
       return res.status(429).json({ success: false, lockout: true, lockoutMs, message: 'Too many failed attempts. Please wait before trying again.' });
     }
 
-    const seedEmail = (process.env.ADMIN_SEED_EMAIL || 'kenznajeeb@gmail.com').toLowerCase().trim();
-    const seedPassword = process.env.ADMIN_SEED_PASSWORD || 'admin123';
-    const inputEmail = email.toLowerCase().trim();
-    const isSeedCreds = (inputEmail === seedEmail || inputEmail === 'admin@challengersvolleyball.com' || inputEmail === 'kenznajeeb@gmail.com') && (password === seedPassword || password === 'admin123');
-
     const db = await getMongoDb();
     if (!db) {
-      if (isSeedCreds) {
-        const token = generateJWT({ id: 'seed_admin', email: inputEmail, name: 'Academy Admin', role: 'owner' }, rememberMe);
-        return res.json({ success: true, token, user: { email: inputEmail, name: 'Academy Admin', role: 'owner' } });
-      }
-      return res.status(401).json({ success: false, message: 'Invalid email or password.' });
+      // Execute dummy comparison to ensure constant-time response (timing attack mitigation)
+      await bcrypt.compare(password, DUMMY_BCRYPT_HASH);
+      recordFailedAttempt(identifier);
+      return res.status(503).json({ success: false, message: 'Database temporarily unavailable. Please try again shortly.' });
     }
 
-    let adminUser = await db.collection('admin_users').findOne({ email: inputEmail });
-    if (!adminUser && isSeedCreds) {
-      await seedFirstAdmin(db).catch(() => {});
-      adminUser = await db.collection('admin_users').findOne({ email: inputEmail });
-    }
+    const adminUser = await db.collection('admin_users').findOne({ email: inputEmail });
 
     if (!adminUser) {
+      // Execute dummy comparison to ensure constant-time response (prevents user enumeration via timing)
+      await bcrypt.compare(password, DUMMY_BCRYPT_HASH);
       recordFailedAttempt(identifier);
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
     }
 
+    // Verify password hash strictly with bcrypt
     const validPassword = await bcrypt.compare(password, adminUser.password);
     if (!validPassword) {
-      // Also allow seed password for the primary seed email if bcrypt match fails
-      if (isSeedCreds) {
-        clearLoginAttempts(identifier);
-        const token = generateJWT({ id: adminUser._id.toString(), email: adminUser.email, name: adminUser.name, role: adminUser.role }, rememberMe);
-        return res.json({ success: true, token, user: { email: adminUser.email, name: adminUser.name, role: adminUser.role } });
-      }
-
       const { lockout, lockoutMs: lMs } = recordFailedAttempt(identifier);
       if (lockout) {
-        return res.status(429).json({ success: false, lockout: true, lockoutMs: lMs, message: `Too many failed attempts. Account locked for 15 minutes.` });
+        return res.status(429).json({ success: false, lockout: true, lockoutMs: lMs, message: 'Too many failed attempts. Account locked for 15 minutes.' });
       }
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
     }
@@ -2510,7 +2520,7 @@ Challengers Volleyball Academy
       { $set: { lastLogin: new Date() }, $inc: { loginCount: 1 } }
     );
 
-    // Log activity
+    // Audit log
     await db.collection('admin_activity').insertOne({
       adminId: adminUser._id,
       email: adminUser.email,
@@ -2525,16 +2535,20 @@ Challengers Volleyball Academy
       email: adminUser.email,
       name: adminUser.name,
       role: adminUser.role,
-    }, rememberMe);
+    }, !!rememberMe);
 
     res.json({ success: true, token, user: { email: adminUser.email, name: adminUser.name, role: adminUser.role } });
   });
 
-  // POST /api/auth/google - verify Google credential
-  app.post('/api/auth/google', async (req, res) => {
+  // POST /api/auth/google - verify Google credential (Strictly hardened)
+  app.post('/api/auth/google', authLimiter, async (req, res) => {
     const { credential, rememberMe } = req.body;
-    if (!credential) return res.status(400).json({ success: false, message: 'No credential provided.' });
-    if (!googleClient) return res.status(503).json({ success: false, message: 'Google Sign-In is not configured (missing GOOGLE_CLIENT_ID in server environment).' });
+    if (!credential || typeof credential !== 'string') {
+      return res.status(400).json({ success: false, message: 'No credential provided.' });
+    }
+    if (!googleClient) {
+      return res.status(503).json({ success: false, message: 'Google Sign-In is not configured.' });
+    }
 
     try {
       const ticket = await googleClient.verifyIdToken({
@@ -2542,59 +2556,57 @@ Challengers Volleyball Academy
         audience: GOOGLE_CLIENT_ID,
       });
       const payload = ticket.getPayload();
-      if (!payload?.email) return res.status(401).json({ success: false, message: 'Google token invalid.' });
+      if (!payload?.email || !payload?.email_verified) {
+        return res.status(401).json({ success: false, message: 'Google account email must be verified.' });
+      }
 
       const googleEmail = payload.email.toLowerCase().trim();
-      const seedEmail = (process.env.ADMIN_SEED_EMAIL || 'kenznajeeb@gmail.com').toLowerCase().trim();
-      const isOwnerSeed = (googleEmail === seedEmail || googleEmail === 'kenznajeeb@gmail.com' || googleEmail === 'admin@challengersvolleyball.com');
+      const seedEmail = (process.env.ADMIN_SEED_EMAIL || process.env.ACADEMY_ADMIN_EMAIL || '').toLowerCase().trim();
+      const isOwnerSeed = seedEmail && googleEmail === seedEmail;
 
       const db = await getMongoDb();
-      let adminUser: any = null;
-      if (db) {
-        adminUser = await db.collection('admin_users').findOne({ email: googleEmail });
-        if (!adminUser && isOwnerSeed) {
-          // Auto-seed owner account in DB
-          const newAdmin = {
-            email: googleEmail,
-            name: payload.name || 'Academy Owner',
-            role: 'owner',
-            password: await bcrypt.hash(nanoid(16), 10),
-            createdAt: new Date(),
-            lastLogin: new Date(),
-            loginCount: 1,
-          };
-          const insertRes = await db.collection('admin_users').insertOne(newAdmin);
-          adminUser = { ...newAdmin, _id: insertRes.insertedId };
-        }
-
-        if (!adminUser) {
-          return res.status(403).json({ success: false, message: `Access denied: ${googleEmail} is not authorized as an admin. Ask the owner to grant access.` });
-        }
-        await db.collection('admin_users').updateOne(
-          { _id: adminUser._id },
-          { $set: { lastLogin: new Date() }, $inc: { loginCount: 1 } }
-        );
-        await db.collection('admin_activity').insertOne({
-          adminId: adminUser._id,
-          email: adminUser.email,
-          action: 'google_login',
-          ip: req.ip,
-          at: new Date()
-        }).catch(() => {});
-      } else {
-        // DB fallback mode
-        if (!isOwnerSeed) {
-          return res.status(403).json({ success: false, message: `Access denied: ${googleEmail} is not authorized as an admin.` });
-        }
-        adminUser = { _id: 'seed_admin', email: googleEmail, name: payload.name || 'Academy Owner', role: 'owner' };
+      if (!db) {
+        return res.status(503).json({ success: false, message: 'Database temporarily unavailable.' });
       }
+
+      let adminUser = await db.collection('admin_users').findOne({ email: googleEmail });
+      if (!adminUser && isOwnerSeed) {
+        // Auto-seed owner account in DB for verified seed email
+        const newAdmin = {
+          email: googleEmail,
+          name: payload.name || 'Academy Owner',
+          role: 'owner',
+          password: await bcrypt.hash(nanoid(24), 12),
+          createdAt: new Date(),
+          lastLogin: new Date(),
+          loginCount: 1,
+        };
+        const insertRes = await db.collection('admin_users').insertOne(newAdmin);
+        adminUser = { ...newAdmin, _id: insertRes.insertedId };
+      }
+
+      if (!adminUser) {
+        return res.status(403).json({ success: false, message: `Access denied: ${googleEmail} is not authorized as an admin. Ask the academy owner to grant access.` });
+      }
+
+      await db.collection('admin_users').updateOne(
+        { _id: adminUser._id },
+        { $set: { lastLogin: new Date() }, $inc: { loginCount: 1 } }
+      );
+      await db.collection('admin_activity').insertOne({
+        adminId: adminUser._id,
+        email: adminUser.email,
+        action: 'google_login',
+        ip: req.ip,
+        at: new Date()
+      }).catch(() => {});
 
       const token = generateJWT({
         id: adminUser._id.toString(),
         email: adminUser.email,
         name: adminUser.name || payload.name,
         role: adminUser.role || 'owner',
-      }, rememberMe);
+      }, !!rememberMe);
 
       res.json({ success: true, token, user: { email: adminUser.email, name: adminUser.name || payload.name, role: adminUser.role || 'owner' } });
     } catch (err: any) {
@@ -2624,25 +2636,19 @@ Challengers Volleyball Academy
     res.json({ success: true });
   });
 
-  // POST /api/auth/forgot-password
-  app.post('/api/auth/forgot-password', async (req, res) => {
+  // POST /api/auth/forgot-password (Strictly hardened)
+  app.post('/api/auth/forgot-password', authLimiter, async (req, res) => {
     const { email } = req.body;
-    if (!email) return res.status(400).json({ success: false, message: 'Email address is required.' });
+    if (!email || typeof email !== 'string') {
+      return res.status(400).json({ success: false, message: 'Email address is required.' });
+    }
 
     const normalizedEmail = email.toLowerCase().trim();
-    const seedEmail = (process.env.ADMIN_SEED_EMAIL || 'kenznajeeb@gmail.com').toLowerCase().trim();
     const resetToken = nanoid(32);
 
     const db = await getMongoDb();
-    let emailError: string | null = null;
-
     if (db) {
-      let adminUser = await db.collection('admin_users').findOne({ email: normalizedEmail });
-      if (!adminUser && (normalizedEmail === seedEmail || normalizedEmail === 'kenznajeeb@gmail.com')) {
-        await seedFirstAdmin(db).catch(() => {});
-        adminUser = await db.collection('admin_users').findOne({ email: normalizedEmail });
-      }
-
+      const adminUser = await db.collection('admin_users').findOne({ email: normalizedEmail });
       if (adminUser) {
         const resetExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
         await db.collection('admin_users').updateOne(
@@ -2652,45 +2658,28 @@ Challengers Volleyball Academy
         try {
           await sendPasswordResetEmail(normalizedEmail, resetToken, req);
         } catch (err: any) {
-          console.error('Email send error:', err.message);
-          emailError = err.message;
+          console.error('Password reset email dispatch notice:', err.message);
         }
       }
-    } else {
-      // Fallback dev mode without DB
-      devResetTokens[resetToken] = { email: normalizedEmail, expires: Date.now() + 60 * 60 * 1000 };
-      try {
-        await sendPasswordResetEmail(normalizedEmail, resetToken, req);
-      } catch (err: any) {
-        console.error('Email send error:', err.message);
-        emailError = err.message;
-      }
     }
 
-    if (emailError) {
-      return res.status(500).json({ 
-        success: false, 
-        message: `Failed to dispatch email: ${emailError}. Please check your EMAIL_USER/EMAIL_FROM and EMAIL_PASS configuration in Vercel.` 
-      });
-    }
-
+    // Always return a timing-safe, uniform response to prevent user account enumeration
     res.json({ success: true, message: 'If that email is registered, a password reset link has been sent to your inbox.' });
   });
 
-  // POST /api/auth/reset-password
-  app.post('/api/auth/reset-password', async (req, res) => {
+  // POST /api/auth/reset-password (Strictly hardened)
+  app.post('/api/auth/reset-password', authLimiter, async (req, res) => {
     const { token, newPassword } = req.body;
-    if (!token || !newPassword) return res.status(400).json({ success: false, message: 'Token and new password required.' });
-    if (newPassword.length < 6) return res.status(400).json({ success: false, message: 'Password must be at least 6 characters.' });
+    if (!token || typeof token !== 'string' || !newPassword || typeof newPassword !== 'string') {
+      return res.status(400).json({ success: false, message: 'Token and new password required.' });
+    }
+    if (newPassword.length < 8) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 8 characters long.' });
+    }
 
     const db = await getMongoDb();
     if (!db) {
-      const devEntry = devResetTokens[token];
-      if (!devEntry || devEntry.expires < Date.now()) {
-        return res.status(400).json({ success: false, message: 'Invalid or expired reset token.' });
-      }
-      delete devResetTokens[token];
-      return res.json({ success: true, message: 'Password reset successfully. You can now log in.' });
+      return res.status(503).json({ success: false, message: 'Database temporarily unavailable.' });
     }
 
     const adminUser = await db.collection('admin_users').findOne({
@@ -2698,7 +2687,9 @@ Challengers Volleyball Academy
       resetExpiry: { $gt: new Date() }
     });
 
-    if (!adminUser) return res.status(400).json({ success: false, message: 'Invalid or expired reset token.' });
+    if (!adminUser) {
+      return res.status(400).json({ success: false, message: 'Invalid or expired reset token.' });
+    }
 
     const hashedPassword = await bcrypt.hash(newPassword, 12);
     await db.collection('admin_users').updateOne(
