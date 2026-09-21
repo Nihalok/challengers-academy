@@ -1961,6 +1961,9 @@ export async function createApp() {
       const subPath = Array.isArray(req.query.__path) ? req.query.__path.join('/') : req.query.__path;
       req.url = `/api/${subPath}`;
     }
+    next();
+  });
+
   // 0. Security Headers (Clickjacking protection, MIME-type sniffing prevention, HSTS)
   app.use((req, res, next) => {
     res.setHeader('X-Frame-Options', 'DENY');
