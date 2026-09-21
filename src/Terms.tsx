@@ -24,14 +24,14 @@ export default function Terms() {
               <h2 className="text-2xl font-serif text-espresso mb-6">Attendance & Makeup Class Policy</h2>
               <ul className="space-y-4 list-disc pl-6">
                 <li className="leading-relaxed">
-                  <strong>Eligibility:</strong> Students who miss regular training classes will be eligible for 1 makeup class quarterly, subject to academy scheduling and availability.
+                  <strong>Eligibility:</strong> Students who miss regular training classes will be eligible for 2 makeup class quarterly, subject to academy scheduling and availability.
                 </li>
                 <li className="leading-relaxed">
                   <strong>Scheduling:</strong> Makeup classes are subject to academy scheduling and class availability. We cannot guarantee a specific time slot for makeup sessions.Makeup classes must be used within 3 months of the missed class.
 
                 </li>
                 <li className="leading-relaxed">
-                  <strong>Notification:</strong> If any participant is planning to be absent, please inform us prior to the start of the class to help us manage session capacity and scheduling.
+                  <strong>Notification:</strong> If you plan to miss a class, please inform us at least one day in advance to help us manage session capacity and scheduling. Late notice may result in the makeup class being unavailable.
                 </li>
               </ul>
             </section>

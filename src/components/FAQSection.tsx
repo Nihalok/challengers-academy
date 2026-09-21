@@ -10,7 +10,7 @@ interface FAQ {
 const faqs: FAQ[] = [
   {
     question: "What is your attendance and makeup class policy?",
-    answer: "If you miss your regular Volleyball training session at one location, you can attend a session at any of our other locations. This option is available for your convenience."
+    answer: "Students who miss a regular training class are eligible for up to two makeup classes per quarter, subject to Academy scheduling and availability. Makeup classes must be used within 3 months of the missed class. Students may attend a makeup session at any of our Academy locations, subject to availability."
   },
   {
     question: "What age groups do you train?",
