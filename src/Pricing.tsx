@@ -377,7 +377,7 @@ export default function Pricing() {
           <div>
             <h4 className="font-bold text-base mb-1 text-espresso">Sibling Discount</h4>
             <p className="text-espresso/60 text-xs leading-relaxed">
-              Registering more than one child? We offer a <span className="text-[#D62828] font-bold">10% discount</span> on regular package fees and summer camp registrations for each additional sibling.
+              Registering more than one child? We offer a <span className="text-[#D62828] font-bold">10% discount</span> on regular package fees and summer camp registrations for each additional sibling (excludes single tryout evaluations).
             </p>
           </div>
         </motion.div>

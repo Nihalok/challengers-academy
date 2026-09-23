@@ -279,7 +279,7 @@ export default function Programs() {
           {/* Sibling Discount Callout */}
           <div className="mt-6 inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-semibold shadow-sm">
             <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-black">✓</span>
-            <span><strong>Sibling Discount:</strong> Add a brother or sister to any program and get an automatic <strong>$50 family discount</strong>!</span>
+            <span><strong>Sibling Discount:</strong> Add a brother or sister to any coaching package and get an automatic <strong>$50 family discount</strong>! <span className="text-emerald-700 font-normal text-[11px]">(Excludes single tryout sessions)</span></span>
           </div>
         </div>
 

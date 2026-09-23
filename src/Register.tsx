@@ -577,13 +577,29 @@ export default function Register() {
     return age;
   };
 
+  const isTryoutSession = selectedSession?.id === 'tryout-session' || selectedSession?.id?.includes('tryout') || (selectedSession?.category && selectedSession.category.includes('Assessment'));
+
+  // Automatically clear sibling details if a tryout session is selected (tryouts do not offer sibling concessions)
+  useEffect(() => {
+    if (isTryoutSession && formData.hasSibling) {
+      setFormData(prev => ({
+        ...prev,
+        hasSibling: false,
+        siblingName: '',
+        siblingDob: '',
+        siblingGender: 'Co-ed',
+        siblingMedicalNotes: ''
+      }));
+    }
+  }, [isTryoutSession, formData.hasSibling]);
+
   const athleteAge = calculateAge(formData.dob);
   const siblingAge = calculateAge(formData.siblingDob);
-  const isMinor = (athleteAge !== null && athleteAge < 18) || (formData.hasSibling && siblingAge !== null && siblingAge < 18);
+  const isSiblingSelected = formData.hasSibling && !isTryoutSession;
+  const isMinor = (athleteAge !== null && athleteAge < 18) || (isSiblingSelected && siblingAge !== null && siblingAge < 18);
 
   // Pricing calculations
   const singlePrice = selectedSession.price;
-  const isSiblingSelected = formData.hasSibling;
   const siblingDiscount = isSiblingSelected ? 50 : 0;
   const totalRegistrationFee = isSiblingSelected ? Math.max(0, (singlePrice * 2) - siblingDiscount) : singlePrice;
 
@@ -682,8 +698,8 @@ export default function Register() {
       }
     }
 
-    // 5. Sibling Validation (if sibling enrollment is enabled)
-    if (formData.hasSibling) {
+    // 5. Sibling Validation (if sibling enrollment is enabled and not a tryout session)
+    if (formData.hasSibling && !isTryoutSession) {
       const trimmedSibling = (formData.siblingName || '').trim();
       if (!trimmedSibling) {
         errors.siblingName = 'Sibling athlete full name is required.';
@@ -778,7 +794,12 @@ export default function Register() {
           preferredLocation: formData.preferredLocation,
           leadId: leadId || undefined,
           registrationId: activeRegistrationId || undefined,
-          ...formData
+          ...formData,
+          hasSibling: isSiblingSelected,
+          siblingName: isSiblingSelected ? formData.siblingName : '',
+          siblingDob: isSiblingSelected ? formData.siblingDob : '',
+          siblingGender: isSiblingSelected ? formData.siblingGender : '',
+          siblingMedicalNotes: isSiblingSelected ? formData.siblingMedicalNotes : ''
         })
       });
 
@@ -1361,8 +1382,9 @@ export default function Register() {
                         </div>
 
                         {/* ── SIBLING ENROLLMENT OPTION CARD (-$50 DISCOUNT) ── */}
-                        <div className={`rounded-2xl border transition-all ${
-                          formData.hasSibling 
+                        {!isTryoutSession && (
+                          <div className={`rounded-2xl border transition-all ${
+                            formData.hasSibling 
                             ? 'bg-emerald-50/80 border-emerald-300 shadow-sm p-4 sm:p-5' 
                             : 'bg-gradient-to-r from-amber-50/90 to-orange-50/60 border-amber-200/90 p-4'
                         }`}>
@@ -1487,6 +1509,7 @@ export default function Register() {
                             </div>
                           )}
                         </div>
+                        )}
 
                         {/* Preferred Training Location (Available for Every Session) */}
                         <div>
@@ -1717,7 +1740,7 @@ export default function Register() {
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
                             <h3 className="text-xl font-serif font-black text-white">{selectedSession.name}</h3>
-                            {formData.hasSibling && (
+                            {isSiblingSelected && (
                               <span className="bg-emerald-500 text-white text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full">
                                 2 Athletes (Sibling Discount)
                               </span>
@@ -1725,7 +1748,7 @@ export default function Register() {
                           </div>
                           <p className="text-xs text-white/70">{selectedSession.sessionDuration} · {selectedSession.location}</p>
                           
-                          {formData.hasSibling ? (
+                          {isSiblingSelected ? (
                             <div className="mt-2.5 bg-white/10 rounded-xl p-3 border border-white/10 space-y-1 text-xs max-w-md">
                               <div className="flex justify-between text-white/80 text-[11px]">
                                 <span>Athlete 1 ({formData.playerName}):</span>
@@ -1750,7 +1773,7 @@ export default function Register() {
                         <div className="text-left sm:text-right border-t sm:border-t-0 pt-3 sm:pt-0 border-white/10 shrink-0">
                           <span className="text-3xl font-serif font-black text-[#F9BC00]">${totalRegistrationFee}.00</span>
                           <span className="text-[10px] text-white/60 block font-bold">
-                            {formData.hasSibling ? 'Total Fee (Save $50)' : 'Total Non-Refundable Fee'}
+                            {isSiblingSelected ? 'Total Fee (Save $50)' : 'Total Non-Refundable Fee'}
                           </span>
                         </div>
                       </div>
@@ -1927,8 +1950,8 @@ export default function Register() {
                           <StripeCardForm
                             selectedSession={selectedSession}
                             totalAmount={totalRegistrationFee}
-                            hasSibling={formData.hasSibling}
-                            siblingName={formData.siblingName}
+                            hasSibling={isSiblingSelected}
+                            siblingName={isSiblingSelected ? formData.siblingName : ''}
                             leadId={leadId}
                             activeRegistrationId={activeRegistrationId}
                             formData={formData}

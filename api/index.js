@@ -2624,7 +2624,8 @@ Temp Password: ${tempPassword}
     if (waiverAccepted !== true && waiverAccepted !== "true") {
       return res.status(400).json({ success: false, message: "Safety & Liability Waiver must be accepted to proceed." });
     }
-    const isSibling = hasSibling === true || hasSibling === "true";
+    const isTryout = String(sessionId || '').toLowerCase().includes('tryout');
+    const isSibling = !isTryout && (hasSibling === true || hasSibling === "true");
     if (isSibling) {
       if (!siblingName || !String(siblingName).trim()) {
         return res.status(400).json({ success: false, message: "Sibling athlete full name is required." });
