@@ -13,6 +13,10 @@ const faqs: FAQ[] = [
     answer: "Students who miss a regular training class are eligible for up to two makeup classes per quarter, subject to Academy scheduling and availability. Makeup classes must be used within 3 months of the missed class. Students may attend a makeup session at any of our Academy locations, subject to availability."
   },
   {
+    question: "Can the practice schedule or location change?",
+    answer: "Practice schedules and locations depend on gym availability and facility scheduling. Occasionally, practices may be moved to another location or held outdoors, and parents will be notified as soon as possible."
+  },
+  {
     question: "What age groups do you train?",
     answer: "We work with kids and teens from 5 to 18 years old. We split players into groups based on their age and skill level so everyone gets coaching that actually fits where they are."
   },
