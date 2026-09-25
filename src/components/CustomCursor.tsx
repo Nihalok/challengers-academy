@@ -117,7 +117,7 @@ export default function CustomCursor() {
   return (
     <div
       ref={cursorRef}
-      className={`fixed top-0 left-0 pointer-events-none z-[999999] will-change-transform transition-opacity duration-150 ${
+      className={`hidden md:block fixed top-0 left-0 pointer-events-none z-[999999] will-change-transform transition-opacity duration-150 ${
         isHidden ? 'opacity-0' : 'opacity-100'
       }`}
       style={{ transform: 'translate3d(-100px, -100px, 0)' }}

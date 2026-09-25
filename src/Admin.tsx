@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Image as ImageIcon, Users, TrendingUp, Search, 
   ExternalLink, CheckCircle2, Clock, Filter, Trash, LogOut, Shield, UserPlus, Mail, ChevronDown,
   Layers, Edit3, DollarSign, Calendar, MapPin, Check, X, Tag, QrCode, Smartphone, CreditCard, Copy, Upload,
-  FileText, Download, Receipt, Sparkles
+  FileText, Download, Receipt, Sparkles, Menu
 } from 'lucide-react';
 import { usePerformance } from './PerformanceContext';
 import { NavLink, useNavigate } from 'react-router-dom';
@@ -41,6 +41,7 @@ export default function Admin() {
   const [newAdminName, setNewAdminName] = useState('');
   const [newAdminRole, setNewAdminRole] = useState('staff');
   const [isAddingAdmin, setIsAddingAdmin] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Dynamic Programs State
   const [programs, setPrograms] = useState<any[]>([]);
@@ -1046,8 +1047,8 @@ export default function Admin() {
     <>
     <SessionTimeoutModal onLogout={handleLogout} onExtend={() => {}} />
     <div className="min-h-screen bg-sand/30 font-sans" data-lenis-prevent="true">
-      {/* Admin Sidebar */}
-      <div data-lenis-prevent="true" className="fixed left-0 top-0 h-full w-64 md:w-72 bg-espresso text-white z-50 overflow-y-auto shadow-2xl">
+      {/* Desktop Admin Sidebar (Unchanged on Desktop screens) */}
+      <aside data-lenis-prevent="true" className="hidden md:block fixed left-0 top-0 h-full w-64 md:w-72 bg-espresso text-white z-50 overflow-y-auto shadow-2xl">
         <div className="p-8 flex items-center gap-3">
           <div className="w-10 h-10 bg-orange rounded-xl flex items-center justify-center font-black">C</div>
           <span className="font-condensed font-black tracking-tighter text-2xl uppercase">Admin</span>
@@ -1103,15 +1104,165 @@ export default function Admin() {
             <span className="text-[10px] font-black uppercase tracking-widest">Back to Site</span>
           </NavLink>
         </div>
-      </div>
+      </aside>
 
-      {/* Main Content Area */}
-      <main className="pl-64 md:pl-72 min-h-screen bg-sand/30">
-        <div className="px-8 sm:px-12 md:px-16 py-10 md:py-12 max-w-[1600px] mx-auto space-y-10">
+      {/* Mobile Top Navbar (Visible only on mobile devices) */}
+      <header className="md:hidden sticky top-0 z-40 bg-espresso text-white px-4 py-3 flex items-center justify-between border-b border-white/10 shadow-md">
+        <div className="flex items-center gap-2.5">
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="p-2 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-white transition-all cursor-pointer flex items-center justify-center"
+            aria-label="Open Admin Menu"
+          >
+            <Menu className="w-5 h-5 text-orange" />
+          </button>
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 bg-orange rounded-lg flex items-center justify-center font-black text-xs text-white">C</div>
+            <span className="font-condensed font-black tracking-tight text-lg uppercase text-white">Admin</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-[9px] font-black uppercase tracking-wider px-2.5 py-1 bg-white/10 rounded-full text-orange border border-white/10">
+            {activeTab}
+          </span>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="p-2 rounded-xl bg-white/10 hover:bg-red-500/20 text-white/70 hover:text-red-400 transition-all cursor-pointer"
+            title="Logout"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
+        </div>
+      </header>
+
+      {/* Mobile Drawer (Drag & Close, Slide from Left) */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <div className="md:hidden fixed inset-0 z-50 flex">
+            {/* Backdrop overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="fixed inset-0 bg-black/75 backdrop-blur-xs"
+            />
+
+            {/* Draggable Drawer Panel */}
+            <motion.div
+              drag="x"
+              dragConstraints={{ left: -320, right: 0 }}
+              dragElastic={{ left: 0.05, right: 0 }}
+              onDragEnd={(_e, info) => {
+                // Dragged left by more than 50px or swiped with speed closes the drawer
+                if (info.offset.x < -50 || info.velocity.x < -200) {
+                  setIsMobileMenuOpen(false);
+                }
+              }}
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+              className="relative w-[84vw] max-w-[320px] bg-espresso text-white shadow-2xl flex flex-col z-10 touch-pan-y"
+              data-lenis-prevent="true"
+            >
+              {/* Drawer Header with Close & Drag Indicator */}
+              <div className="p-5 border-b border-white/10 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 bg-orange rounded-xl flex items-center justify-center font-black text-white">C</div>
+                  <div>
+                    <span className="font-condensed font-black tracking-tight text-xl uppercase block leading-tight text-white">Admin Portal</span>
+                    <span className="text-[9px] text-white/40 uppercase tracking-widest font-black">Swipe left to close</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/80 hover:text-white active:scale-95 cursor-pointer"
+                  aria-label="Close Menu"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* User info */}
+              <div className="px-5 py-3.5 bg-white/5 border-b border-white/5 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-orange/20 flex items-center justify-center text-orange font-black text-sm">
+                  {user?.name?.charAt(0) || 'A'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-white text-xs font-bold truncate">{user?.name || 'Admin'}</div>
+                  <div className="text-white/40 text-[9px] uppercase font-black tracking-widest">{user?.role}</div>
+                </div>
+              </div>
+
+              {/* Navigation Tabs */}
+              <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+                {[
+                  { id: 'overview', icon: LayoutDashboard, label: 'Overview', show: true },
+                  { id: 'programs', icon: Layers, label: 'Programs & Sessions', show: true },
+                  { id: 'camps', icon: Calendar, label: 'Summer Camps', show: true },
+                  { id: 'leads', icon: Users, label: 'Leads & Enrollees', show: true },
+                  { id: 'media', icon: ImageIcon, label: 'Media Library', show: true },
+                  { id: 'analytics', icon: TrendingUp, label: 'Performance', show: true },
+                  { id: 'users', icon: Shield, label: 'Admin Users', show: isOwner },
+                  { id: 'settings', icon: Settings, label: 'Settings', show: true },
+                ].filter(i => i.show).map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setActiveTab(item.id as any);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl transition-all cursor-pointer ${
+                      activeTab === item.id 
+                        ? 'bg-orange text-white shadow-lg shadow-orange/20 font-black' 
+                        : 'text-white/60 hover:bg-white/5'
+                    }`}
+                  >
+                    <item.icon className="w-5 h-5 flex-shrink-0" />
+                    <span className="text-[11px] font-black uppercase tracking-wider text-left">{item.label}</span>
+                  </button>
+                ))}
+              </nav>
+
+              {/* Bottom Actions */}
+              <div className="p-4 border-t border-white/10 space-y-2 bg-espresso">
+                <button 
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="w-full flex items-center gap-3.5 px-4 py-3 text-red-400 hover:bg-red-500/10 transition-colors rounded-xl font-bold cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4 flex-shrink-0" />
+                  <span className="text-[10px] font-black uppercase tracking-widest">Logout</span>
+                </button>
+                <NavLink 
+                  to="/" 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3.5 px-4 py-3 text-white/50 hover:text-white transition-colors rounded-xl"
+                >
+                  <ArrowLeft className="w-4 h-4 flex-shrink-0" />
+                  <span className="text-[10px] font-black uppercase tracking-widest">Back to Site</span>
+                </NavLink>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Main Content Area: Responsive full width on mobile (pl-0), exact fixed sidebar width on desktop (md:pl-64 lg:pl-72) */}
+      <main className="pl-0 md:pl-64 lg:pl-72 min-h-screen bg-sand/30">
+        <div className="px-4 sm:px-8 md:px-12 lg:px-16 py-6 md:py-12 max-w-[1600px] mx-auto space-y-6 md:space-y-10">
           {/* Header */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-2">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sm:gap-6 pb-2">
             <div>
-              <h2 className="text-4xl sm:text-5xl font-condensed font-black text-espresso uppercase tracking-tighter">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-condensed font-black text-espresso uppercase tracking-tighter">
                 {activeTab === 'overview' && 'Dashboard Overview'}
                 {activeTab === 'programs' && 'Programs & Sessions'}
                 {activeTab === 'camps' && 'Summer Camps & Clinics'}

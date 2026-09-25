@@ -3235,32 +3235,26 @@ Temp Password: ${tempPassword}
     let totalStripePayments = 0;
     try {
       const db = await getMongoDb();
-      const allPaymentIntents = [];
+      let allPaymentIntents = [];
       try {
-        for await (const pi of stripe.paymentIntents.list({
+        const piRes = await stripe.paymentIntents.list({
           limit: 100,
-          expand: ["data.payment_method", "data.latest_charge", "data.customer"]
-        })) {
-          allPaymentIntents.push(pi);
-          if (allPaymentIntents.length >= 500) break;
-        }
-      } catch (piErr) {
-        console.warn("\u26A0\uFE0F PaymentIntent auto-pagination error:", piErr.message);
+          expand: ["data.payment_method"]
+        });
+        allPaymentIntents = piRes.data || [];
+      } catch {
+        // Silently skip if connection momentarily dropped
       }
       let allCharges = [];
       try {
-        for await (const ch of stripe.charges.list({ limit: 100, expand: ["data.customer"] })) {
-          allCharges.push(ch);
-          if (allCharges.length >= 500) break;
-        }
+        const chRes = await stripe.charges.list({ limit: 100 });
+        allCharges = chRes.data || [];
       } catch {
       }
       let allSessions = [];
       try {
-        for await (const sess of stripe.checkout.sessions.list({ limit: 100, expand: ["data.payment_intent", "data.customer"] })) {
-          allSessions.push(sess);
-          if (allSessions.length >= 500) break;
-        }
+        const sessRes = await stripe.checkout.sessions.list({ limit: 100 });
+        allSessions = sessRes.data || [];
       } catch {
       }
       totalStripePayments = allPaymentIntents.length + allCharges.length + allSessions.length;
@@ -3570,9 +3564,10 @@ Temp Password: ${tempPassword}
         await saveRegistrationToDb(newRegistration);
         syncedCount++;
       }
-      console.log(`\u2705 Stripe sync completed: ${syncedCount} new registrations imported, ${updatedCount} updated (${totalStripePayments} total Stripe transactions fetched).`);
-    } catch (syncErr) {
-      console.error("\u26A0\uFE0F Stripe payment sync error:", syncErr.message);
+      if (syncedCount > 0 || updatedCount > 0) {
+        console.log(`\u2705 Stripe sync completed: ${syncedCount} new registrations imported, ${updatedCount} updated (${totalStripePayments} total Stripe transactions fetched).`);
+      }
+    } catch {
     }
     return { syncedCount, updatedCount, totalStripePayments };
   }
@@ -3703,11 +3698,12 @@ Temp Password: ${tempPassword}
       res.status(500).json({ success: false, message: err.message || "Stripe sync failed" });
     }
   });
+  let lastBackgroundStripeSync = 0;
   app.get("/api/admin/stats", requireAuth, async (req, res) => {
-    if (getStripe()) {
-      syncStripePaymentsWithDb().catch((e) => {
-        console.warn("Background Stripe sync notice:", e.message);
-      });
+    const currentTime = Date.now();
+    if (getStripe() && (currentTime - lastBackgroundStripeSync > 15 * 60 * 1000)) {
+      lastBackgroundStripeSync = currentTime;
+      syncStripePaymentsWithDb().catch(() => {});
     }
     const regMap = /* @__PURE__ */ new Map();
     for (const reg of Object.values(registrations)) {

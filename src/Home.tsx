@@ -86,12 +86,20 @@ export default function Home() {
             transition={{ duration: 0.8 }}
             className="relative z-10"
           >
-            <div className="text-[10px] mb-3 md:mb-4 tracking-[0.3em] md:tracking-[0.4em] uppercase font-black" style={{ color: 'rgba(193,100,0,0.5)' }}>ELITE TRAINING</div>
-            <h1 className="font-condensed text-4xl sm:text-7xl md:text-8xl leading-[0.9] md:leading-[0.85] mb-6 md:mb-8 uppercase tracking-tighter" style={{ color: '#1a0800' }}>
-              PLAY <br />
-              <span style={{ color: '#C1272D', textShadow: '0 2px 20px rgba(193,39,45,0.18)' }}>BETTER</span> <br />
-              <span className="font-serif-italic text-2xl sm:text-5xl md:text-6xl normal-case tracking-normal block mt-2" style={{ color: 'rgba(100,50,0,0.55)' }}>reach higher.</span>
-            </h1>
+            <div className="flex justify-between items-start">
+              <div>
+                <div className="text-[10px] mb-3 md:mb-4 tracking-[0.3em] md:tracking-[0.4em] uppercase font-black" style={{ color: 'rgba(193,100,0,0.5)' }}>ELITE TRAINING</div>
+                <h1 className="font-condensed text-4xl sm:text-7xl md:text-8xl leading-[0.9] md:leading-[0.85] mb-6 md:mb-8 uppercase tracking-tighter" style={{ color: '#1a0800' }}>
+                  PLAY <br />
+                  <span style={{ color: '#C1272D', textShadow: '0 2px 20px rgba(193,39,45,0.18)' }}>BETTER</span> <br />
+                  <span className="font-serif-italic text-2xl sm:text-5xl md:text-6xl normal-case tracking-normal block mt-2" style={{ color: 'rgba(100,50,0,0.55)' }}>reach higher.</span>
+                </h1>
+              </div>
+              {/* Rotating Badge on Mobile */}
+              <div className="md:hidden scale-[0.65] sm:scale-75 origin-top-right shrink-0 -mt-2 -mr-2">
+                <RotatingBadge />
+              </div>
+            </div>
             <p className="text-xs sm:text-sm max-w-[320px] leading-relaxed mb-8 md:mb-10 font-bold" style={{ color: 'rgba(80,40,0,0.60)' }}>
               Good coaching makes a real difference. We work with each player to sharpen their skills and track how far they've come.
             </p>

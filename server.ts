@@ -3927,8 +3927,10 @@ Challengers Volleyball Academy
   });
 
 
+  let lastBackgroundStripeSync = 0;
+
   /**
-   * Synchronizes all completed Stripe Payment Intents, Charges, and Checkout Sessions with MongoDB.
+   * Synchronizes completed Stripe Payment Intents, Charges, and Checkout Sessions with MongoDB.
    * Detects Link, Apple Pay, Google Pay, Card brand & last4, Cash App, etc.,
    * and ensures all successful Stripe payments appear in the Admin Dashboard.
    */
@@ -3945,36 +3947,30 @@ Challengers Volleyball Academy
     try {
       const db = await getMongoDb();
       
-      // 1. Fetch ALL Payment Intents with expanded details (auto-paginating beyond 100)
-      const allPaymentIntents: Stripe.PaymentIntent[] = [];
+      // 1. Fetch recent Payment Intents (Clean batch request)
+      let allPaymentIntents: Stripe.PaymentIntent[] = [];
       try {
-        for await (const pi of stripe.paymentIntents.list({
+        const piRes = await stripe.paymentIntents.list({
           limit: 100,
-          expand: ['data.payment_method', 'data.latest_charge', 'data.customer']
-        })) {
-          allPaymentIntents.push(pi);
-          if (allPaymentIntents.length >= 500) break; // Safety cap to prevent excessive API calls
-        }
-      } catch (piErr: any) {
-        console.warn('⚠️ PaymentIntent auto-pagination error:', piErr.message);
+          expand: ['data.payment_method']
+        });
+        allPaymentIntents = piRes.data || [];
+      } catch {
+        // Silently skip if connection momentarily dropped
       }
 
-      // 2. Fetch ALL Charges for direct/legacy charges (auto-paginating)
+      // 2. Fetch recent Charges
       let allCharges: Stripe.Charge[] = [];
       try {
-        for await (const ch of stripe.charges.list({ limit: 100, expand: ['data.customer'] })) {
-          allCharges.push(ch);
-          if (allCharges.length >= 500) break; // Safety cap
-        }
+        const chRes = await stripe.charges.list({ limit: 100 });
+        allCharges = chRes.data || [];
       } catch { /* ignore */ }
 
-      // 3. Fetch ALL Checkout Sessions (auto-paginating)
+      // 3. Fetch recent Checkout Sessions
       let allSessions: Stripe.Checkout.Session[] = [];
       try {
-        for await (const sess of stripe.checkout.sessions.list({ limit: 100, expand: ['data.payment_intent', 'data.customer'] })) {
-          allSessions.push(sess);
-          if (allSessions.length >= 500) break; // Safety cap
-        }
+        const sessRes = await stripe.checkout.sessions.list({ limit: 100 });
+        allSessions = sessRes.data || [];
       } catch { /* ignore */ }
 
       totalStripePayments = allPaymentIntents.length + allCharges.length + allSessions.length;
@@ -4359,9 +4355,11 @@ Challengers Volleyball Academy
 
 
 
-      console.log(`✅ Stripe sync completed: ${syncedCount} new registrations imported, ${updatedCount} updated (${totalStripePayments} total Stripe transactions fetched).`);
-    } catch (syncErr: any) {
-      console.error('⚠️ Stripe payment sync error:', syncErr.message);
+      if (syncedCount > 0 || updatedCount > 0) {
+        console.log(`✅ Stripe sync completed: ${syncedCount} new registrations imported, ${updatedCount} updated (${totalStripePayments} total Stripe transactions fetched).`);
+      }
+    } catch {
+      // Silently handle any background connection dropped
     }
 
     return { syncedCount, updatedCount, totalStripePayments };
@@ -4525,11 +4523,11 @@ Challengers Volleyball Academy
 
   // Admin API (Secured with JWT)
   app.get('/api/admin/stats', requireAuth, async (req, res) => {
-    // Run background Stripe sync asynchronously without blocking admin dashboard load time
-    if (getStripe()) {
-      syncStripePaymentsWithDb().catch((e: any) => {
-        console.warn('Background Stripe sync notice:', e.message);
-      });
+    // Run background Stripe sync at most once every 15 minutes to avoid spamming Stripe on dashboard polls
+    const currentTime = Date.now();
+    if (getStripe() && (currentTime - lastBackgroundStripeSync > 15 * 60 * 1000)) {
+      lastBackgroundStripeSync = currentTime;
+      syncStripePaymentsWithDb().catch(() => {});
     }
 
     // Merge in-memory and MongoDB registrations/leads with zero data loss

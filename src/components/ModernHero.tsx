@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { NavLink } from 'react-router-dom';
 import { ArrowRight, Play, Trophy, Target, Users } from 'lucide-react';
 import { ASSETS } from '../assets/images';
+import RotatingBadge from './RotatingBadge';
 
 export default function ModernHero() {
   return (
@@ -85,68 +86,75 @@ export default function ModernHero() {
             For kids and adults of all skill levels.
           </p>
 
-          {/* Action CTAs */}
-          <div className="flex flex-wrap items-center gap-3 sm:gap-4 xl:gap-6 mb-5 lg:mb-7 xl:mb-10 w-full shrink-0">
-            {/* Enroll Now CTA */}
-            <div className="hidden lg:block">
-              <NavLink
-                to="/register"
-                className="inline-flex items-center justify-center gap-2.5 text-white px-6 xl:px-9 py-3 xl:py-4 rounded-full text-xs font-black uppercase tracking-widest transition-all active:scale-95 group"
-                style={{ background: 'linear-gradient(135deg, #C1272D 0%, #a01e24 100%)', boxShadow: '0 8px 28px rgba(193,39,45,0.35), 0 0 0 1px rgba(255,120,100,0.1) inset' }}
-                onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 12px 36px rgba(193,39,45,0.50), 0 0 0 1px rgba(255,120,100,0.2) inset')}
-                onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 8px 28px rgba(193,39,45,0.35), 0 0 0 1px rgba(255,120,100,0.1) inset')}
-              >
-                <span>Enroll Now</span>
-                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-              </NavLink>
+          {/* Action CTAs & Responsive Badges Container */}
+          <div className="mt-auto lg:mt-0 w-full flex flex-col gap-3 lg:gap-7 shrink-0 pt-[38vh] sm:pt-[44vh] lg:pt-0 mb-4 lg:mb-7 xl:mb-10">
+            <div className="flex items-center justify-between sm:justify-start gap-3 sm:gap-4 xl:gap-6 w-full">
+              {/* Enroll Now CTA (Desktop only) */}
+              <div className="hidden lg:block">
+                <NavLink
+                  to="/register"
+                  className="inline-flex items-center justify-center gap-2.5 text-white px-6 xl:px-9 py-3 xl:py-4 rounded-full text-xs font-black uppercase tracking-widest transition-all active:scale-95 group"
+                  style={{ background: 'linear-gradient(135deg, #C1272D 0%, #a01e24 100%)', boxShadow: '0 8px 28px rgba(193,39,45,0.35), 0 0 0 1px rgba(255,120,100,0.1) inset' }}
+                  onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 12px 36px rgba(193,39,45,0.50), 0 0 0 1px rgba(255,120,100,0.2) inset')}
+                  onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 8px 28px rgba(193,39,45,0.35), 0 0 0 1px rgba(255,120,100,0.1) inset')}
+                >
+                  <span>Enroll Now</span>
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                </NavLink>
+              </div>
+
+              {/* About Us CTA (Positioned down below center logo graphic on mobile) */}
+              <div className="w-auto flex justify-start">
+                <NavLink
+                  to="/about"
+                  className="inline-flex items-center gap-2.5 xl:gap-3 font-black text-xs uppercase tracking-widest px-5 xl:px-6 py-3 xl:py-4 rounded-full transition-all group backdrop-blur-sm hover:shadow-lg active:scale-95 border"
+                  style={{ background: 'rgba(255,255,255,0.85)', borderColor: 'rgba(193,39,45,0.20)', color: 'rgba(60,20,10,0.85)', boxShadow: '0 8px 24px rgba(193,39,45,0.12)' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.95)'; e.currentTarget.style.color = '#C1272D'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.85)'; e.currentTarget.style.color = 'rgba(60,20,10,0.85)'; }}
+                >
+                  <div className="w-7 h-7 xl:w-9 xl:h-9 rounded-full flex items-center justify-center transition-all shadow-sm shrink-0" style={{ background: 'rgba(193,39,45,0.10)', border: '1px solid rgba(193,39,45,0.20)' }}>
+                    <Play className="w-3 h-3 xl:w-3.5 xl:h-3.5 fill-current ml-0.5 text-[#C1272D]" />
+                  </div>
+                  <span>About us</span>
+                </NavLink>
+              </div>
+
+              {/* Rotating Badge on Mobile (Visible and spinning on mobile screens right alongside About Us) */}
+              <div className="lg:hidden flex items-center justify-end scale-[0.62] sm:scale-75 origin-right shrink-0">
+                <RotatingBadge />
+              </div>
             </div>
 
-            {/* About Us CTA */}
-            <div className="mt-auto lg:mt-0 w-full lg:w-auto flex justify-start">
-              <NavLink
-                to="/about"
-                className="inline-flex items-center gap-2.5 xl:gap-3 font-black text-xs uppercase tracking-widest px-5 xl:px-6 py-3 xl:py-4 rounded-full transition-all group backdrop-blur-sm hover:shadow-lg active:scale-95 border"
-                style={{ background: 'rgba(255,255,255,0.75)', borderColor: 'rgba(193,39,45,0.18)', color: 'rgba(60,20,10,0.80)' }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.95)'; e.currentTarget.style.color = '#C1272D'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.75)'; e.currentTarget.style.color = 'rgba(60,20,10,0.80)'; }}
-              >
-                <div className="w-7 h-7 xl:w-9 xl:h-9 rounded-full flex items-center justify-center transition-all shadow-sm shrink-0" style={{ background: 'rgba(193,39,45,0.08)', border: '1px solid rgba(193,39,45,0.20)' }}>
-                  <Play className="w-3 h-3 xl:w-3.5 xl:h-3.5 fill-current ml-0.5 text-[#C1272D]" />
+            {/* Bottom 3 Feature Badges — Warm Glass (Responsive on mobile & desktop) */}
+            <div className="flex sm:grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-2.5 xl:gap-3 w-full shrink-0 overflow-x-auto no-scrollbar pb-1">
+              <div className="backdrop-blur-sm rounded-2xl p-2 sm:p-2.5 xl:p-3.5 flex items-center gap-2 sm:gap-2.5 xl:gap-3 shrink-0 min-w-[130px] sm:min-w-0" style={{ background: 'rgba(255,255,255,0.78)', border: '1px solid rgba(193,39,45,0.12)', boxShadow: '0 4px 16px rgba(180,60,0,0.06)' }}>
+                <div className="w-7 h-7 sm:w-8 sm:h-8 xl:w-9 xl:h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(193,39,45,0.10)', color: '#C1272D' }}>
+                  <Trophy className="w-3 h-3 sm:w-3.5 sm:h-3.5 xl:w-4 xl:h-4" />
                 </div>
-                <span>About us</span>
-              </NavLink>
-            </div>
-          </div>
+                <div className="min-w-0">
+                  <h4 className="text-[9px] sm:text-[10px] xl:text-[11px] font-black uppercase tracking-wider leading-tight" style={{ color: '#1a0a00' }}>Expert Coaching</h4>
+                  <p className="text-[8px] sm:text-[9px] xl:text-[10px] font-bold leading-tight truncate" style={{ color: 'rgba(60,30,10,0.55)' }}>Learn from the best</p>
+                </div>
+              </div>
 
-          {/* Bottom 3 Feature Badges — Warm Glass */}
-          <div className="hidden sm:grid grid-cols-1 sm:grid-cols-3 gap-2.5 xl:gap-3 w-full shrink-0">
-            <div className="backdrop-blur-sm rounded-2xl p-2.5 xl:p-3.5 flex items-center gap-2.5 xl:gap-3" style={{ background: 'rgba(255,255,255,0.72)', border: '1px solid rgba(193,39,45,0.12)', boxShadow: '0 4px 20px rgba(180,60,0,0.08)' }}>
-              <div className="w-8 h-8 xl:w-9 xl:h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(193,39,45,0.10)', color: '#C1272D' }}>
-                <Trophy className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
+              <div className="backdrop-blur-sm rounded-2xl p-2 sm:p-2.5 xl:p-3.5 flex items-center gap-2 sm:gap-2.5 xl:gap-3 shrink-0 min-w-[130px] sm:min-w-0" style={{ background: 'rgba(255,255,255,0.78)', border: '1px solid rgba(193,39,45,0.12)', boxShadow: '0 4px 16px rgba(180,60,0,0.06)' }}>
+                <div className="w-7 h-7 sm:w-8 sm:h-8 xl:w-9 xl:h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(193,39,45,0.10)', color: '#C1272D' }}>
+                  <Target className="w-3 h-3 sm:w-3.5 sm:h-3.5 xl:w-4 xl:h-4" />
+                </div>
+                <div className="min-w-0">
+                  <h4 className="text-[9px] sm:text-[10px] xl:text-[11px] font-black uppercase tracking-wider leading-tight" style={{ color: '#1a0a00' }}>All Skill Levels</h4>
+                  <p className="text-[8px] sm:text-[9px] xl:text-[10px] font-bold leading-tight truncate" style={{ color: 'rgba(60,30,10,0.55)' }}>Kids to Adults</p>
+                </div>
               </div>
-              <div className="min-w-0">
-                <h4 className="text-[10px] xl:text-[11px] font-black uppercase tracking-wider leading-tight" style={{ color: '#1a0a00' }}>Expert Coaching</h4>
-                <p className="text-[9px] xl:text-[10px] font-bold leading-tight truncate" style={{ color: 'rgba(60,30,10,0.55)' }}>Learn from the best</p>
-              </div>
-            </div>
 
-            <div className="backdrop-blur-sm rounded-2xl p-2.5 xl:p-3.5 flex items-center gap-2.5 xl:gap-3" style={{ background: 'rgba(255,255,255,0.72)', border: '1px solid rgba(193,39,45,0.12)', boxShadow: '0 4px 20px rgba(180,60,0,0.08)' }}>
-              <div className="w-8 h-8 xl:w-9 xl:h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(193,39,45,0.10)', color: '#C1272D' }}>
-                <Target className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
-              </div>
-              <div className="min-w-0">
-                <h4 className="text-[10px] xl:text-[11px] font-black uppercase tracking-wider leading-tight" style={{ color: '#1a0a00' }}>All Skill Levels</h4>
-                <p className="text-[9px] xl:text-[10px] font-bold leading-tight truncate" style={{ color: 'rgba(60,30,10,0.55)' }}>Kids to Adults</p>
-              </div>
-            </div>
-
-            <div className="backdrop-blur-sm rounded-2xl p-2.5 xl:p-3.5 flex items-center gap-2.5 xl:gap-3" style={{ background: 'rgba(255,255,255,0.72)', border: '1px solid rgba(193,39,45,0.12)', boxShadow: '0 4px 20px rgba(180,60,0,0.08)' }}>
-              <div className="w-8 h-8 xl:w-9 xl:h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(193,39,45,0.10)', color: '#C1272D' }}>
-                <Users className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
-              </div>
-              <div className="min-w-0">
-                <h4 className="text-[10px] xl:text-[11px] font-black uppercase tracking-wider leading-tight" style={{ color: '#1a0a00' }}>Stronger Together</h4>
-                <p className="text-[9px] xl:text-[10px] font-bold leading-tight truncate" style={{ color: 'rgba(60,30,10,0.55)' }}>Build Confidence</p>
+              <div className="backdrop-blur-sm rounded-2xl p-2 sm:p-2.5 xl:p-3.5 flex items-center gap-2 sm:gap-2.5 xl:gap-3 shrink-0 min-w-[130px] sm:min-w-0" style={{ background: 'rgba(255,255,255,0.78)', border: '1px solid rgba(193,39,45,0.12)', boxShadow: '0 4px 16px rgba(180,60,0,0.06)' }}>
+                <div className="w-7 h-7 sm:w-8 sm:h-8 xl:w-9 xl:h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(193,39,45,0.10)', color: '#C1272D' }}>
+                  <Users className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
+                </div>
+                <div className="min-w-0">
+                  <h4 className="text-[9px] sm:text-[10px] xl:text-[11px] font-black uppercase tracking-wider leading-tight" style={{ color: '#1a0a00' }}>Stronger Together</h4>
+                  <p className="text-[8px] sm:text-[9px] xl:text-[10px] font-bold leading-tight truncate" style={{ color: 'rgba(60,30,10,0.55)' }}>Build Confidence</p>
+                </div>
               </div>
             </div>
           </div>
