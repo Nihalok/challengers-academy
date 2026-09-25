@@ -41,7 +41,7 @@ export default function ModernHero() {
           alt="Challengers Volleyball Academy"
           loading="eager"
           decoding="async"
-          className="h-full w-full object-cover object-center opacity-95 lg:opacity-100 lg:w-auto lg:max-w-none lg:object-contain lg:object-right lg:min-h-full"
+          className="h-full w-full object-cover object-center opacity-100 lg:w-auto lg:max-w-none lg:object-contain lg:object-right lg:min-h-full"
           style={{
             maxHeight: 'calc(100vh - 96px)',
           }}
@@ -56,11 +56,11 @@ export default function ModernHero() {
         }}
       />
 
-      {/* ── Mobile Shading Overlay (Warm Light Fade) ── */}
+      {/* ── Mobile Shading Overlay (Soft Top Header Legibility Only — Keeps center logo 100% crisp & clear) ── */}
       <div 
-        className="lg:hidden absolute inset-0 z-10 pointer-events-none"
+        className="lg:hidden absolute inset-x-0 top-0 h-48 z-10 pointer-events-none"
         style={{
-          background: 'linear-gradient(to bottom, rgba(255,248,240,0.90) 0%, rgba(255,248,240,0.65) 40%, rgba(255,248,240,0.2) 75%, transparent 100%)',
+          background: 'linear-gradient(to bottom, rgba(255,248,240,0.88) 0%, rgba(255,248,240,0.35) 50%, transparent 100%)',
         }}
       />
 
@@ -120,7 +120,7 @@ export default function ModernHero() {
               </div>
 
               {/* Rotating Badge on Mobile (Visible and spinning on mobile screens right alongside About Us) */}
-              <div className="lg:hidden flex items-center justify-end scale-[0.62] sm:scale-75 origin-right shrink-0">
+              <div className="lg:hidden flex items-center justify-end shrink-0 pl-1">
                 <RotatingBadge />
               </div>
             </div>
