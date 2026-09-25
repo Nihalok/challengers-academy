@@ -55,9 +55,19 @@ export default function Login() {
     return () => clearInterval(interval);
   }, [lockoutTime]);
 
-  // Google OAuth init with async script loading retry
+  // Google OAuth init with on-demand async script loading
   useEffect(() => {
     if (!GOOGLE_CLIENT_ID || view !== 'login') return;
+
+    // Load Google Identity Services script only when visiting login page
+    if (!document.getElementById('google-gsi-script') && !window.google?.accounts?.id) {
+      const script = document.createElement('script');
+      script.id = 'google-gsi-script';
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+    }
 
     let retries = 0;
     const maxRetries = 25; // 25 * 200ms = 5 seconds retry window

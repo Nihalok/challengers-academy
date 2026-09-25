@@ -24,6 +24,7 @@ export default defineConfig(() => {
             'vendor-icons': ['lucide-react'],
             'vendor-pdf': ['jspdf', 'modern-screenshot', 'qrcode'],
             'vendor-charts': ['recharts'],
+            'vendor-three': ['three'],
           },
         },
       },

@@ -19,6 +19,17 @@ export default async function handler(req: any, res: any) {
       req.url = `/api${req.url.startsWith('/') ? '' : '/'}${req.url}`;
     }
 
+    // Preserve raw body for Stripe webhook verification before any Express middleware touches it
+    if (req.body) {
+      if (Buffer.isBuffer(req.body)) {
+        req.rawBody = req.body;
+      } else if (typeof req.body === 'string') {
+        req.rawBody = Buffer.from(req.body);
+      } else if (typeof req.body === 'object') {
+        req.rawBody = Buffer.from(JSON.stringify(req.body));
+      }
+    }
+
     const app = await getApp();
     return new Promise<void>((resolve, reject) => {
       res.on('finish', () => resolve());

@@ -1,5 +1,29 @@
 {
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*\\.(?:png|jpg|jpeg|gif|webp|svg|ico|woff2|woff|ttf))",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=2592000, stale-while-revalidate=86400"
+        }
+      ]
+    }
+  ],
   "rewrites": [
+    {
+      "source": "/api/stripe-webhook",
+      "destination": "/api?__path=stripe-webhook"
+    },
     {
       "source": "/api/(.*)",
       "destination": "/api?__path=$1"
@@ -10,3 +34,4 @@
     }
   ]
 }
+

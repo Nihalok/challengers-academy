@@ -62,7 +62,6 @@ export default function Home() {
           <OptimizedImage 
             src={ASSETS.HERO.BACKGROUND} 
             alt="Academy Background" 
-            priority
             className="w-full h-full object-cover object-center mix-blend-overlay scale-110"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-espresso via-espresso/90 to-transparent" />
