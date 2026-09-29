@@ -24,6 +24,8 @@ export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const [isAtTop, setIsAtTop] = useState(true);
   const { pathname } = useLocation();
+  const menuId = 'mobile-nav-menu';
+  const toggleId = 'mobile-nav-toggle';
 
   const lastY = useRef(0);
   const ticking = useRef(false);
@@ -72,6 +74,15 @@ export default function Navigation() {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      // Close on Escape key
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') setIsOpen(false);
+      };
+      document.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.body.style.overflow = 'unset';
+        document.removeEventListener('keydown', handleKeyDown);
+      };
     } else {
       document.body.style.overflow = 'unset';
     }
@@ -209,9 +220,12 @@ export default function Navigation() {
 
             {/* Mobile hamburger */}
             <button
+              id={toggleId}
               onClick={() => setIsOpen(!isOpen)}
-              className="lg:hidden w-9 h-9 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors shrink-0"
+              className="lg:hidden w-11 h-11 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors shrink-0"
               aria-label={isOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={isOpen}
+              aria-controls={menuId}
             >
               <AnimatePresence mode="wait">
                 {isOpen ? (
@@ -243,6 +257,10 @@ export default function Navigation() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            id={menuId}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={toggleId}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -472,9 +490,10 @@ export default function Navigation() {
           pointer-events: none;
         }
 
-        @media (max-width: 1024px) {
+        @media (max-width: 1023.98px) {
           .snb {
-            width: min(340px, calc(100% - 24px));
+            /* Wider on tablet (768-1023px), compact on phone (<768px) */
+            width: min(540px, calc(100% - 24px));
             top: 44px;
           }
           .snb--top {
@@ -511,6 +530,10 @@ export default function Navigation() {
           }
           .snb__ctas {
             gap: 6px;
+          }
+          /* On very small phones the collapsed state is tighter */
+          .snb--collapsed {
+            width: min(340px, calc(100% - 24px));
           }
         }
 

@@ -90,7 +90,7 @@ export default function ThreeSpike() {
   return (
     <div 
       ref={containerRef} 
-      className="w-full h-full relative" 
+      className="w-full h-full relative touch-pan-y" 
       style={{ minHeight: '300px' }}
       aria-label="3D animated spike visualization"
     />

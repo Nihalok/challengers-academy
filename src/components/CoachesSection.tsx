@@ -308,23 +308,27 @@ export default function CoachesSection() {
               onClick={() => scrollToCoach(Math.max(0, activeIndex - 1))}
               disabled={activeIndex === 0}
               aria-label="Previous coach"
-              className="p-2 rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition-all"
+              className="w-11 h-11 flex items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition-all"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-5 h-5" />
             </button>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               {COACHES.map((c, i) => (
                 <button
                   key={c.id}
                   onClick={() => scrollToCoach(i)}
                   aria-label={`Go to ${c.name}`}
-                  className={`transition-all duration-300 rounded-full ${
+                  className={`flex items-center justify-center w-11 h-11 rounded-full transition-all duration-300 ${
+                    activeIndex === i ? '' : 'hover:bg-slate-100'
+                  }`}
+                >
+                  <span className={`block rounded-full transition-all duration-300 ${
                     activeIndex === i 
                       ? 'w-7 h-2 bg-[#D62828]' 
-                      : 'w-2 h-2 bg-slate-300 hover:bg-slate-400'
-                  }`}
-                />
+                      : 'w-2.5 h-2.5 bg-slate-300 hover:bg-slate-400'
+                  }`} />
+                </button>
               ))}
             </div>
 
@@ -332,9 +336,9 @@ export default function CoachesSection() {
               onClick={() => scrollToCoach(Math.min(COACHES.length - 1, activeIndex + 1))}
               disabled={activeIndex === COACHES.length - 1}
               aria-label="Next coach"
-              className="p-2 rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition-all"
+              className="w-11 h-11 flex items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition-all"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-5 h-5" />
             </button>
           </div>
         </div>

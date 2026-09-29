@@ -49,11 +49,13 @@ export default function Home() {
         description="Volleyball coaching for kids and adults. We train at Fremont, Manteca, Mountain House, and San Jose. All skill levels welcome."
       />
       <ModernHero />
-      <Marquee 
-        text="TRAIN LIKE A PRO • REACH YOUR PEAK • CHALLENGERS ACADEMY • " 
-        className="bg-orange rotate-[-1deg] scale-[1.05] z-20 shadow-2xl" 
-        speed={25}
-      />
+      <div className="overflow-x-hidden">
+        <Marquee 
+          text="TRAIN LIKE A PRO • REACH YOUR PEAK • CHALLENGERS ACADEMY • " 
+          className="bg-orange rotate-[-1deg] scale-[1.05] z-20 shadow-2xl" 
+          speed={25}
+        />
+      </div>
       
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-stretch pt-0 overflow-hidden">

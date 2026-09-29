@@ -252,40 +252,57 @@ export default function Waiver() {
 
             {/* Form Fields & Signature Lines */}
             <div className="pt-6 border-t border-espresso/10 space-y-6 text-xs sm:text-sm text-espresso font-semibold">
-              <div className="border-b border-espresso/30 pb-2">
-                Name ______________________________________________________________________
+              <div className="flex items-end gap-2 border-b border-espresso/30 pb-2">
+                <span className="shrink-0">Name</span>
+                <span className="flex-1 border-b border-espresso/30 min-w-0 h-px mb-0.5" />
               </div>
 
-              <div className="border-b border-espresso/30 pb-2">
-                Age: ________________________
+              <div className="flex items-end gap-2 border-b border-espresso/30 pb-2">
+                <span className="shrink-0">Age:</span>
+                <span className="flex-1 border-b border-espresso/30 min-w-0 h-px mb-0.5" />
               </div>
 
-              <div className="border-b border-espresso/30 pb-2">
-                Address ________________________________________________________________________
+              <div className="flex items-end gap-2 border-b border-espresso/30 pb-2">
+                <span className="shrink-0">Address</span>
+                <span className="flex-1 border-b border-espresso/30 min-w-0 h-px mb-0.5" />
               </div>
 
-              <div className="border-b border-espresso/30 pb-2">
-                City ______________________________ State ________________________ zip _________________
+              <div className="flex flex-wrap items-end gap-2 border-b border-espresso/30 pb-2">
+                <span className="shrink-0">City</span>
+                <span className="w-24 sm:w-36 border-b border-espresso/30 h-px mb-0.5" />
+                <span className="shrink-0">State</span>
+                <span className="w-20 sm:w-28 border-b border-espresso/30 h-px mb-0.5" />
+                <span className="shrink-0">Zip</span>
+                <span className="flex-1 min-w-[60px] border-b border-espresso/30 h-px mb-0.5" />
               </div>
 
-              <div className="border-b border-espresso/30 pb-2">
-                Phone (_______) ________________________________________________________________
+              <div className="flex items-end gap-2 border-b border-espresso/30 pb-2">
+                <span className="shrink-0">Phone (_______)</span>
+                <span className="flex-1 border-b border-espresso/30 min-w-0 h-px mb-0.5" />
               </div>
 
-              <div className="border-b border-espresso/30 pb-2">
-                In Case Of Emergency, please contact (NAME & PHONE #)
-                <div className="mt-1 text-espresso/40">_______________________________________________________________________________</div>
+              <div className="border-b border-espresso/30 pb-2 space-y-1">
+                <span>In Case Of Emergency, please contact (NAME &amp; PHONE #)</span>
+                <div className="flex items-end gap-2">
+                  <span className="flex-1 border-b border-espresso/40 h-px" />
+                </div>
               </div>
 
               <div className="pt-4 space-y-6">
                 <div>
                   <span className="block font-black uppercase text-xs tracking-wider text-espresso/80 mb-1">PLAYER SIGNATURE, If over 18</span>
-                  <div className="border-b-2 border-espresso pb-2">X ______________________________________________________________________________</div>
+                  <div className="flex items-end gap-2 border-b-2 border-espresso pb-2">
+                    <span className="shrink-0">X</span>
+                    <span className="flex-1 border-b border-espresso/30 h-px mb-0.5" />
+                  </div>
                 </div>
 
                 <div>
                   <span className="block font-black uppercase text-xs tracking-wider text-espresso/80 mb-1">PARENT SIGNATURE (if player is under 18)</span>
-                  <div className="border-b-2 border-espresso pb-2">X _____________________________________________________________________________</div>
+                  <div className="flex items-end gap-2 border-b-2 border-espresso pb-2">
+                    <span className="shrink-0">X</span>
+                    <span className="flex-1 border-b border-espresso/30 h-px mb-0.5" />
+                  </div>
                 </div>
               </div>
             </div>

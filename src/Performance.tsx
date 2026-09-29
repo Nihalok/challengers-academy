@@ -36,26 +36,26 @@ export default function Performance() {
 
       <div className="container mx-auto px-4 relative z-10 pt-32 sm:pt-36 md:pt-40 pb-12 sm:pb-16">
         {/* Header */}
-        <div className="gsap-reveal mb-14">
-          <div className="flex flex-col lg:flex-row gap-10 items-start">
+        <div className="gsap-reveal mb-6 sm:mb-14">
+          <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 items-start">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
               className="flex-1"
             >
-              <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center gap-3 mb-3 sm:mb-4">
                 <div className="h-px w-10 bg-[#D62828]" />
                 <span className="text-[#D62828] font-black text-[10px] tracking-[0.4em] uppercase">Metrics & Analytics</span>
               </div>
-              <h1 className="text-4xl md:text-6xl font-condensed font-black text-espresso uppercase tracking-tighter leading-[0.85] mb-6">
+              <h1 className="text-3xl sm:text-4xl md:text-6xl font-condensed font-black text-espresso uppercase tracking-tighter leading-[0.85] mb-4 sm:mb-6">
                 Precision <span className="text-[#D62828] italic">Feedback.</span>
               </h1>
-              <p className="text-espresso/85 text-base font-medium max-w-xl leading-relaxed">
+              <p className="text-espresso/85 text-sm font-medium max-w-xl leading-relaxed">
                 We utilize advanced biomechanical tracking to quantify athletic growth. Our analytics engine provides real-time insights into velocity, precision, and strategic court coverage.
               </p>
             </motion.div>
-            <div className="w-full lg:w-2/5 aspect-[16/10] bg-white border border-espresso/5 rounded-[2.5rem] overflow-hidden shadow-xl relative group">
+            <div className="w-full lg:w-2/5 min-h-[200px] sm:min-h-[260px] lg:aspect-[16/10] bg-white border border-espresso/5 rounded-[1.5rem] sm:rounded-[2.5rem] overflow-hidden shadow-xl relative group">
                <img 
                  src={ASSETS.PERFORMANCE.ANALYTICS_HERO} 
                  alt="Performance Analytics Visualization" 
@@ -66,9 +66,9 @@ export default function Performance() {
                <div className="absolute inset-0 bg-gradient-to-t from-espresso/40 via-transparent to-transparent" />
                
                {/* Data HUD Overlay */}
-               <div className="absolute top-5 left-5 flex items-center gap-2.5 bg-white/10 backdrop-blur-md border border-white/20 p-3 rounded-xl">
-                 <div className="w-7 h-7 bg-[#F9BC00] rounded-md flex items-center justify-center">
-                   <Activity className="w-4 h-4 text-espresso" />
+               <div className="absolute top-3 left-3 sm:top-5 sm:left-5 flex items-center gap-2 sm:gap-2.5 bg-white/10 backdrop-blur-md border border-white/20 p-2 sm:p-3 rounded-xl">
+                 <div className="w-6 h-6 sm:w-7 sm:h-7 bg-[#F9BC00] rounded-md flex items-center justify-center">
+                   <Activity className="w-3 h-3 sm:w-4 sm:h-4 text-espresso" />
                  </div>
                  <div>
                    <div className="text-[8px] font-black uppercase tracking-widest text-white/60">Real-time Feed</div>
@@ -76,10 +76,10 @@ export default function Performance() {
                  </div>
                </div>
 
-               <div className="absolute bottom-5 right-5 flex items-center gap-3">
+               <div className="absolute bottom-3 right-3 sm:bottom-5 sm:right-5 flex items-center gap-3">
                  <div className="text-right">
                    <div className="text-[8px] font-black uppercase tracking-[0.3em] text-white/60">Peak Velocity</div>
-                   <div className="text-xl font-condensed font-black text-[#F9BC00]">80.24 mph</div>
+                   <div className="text-lg sm:text-xl font-condensed font-black text-[#F9BC00]">80.24 mph</div>
                  </div>
                </div>
             </div>
@@ -92,7 +92,7 @@ export default function Performance() {
         </div>
 
         {/* Information Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 gsap-reveal" role="list" aria-label="Performance tracking features">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mt-8 sm:mt-16 gsap-reveal" role="list" aria-label="Performance tracking features">
           {[
             { 
               icon: Zap, 
@@ -122,10 +122,10 @@ export default function Performance() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className={`${feature.bg} ${feature.text} p-6 md:p-8 rounded-[2rem] border border-espresso/5 shadow-xl group hover:-translate-y-1 transition-all duration-500`}
+              className={`${feature.bg} ${feature.text} p-5 sm:p-6 md:p-8 rounded-[1.5rem] sm:rounded-[2rem] border border-espresso/5 shadow-xl group hover:-translate-y-1 transition-all duration-500`}
               role="listitem"
             >
-              <div className={`w-12 h-12 ${feature.bg === 'bg-[#F9BC00]' ? 'bg-espresso/10' : 'bg-white/10'} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform`} aria-hidden="true">
+              <div className={`w-10 h-10 sm:w-12 sm:h-12 ${feature.bg === 'bg-[#F9BC00]' ? 'bg-espresso/10' : 'bg-white/10'} rounded-2xl flex items-center justify-center mb-3 sm:mb-6 group-hover:scale-105 transition-transform`} aria-hidden="true">
                 <feature.icon className="w-6 h-6" />
               </div>
               <h3 className="text-2xl font-condensed font-black uppercase tracking-tight mb-4">{feature.title}</h3>
@@ -147,7 +147,7 @@ export default function Performance() {
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          className="group mt-16 p-10 md:p-14 rounded-[3rem] bg-[#D62828] border border-espresso/5 text-center relative overflow-hidden shadow-xl gsap-reveal text-white"
+          className="group mt-10 sm:mt-16 p-5 sm:p-10 md:p-14 rounded-[2rem] sm:rounded-[3rem] bg-[#D62828] border border-espresso/5 text-center relative overflow-hidden shadow-xl gsap-reveal text-white"
           role="complementary"
           aria-labelledby="performance-cta-heading"
         >
@@ -156,25 +156,25 @@ export default function Performance() {
                style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
           
           <div className="relative z-10">
-            <div className="flex justify-center mb-6 group-hover:scale-105 transition-transform duration-700">
-              <div className="bg-white/10 p-4 rounded-full border border-white/20">
-                <Target className="w-8 h-8 text-[#F9BC00]" />
+            <div className="flex justify-center mb-4 sm:mb-6 group-hover:scale-105 transition-transform duration-700">
+              <div className="bg-white/10 p-3 sm:p-4 rounded-full border border-white/20">
+                <Target className="w-7 h-7 sm:w-8 sm:h-8 text-[#F9BC00]" />
               </div>
             </div>
 
-            <h2 id="performance-cta-heading" className="text-3xl md:text-5xl font-condensed font-black uppercase leading-[0.9] text-white mb-4 tracking-tighter">
+            <h2 id="performance-cta-heading" className="text-2xl sm:text-3xl md:text-5xl font-condensed font-black uppercase leading-[0.9] text-white mb-3 sm:mb-4 tracking-tighter">
               Calibrate Your <span className="text-[#F9BC00] italic">Potential.</span>
             </h2>
             
-            <p className="text-white/80 text-sm md:text-base font-medium max-w-xl mx-auto mb-8 leading-relaxed">
+            <p className="text-white/80 text-sm font-medium max-w-xl mx-auto mb-6 sm:mb-8 leading-relaxed">
               Unlock the full precision of our tracking systems. Get expert video breakdowns and biomechanical analysis for every touch.
             </p>
             
-            <div className="flex flex-wrap justify-center gap-4">
-              <NavLink to="/register" className="px-8 py-4 bg-espresso text-white rounded-xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-white hover:text-espresso transition-all shadow-xl">
+            <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
+              <NavLink to="/register" className="px-6 sm:px-8 py-3 sm:py-4 bg-espresso text-white rounded-xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-white hover:text-espresso transition-all shadow-xl">
                 Begin Phase 01
               </NavLink>
-              <NavLink to="/contact" className="px-8 py-4 bg-white text-espresso border border-espresso/5 rounded-xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-espresso hover:text-white transition-all shadow-md">
+              <NavLink to="/contact" className="px-6 sm:px-8 py-3 sm:py-4 bg-white text-espresso border border-espresso/5 rounded-xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-espresso hover:text-white transition-all shadow-md">
                 Request Eval
               </NavLink>
             </div>

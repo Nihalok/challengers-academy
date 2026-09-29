@@ -71,14 +71,14 @@ export default function FAQSection() {
           >
             <button
               onClick={() => toggleFAQ(index)}
-              className="w-full px-8 py-8 flex items-center justify-between text-left group"
+              className="w-full px-5 sm:px-8 py-5 sm:py-8 flex items-center justify-between text-left group min-h-[44px]"
             >
-              <span className={`text-lg font-serif transition-colors duration-300 ${
+              <span className={`text-base sm:text-lg font-serif transition-colors duration-300 pr-4 ${
                 activeIndex === index ? 'text-crimson' : 'text-espresso'
               }`}>
                 {faq.question}
               </span>
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 ${
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 shrink-0 ${
                 activeIndex === index 
                   ? 'bg-crimson text-white rotate-180' 
                   : 'bg-espresso/5 text-espresso group-hover:bg-espresso/10'
@@ -95,7 +95,7 @@ export default function FAQSection() {
                   exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  <div className="px-8 pb-8">
+                  <div className="px-5 sm:px-8 pb-5 sm:pb-8">
                     <div className="h-px w-12 bg-crimson/20 mb-6" />
                     <p className="text-espresso/60 leading-relaxed font-medium">
                       {faq.answer}

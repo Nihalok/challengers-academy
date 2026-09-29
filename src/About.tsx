@@ -336,7 +336,7 @@ export default function About() {
 
         <div className="my-12 sm:my-16 flex-1 flex items-center justify-center relative max-w-[1600px] mx-auto w-full">
           <div className="relative max-w-[920px] w-full text-center">
-            <h2 data-anim="reveal" className="font-display font-bold uppercase text-[42px] sm:text-[68px] md:text-[88px] leading-[0.95] tracking-[-0.04em] text-[#1B1B1D]">
+            <h2 data-anim="reveal" className="font-display font-bold uppercase text-3xl sm:text-[54px] md:text-[88px] leading-[0.95] tracking-[-0.04em] text-[#1B1B1D] break-words">
               Independent volleyball academy in SFO Bay Area, creating clean, modern athletic form
             </h2>
             

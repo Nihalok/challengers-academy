@@ -347,3 +347,34 @@ body.is-scrolling [data-custom-cursor] {
   background: #8c8581;
 }
 
+/* ═══════════════════════════════════════════════════════
+   MOBILE RESPONSIVE GLOBAL FIXES (max-width: 1023.98px)
+   Desktop styles (1024px+) are 100% unchanged.
+   ═══════════════════════════════════════════════════════ */
+@media (max-width: 1023.98px) {
+  /* ── iOS Safari Auto-Zoom Prevention ──
+     iOS Safari zooms in on inputs with font-size < 16px.
+     Force minimum 16px on ALL inputs/selects/textareas on mobile.
+     Desktop classes (text-xs, text-sm) are restored via lg: prefix in TSX. */
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+
+  /* ── Prevent horizontal page overflow from rotated/scaled elements ── */
+  .overflow-x-clip-mobile {
+    overflow-x: clip;
+  }
+
+  /* ── Touch pan-y utility (allow vertical scroll on canvas/3D elements) ── */
+  .touch-pan-y-mobile {
+    touch-action: pan-y;
+  }
+
+  /* ── Camps hero: use dynamic viewport height to avoid mobile browser chrome clipping ── */
+  .camps-hero {
+    min-height: 100dvh;
+  }
+}
+

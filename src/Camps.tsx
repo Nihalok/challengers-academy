@@ -115,7 +115,7 @@ export default function Camps() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6 }}
-        className="container mx-auto px-4 relative z-10 pb-8 sm:pb-12"
+        className="container mx-auto px-4 relative z-10 pb-8 sm:pb-12 overflow-x-hidden"
       >
         <div className="gsap-reveal mb-6 sm:mb-8">
           <SectionHeader 
@@ -147,7 +147,7 @@ export default function Camps() {
             </div>
           </div>
           <div className="relative mt-6 lg:mt-0">
-            <div className="aspect-[4/3] sm:aspect-[16/11] lg:aspect-[16/10] min-h-[320px] sm:min-h-[380px] lg:min-h-[420px] w-full bg-espresso rounded-[1.8rem] sm:rounded-[2.5rem] overflow-hidden rotate-1 hover:rotate-0 transition-transform duration-500 shadow-2xl relative z-10 border-4 sm:border-[6px] border-white mx-auto">
+            <div className="aspect-[4/3] sm:aspect-[16/11] lg:aspect-[16/10] min-h-[220px] sm:min-h-[320px] lg:min-h-[420px] w-full bg-espresso rounded-[1.8rem] sm:rounded-[2.5rem] overflow-hidden lg:rotate-1 lg:hover:rotate-0 transition-transform duration-500 shadow-2xl relative z-10 border-4 sm:border-[6px] border-white mx-auto">
               <img 
                 src={ASSETS.CAMPS.HERO} 
                 alt="Volleyball Summer Camp Indoor Training Action" 
@@ -155,8 +155,9 @@ export default function Camps() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-espresso/40 via-transparent to-transparent pointer-events-none" />
             </div>
-            <div className="absolute -bottom-8 -left-8 w-36 h-36 bg-[#D62828] rounded-full -z-10 blur-3xl opacity-35" />
-            <div className="absolute -top-8 -right-8 w-36 h-36 bg-[#F9BC00] rounded-full -z-10 blur-3xl opacity-35" />
+            {/* Decorative orbs — desktop only to prevent mobile overflow */}
+            <div className="hidden lg:block absolute -bottom-8 -left-8 w-36 h-36 bg-[#D62828] rounded-full -z-10 blur-3xl opacity-35" />
+            <div className="hidden lg:block absolute -top-8 -right-8 w-36 h-36 bg-[#F9BC00] rounded-full -z-10 blur-3xl opacity-35" />
           </div>
         </div>
 
@@ -194,11 +195,11 @@ export default function Camps() {
             </div>
           </div>
 
-          {/* Desktop & Mobile Accordion Slider Track */}
+          {/* Desktop Accordion Slider / Mobile Stack */}
           <div 
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
-            className="flex flex-col md:flex-row gap-3 sm:gap-4 justify-center items-stretch min-h-[460px] md:h-[28rem] py-2"
+            className="flex flex-col md:flex-row gap-3 sm:gap-4 justify-center items-stretch md:h-[28rem] py-2"
           >
             {SLIDER_CARDS.map((card, i) => {
               const isActive = i === active;
@@ -209,11 +210,13 @@ export default function Camps() {
                   onMouseEnter={() => setActive(i)}
                   className={`relative rounded-2xl sm:rounded-3xl overflow-hidden cursor-pointer transition-all duration-500 ease-out border ${
                     isActive 
-                      ? 'md:flex-[1_1_32rem] flex-[1_1_18rem] border-white/40 shadow-2xl scale-[1.01] -translate-y-1' 
-                      : 'md:flex-[0_0_5rem] flex-[0_0_4.5rem] border-espresso/10 opacity-80 hover:opacity-100 hover:border-espresso/30'
+                      ? 'md:flex-[1_1_32rem] border-white/40 shadow-2xl md:scale-[1.01] md:-translate-y-1' 
+                      : 'md:flex-[0_0_5rem] border-espresso/10 opacity-80 hover:opacity-100 hover:border-espresso/30'
+                  } ${
+                    isActive ? 'min-h-[280px]' : 'h-16 md:h-auto'
                   }`}
                 >
-                  {/* Background Image */}
+                  {/* Background Image — always visible */}
                   <img
                     src={card.bg}
                     alt={card.title}
@@ -226,7 +229,7 @@ export default function Camps() {
                   {/* Card Content Layer */}
                   <div className="relative z-10 w-full h-full p-4 sm:p-6 flex flex-col justify-end">
                     {!isActive ? (
-                      /* Collapsed Vertical Title (Desktop) & Compact View (Mobile) */
+                      /* Collapsed: horizontal title strip on mobile, vertical on md+ */
                       <div className="w-full h-full flex md:flex-col items-center justify-center">
                         <span className="hidden md:block text-white font-condensed font-black uppercase text-xl tracking-wider whitespace-nowrap [writing-mode:vertical-rl] rotate-180 drop-shadow-md">
                           {card.title}
@@ -243,11 +246,11 @@ export default function Camps() {
                         transition={{ duration: 0.4 }}
                         className="flex flex-col md:flex-row items-start md:items-center gap-4 sm:gap-6 w-full"
                       >
-                        {/* Thumbnail Image */}
+                        {/* Thumbnail — visible on all screen sizes when active */}
                         <img
                           src={card.thumb}
                           alt={card.title}
-                          className="w-24 h-32 sm:w-28 sm:h-36 md:w-32 md:h-40 rounded-xl object-cover border-2 border-white/30 shadow-xl shrink-0 hidden xs:block"
+                          className="w-20 h-24 sm:w-28 sm:h-36 md:w-32 md:h-40 rounded-xl object-cover border-2 border-white/30 shadow-xl shrink-0"
                         />
 
                         {/* Text & Action */}

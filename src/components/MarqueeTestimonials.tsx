@@ -26,7 +26,7 @@ export default function MarqueeTestimonials() {
             viewport={{ once: true }}
           >
             <div className="text-white font-black uppercase tracking-[0.4em] text-[10px] mb-4 drop-shadow-sm">Player Experiences</div>
-            <h2 id="testimonials-marquee-heading" className="text-5xl md:text-7xl font-condensed text-white uppercase tracking-tighter drop-shadow-md">
+            <h2 id="testimonials-marquee-heading" className="text-4xl sm:text-5xl md:text-7xl font-condensed text-white uppercase tracking-tighter drop-shadow-md">
               The <span className="font-serif-italic normal-case text-white italic drop-shadow-none">Impact.</span>
             </h2>
           </motion.div>
@@ -51,7 +51,7 @@ export default function MarqueeTestimonials() {
             {marqueeItems.map((testimonial, idx) => (
               <div 
                 key={`${testimonial.id}-${idx}`}
-                className="w-[400px] bg-white/95 backdrop-blur-md p-10 rounded-[2.5rem] shadow-xl flex flex-col justify-between border border-white relative group hover:scale-[1.02] transition-transform duration-500"
+                className="w-[280px] sm:w-[340px] lg:w-[400px] bg-white/95 backdrop-blur-md p-5 sm:p-7 lg:p-10 rounded-[2rem] lg:rounded-[2.5rem] shadow-xl flex flex-col justify-between border border-white relative group hover:scale-[1.02] transition-transform duration-500"
                 role="article"
               >
                 <Quote className="absolute top-6 right-8 w-12 h-12 text-orange/10 group-hover:text-orange/20 transition-colors" aria-hidden="true" />
