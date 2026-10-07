@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   Save, RefreshCcw, Plus, Trash2, ArrowLeft, BarChart3, Settings, Eye, 
   LayoutDashboard, Image as ImageIcon, Users, TrendingUp, Search, 
@@ -88,13 +88,29 @@ export default function Admin() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncSuccessMessage, setSyncSuccessMessage] = useState<string | null>(null);
   const [paymentFilter, setPaymentFilter] = useState<'all' | 'card' | 'apple_pay' | 'google_pay' | 'link' | 'qr'>('all');
+  const [locationFilter, setLocationFilter] = useState<'all' | 'fremont' | 'mountain_house' | 'san_jose'>('all');
   const [regSearchQuery, setRegSearchQuery] = useState('');
   const [copiedStripeId, setCopiedStripeId] = useState<string | null>(null);
   const [isSyncingStripe, setIsSyncingStripe] = useState(false);
   const [isProcessingEmails, setIsProcessingEmails] = useState(false);
   const [onlyRealPayments, setOnlyRealPayments] = useState(true);
   const [isPurgingMock, setIsPurgingMock] = useState(false);
-  const [leadsFilter, setLeadsFilter] = useState<'all' | 'pending' | 'confirmed'>('all');
+  const [unifiedStatusFilter, setUnifiedStatusFilter] = useState<'confirmed' | 'pending' | 'all'>('confirmed');
+  const [trendRange, setTrendRange] = useState<7 | 30>(7);
+  const [hoveredTrendIndex, setHoveredTrendIndex] = useState<number | null>(null);
+  const [lastSyncedTime, setLastSyncedTime] = useState<string>('Live');
+  const isFetchingRef = useRef(false);
+  const trendScrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (trendRange === 30 && trendScrollRef.current) {
+      setTimeout(() => {
+        if (trendScrollRef.current) {
+          trendScrollRef.current.scrollLeft = trendScrollRef.current.scrollWidth;
+        }
+      }, 50);
+    }
+  }, [trendRange]);
 
   // Bank Statement PDF Modal & Real-time Export State
   const [isStatementModalOpen, setIsStatementModalOpen] = useState(false);
@@ -156,7 +172,50 @@ export default function Admin() {
     return Array.from(map.values());
   }, [leads]);
 
-  const displayedLeads = useMemo(() => {
+  // Location Matching Helper for 3 Academy Locations
+  const matchesLocationFilter = (locRaw: any, filter: string): boolean => {
+    if (filter === 'all') return true;
+    const l = String(locRaw || 'Fremont (Kerala House)').toLowerCase();
+    if (filter === 'fremont') return l.includes('fremont') || l.includes('kerala');
+    if (filter === 'mountain_house') return l.includes('mountain') || l.includes('hansen');
+    if (filter === 'san_jose') return l.includes('san jose') || l.includes('sanjose') || l.includes('jose');
+    return true;
+  };
+
+  // Search Query Matching Helper supporting athlete names, contact, codes, programs, and locations
+  const matchesSearchQuery = (item: any, query: string): boolean => {
+    if (!query.trim()) return true;
+    const q = query.toLowerCase().trim();
+    const qNorm = q.replace(/[^a-z0-9]/g, '');
+
+    const loc = String(item.location || item.preferredLocation || 'Fremont (Kerala House)').toLowerCase();
+    const locNorm = loc.replace(/[^a-z0-9]/g, '');
+
+    const playerName = String(item.playerName || item.studentName || item.fullName || item.name || '').toLowerCase();
+    const parentName = String(item.parentName || '').toLowerCase();
+    const email = String(item.email || item.primaryEmail || '').toLowerCase();
+    const phone = String(item.phone || '').toLowerCase();
+    const sessionName = String(item.sessionName || item.sessionId || item.programId || '').toLowerCase();
+    const regId = String(item.registrationId || item.id || '').toLowerCase();
+    const stripeId = String(item.stripePaymentIntentId || item.paymentIntentId || item.transactionId || '').toLowerCase();
+    const paymentMethod = String(item.paymentMethod || '').toLowerCase();
+
+    return (
+      playerName.includes(q) ||
+      parentName.includes(q) ||
+      email.includes(q) ||
+      phone.includes(q) ||
+      sessionName.includes(q) ||
+      regId.includes(q) ||
+      stripeId.includes(q) ||
+      paymentMethod.includes(q) ||
+      loc.includes(q) ||
+      (qNorm.length >= 3 && locNorm.includes(qNorm))
+    );
+  };
+
+  // Extract truly pending leads that did not complete checkout or pay
+  const pendingLeadsList = useMemo(() => {
     return deduplicatedLeads.filter(l => {
       const isPaid = l.status === 'confirmed' || registrationsList.some(r =>
         (r.email && l.email && r.email.toLowerCase().trim() === l.email.toLowerCase().trim() && l.email.includes('@') && !l.email.includes('example.com')) ||
@@ -164,11 +223,155 @@ export default function Admin() {
         (r.transactionId && l.paymentIntentId && r.transactionId === l.paymentIntentId) ||
         (r.stripePaymentIntentId && l.paymentIntentId && r.stripePaymentIntentId === l.paymentIntentId)
       );
-      if (leadsFilter === 'pending') return !isPaid;
-      if (leadsFilter === 'confirmed') return isPaid;
+      return !isPaid;
+    }).map(l => ({
+      ...l,
+      registrationId: l.registrationId || `LEAD-${(l.id || '').slice(-5).toUpperCase() || 'INQ'}`,
+      playerName: l.playerName || l.studentName || l.fullName || 'Prospective Athlete',
+      sessionName: l.sessionName || l.sessionId || l.programId || 'Inquiry / Session',
+      schedule: l.schedule || 'Flexible',
+      location: l.location || l.preferredLocation || 'Fremont (Kerala House)',
+      amountPaid: l.amount || l.price || 0,
+      paymentStatus: 'PENDING_PAYMENT',
+      paymentMethod: l.paymentMethod || 'Incomplete Checkout',
+      stripePaymentIntentId: l.paymentIntentId || '',
+      registeredAt: l.createdAt || Date.now(),
+      createdAt: l.createdAt || Date.now(),
+      isLead: true,
+    }));
+  }, [deduplicatedLeads, registrationsList]);
+
+  const displayedLeads = pendingLeadsList;
+
+  const isMockPayment = (reg: any) => {
+    const piId = String(reg.stripePaymentIntentId || '').toLowerCase();
+    const txId = String(reg.transactionId || '').toLowerCase();
+    const regId = String(reg.registrationId || '').toLowerCase();
+    const method = String(reg.paymentMethod || '').toLowerCase();
+
+    // Genuine Stripe transactions (pi_..., ch_..., cs_...) are ALWAYS preserved as real!
+    if (piId.startsWith('pi_') || txId.startsWith('pi_') || txId.startsWith('ch_') || piId.startsWith('cs_')) {
+      return false;
+    }
+
+    return (
+      piId.startsWith('mock_') ||
+      txId.startsWith('mock_') ||
+      regId.startsWith('mock_') ||
+      method.includes('mock')
+    );
+  };
+
+  const getRegTimestamp = (r: any): number => {
+    if (!r) return 0;
+    if (typeof r.registeredAt === 'number') return r.registeredAt;
+    if (r.registeredAt) {
+      const t = new Date(r.registeredAt).getTime();
+      if (!isNaN(t) && t > 0) return t;
+    }
+    if (typeof r.createdAt === 'number') return r.createdAt;
+    if (r.createdAt) {
+      const t = new Date(r.createdAt).getTime();
+      if (!isNaN(t) && t > 0) return t;
+    }
+    return 0;
+  };
+
+  // Master Unified Athletes List (Combines Confirmed Registrations & Incomplete Leads with active tab selection)
+  const unifiedAthletesList = useMemo(() => {
+    const list: any[] = [];
+
+    // 1. Confirmed Paid Registrations
+    if (unifiedStatusFilter === 'confirmed' || unifiedStatusFilter === 'all') {
+      for (const reg of registrationsList) {
+        if (onlyRealPayments && isMockPayment(reg)) continue;
+        list.push({ ...reg, isLead: false });
+      }
+    }
+
+    // 2. Pending Incomplete Leads
+    if (unifiedStatusFilter === 'pending' || unifiedStatusFilter === 'all') {
+      for (const lead of pendingLeadsList) {
+        list.push(lead);
+      }
+    }
+
+    return list.filter(item => {
+      // Payment method filter (applies if not pending, or if pending matched)
+      if (paymentFilter !== 'all') {
+        const pm = String(item.paymentMethod || '').toLowerCase();
+        if (paymentFilter === 'apple_pay' && !pm.includes('apple')) return false;
+        if (paymentFilter === 'google_pay' && !pm.includes('google') && !pm.includes('gpay')) return false;
+        if (paymentFilter === 'link' && !pm.includes('link')) return false;
+        if (paymentFilter === 'qr' && !pm.includes('qr') && !pm.includes('zelle') && !pm.includes('venmo')) return false;
+        if (paymentFilter === 'card' && (pm.includes('apple') || pm.includes('google') || pm.includes('link') || pm.includes('qr'))) return false;
+      }
+      // Filter by Academy Locations
+      if (!matchesLocationFilter(item.location || item.preferredLocation, locationFilter)) {
+        return false;
+      }
+      // Filter by Search Query
+      if (!matchesSearchQuery(item, regSearchQuery)) {
+        return false;
+      }
       return true;
     });
-  }, [deduplicatedLeads, registrationsList, leadsFilter]);
+  }, [registrationsList, pendingLeadsList, unifiedStatusFilter, onlyRealPayments, paymentFilter, locationFilter, regSearchQuery]);
+
+  const filteredRegistrations = unifiedAthletesList;
+
+  // Compute reactive Registration Trends with complete daily breakdown & visible numbers
+  const trendData = useMemo(() => {
+    const numDays = trendRange;
+    const now = new Date();
+    const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const dayMs = 24 * 60 * 60 * 1000;
+
+    const realRegs = registrationsList.filter(r => !isMockPayment(r));
+    const dataset = onlyRealPayments ? realRegs : registrationsList;
+
+    const days: {
+      dayLabel: string;
+      dateLabel: string;
+      fullDate: string;
+      count: number;
+      revenue: number;
+      isToday: boolean;
+      students: string[];
+    }[] = [];
+
+    for (let i = numDays - 1; i >= 0; i--) {
+      const dayStart = todayMidnight - i * dayMs;
+      const dayEnd = dayStart + dayMs;
+      const d = new Date(dayStart);
+
+      const dayRegs = dataset.filter(r => {
+        const t = getRegTimestamp(r);
+        return t >= dayStart && t < dayEnd;
+      });
+
+      const dayRevenue = dayRegs.reduce((sum, r) => sum + (Number(r.amountPaid) || 0), 0);
+      const isToday = i === 0;
+      const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+      const monthDay = `${d.getMonth() + 1}/${d.getDate()}`;
+
+      days.push({
+        dayLabel: numDays === 7 ? dayName : (i % 5 === 0 || isToday ? monthDay : ''),
+        dateLabel: monthDay,
+        fullDate: d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }),
+        count: dayRegs.length,
+        revenue: Math.round(dayRevenue),
+        isToday,
+        students: dayRegs.map(r => r.playerName || 'Student').filter(Boolean)
+      });
+    }
+
+    const maxCount = Math.max(...days.map(d => d.count), 1);
+    const totalCount = days.reduce((sum, d) => sum + d.count, 0);
+    const totalRevenue = days.reduce((sum, d) => sum + d.revenue, 0);
+
+    return { days, maxCount, totalCount, totalRevenue };
+  }, [trendRange, registrationsList, onlyRealPayments]);
 
   const pendingLeadsCount = useMemo(() => {
     return deduplicatedLeads.filter(l => {
@@ -260,27 +463,22 @@ export default function Admin() {
 
 
   const fetchData = async () => {
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
     const token = getToken();
 
     try {
-      const [statsPromise, galleryPromise] = [
-        fetch('/api/admin/stats', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }),
-        fetch('/api/gallery')
-      ];
+      const statsRes = await fetch('/api/admin/stats', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
 
-      const [statsRes, galleryRes] = await Promise.all([
-        statsPromise.catch(() => null),
-        galleryPromise.catch(() => null)
-      ]);
+      if (statsRes.status === 401) {
+        await logout();
+        navigate('/login');
+        return;
+      }
 
-      if (statsRes) {
-        if (statsRes.status === 401) {
-          await logout();
-          navigate('/login');
-          return;
-        }
+      if (statsRes.ok) {
         const data = await statsRes.json();
         if (data.success) {
           setStats(data.stats);
@@ -289,18 +487,13 @@ export default function Admin() {
           if (data.gallery?.length) {
             setGalleryItems(data.gallery);
           }
-        }
-      }
-
-      if (galleryRes && galleryRes.ok) {
-        const galleryData = await galleryRes.json();
-        if (galleryData.success && Array.isArray(galleryData.items)) {
-          setGalleryItems(galleryData.items);
+          setLastSyncedTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
         }
       }
     } catch (err) {
       console.error('Fetch error:', err);
     } finally {
+      isFetchingRef.current = false;
       setIsLoading(false);
     }
   };
@@ -388,25 +581,6 @@ export default function Admin() {
     } finally {
       setIsProcessingEmails(false);
     }
-  };
-
-  const isMockPayment = (reg: any) => {
-    const piId = String(reg.stripePaymentIntentId || '').toLowerCase();
-    const txId = String(reg.transactionId || '').toLowerCase();
-    const regId = String(reg.registrationId || '').toLowerCase();
-    const method = String(reg.paymentMethod || '').toLowerCase();
-
-    // Genuine Stripe transactions (pi_..., ch_..., cs_...) are ALWAYS preserved as real!
-    if (piId.startsWith('pi_') || txId.startsWith('pi_') || txId.startsWith('ch_') || piId.startsWith('cs_')) {
-      return false;
-    }
-
-    return (
-      piId.startsWith('mock_') ||
-      txId.startsWith('mock_') ||
-      regId.startsWith('mock_') ||
-      method.includes('mock')
-    );
   };
 
   const handleCopyStripeId = (id: string) => {
@@ -556,10 +730,10 @@ export default function Admin() {
       fetchPaymentSettings();
       if (isOwner) fetchAdminUsers();
 
-      // Real-time automatic background synchronization every 15 seconds
+      // Real-time automatic background synchronization every 10 seconds
       const pollInterval = setInterval(() => {
         fetchData();
-      }, 15000);
+      }, 10000);
 
       // Instant refresh when user returns to the tab or browser window
       const handleWindowFocus = () => {
@@ -1297,9 +1471,9 @@ export default function Admin() {
               )}
 
               {/* Live Real-Time Sync Indicator */}
-              <div className="hidden lg:inline-flex items-center gap-2 px-3.5 h-10 rounded-2xl bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-[10px] font-black uppercase tracking-wider shadow-xs">
+              <div className="hidden lg:inline-flex items-center gap-2 px-3.5 h-10 rounded-2xl bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-[10px] font-black uppercase tracking-wider shadow-xs" title="Auto-synchronizing live data every 10 seconds">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>Live Real-Time Sync</span>
+                <span>Live Real-Time • {lastSyncedTime}</span>
               </div>
 
               {/* Statement PDF Export Button */}
@@ -1346,483 +1520,524 @@ export default function Admin() {
                 exit={{ opacity: 0, y: -20 }}
                 className="space-y-8"
               >
-                {/* ── 1. CONFIRMED PAID REGISTRATIONS ── */}
-                <div className="bg-white rounded-[3rem] border border-espresso/5 shadow-xl overflow-hidden">
-                  <div className="p-8 sm:p-10 border-b border-espresso/5 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-sand/10">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-green-700">Live Stripe &amp; Enrollees</span>
-                      </div>
-                      <h3 className="text-xl font-condensed font-black uppercase text-espresso">
-                        Confirmed Registrations ({registrationsList.filter(r => onlyRealPayments ? !isMockPayment(r) : true).length})
-                      </h3>
-                      <p className="text-espresso/40 text-[10px] font-black uppercase tracking-widest mt-0.5">
-                        All successful Stripe checkouts (Card, Link, Apple Pay, Google Pay) and QR payments
-                      </p>
-                    </div>
+                {/* ── UNIFIED ATHLETE ROSTER & CHECKOUT LEADS ── */}
+                {(() => {
+                  const realConfirmedCount = registrationsList.filter(r => onlyRealPayments ? !isMockPayment(r) : true).length;
+                  const pendingCount = pendingLeadsList.length;
+                  const allAthletesCount = realConfirmedCount + pendingCount;
 
-                    <div className="flex flex-wrap items-center gap-2.5">
-                      {/* Real vs All Toggle */}
-                      <button
-                        type="button"
-                        onClick={() => setOnlyRealPayments(prev => !prev)}
-                        className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all border cursor-pointer ${
-                          onlyRealPayments 
-                            ? 'bg-emerald-50 text-emerald-800 border-emerald-300 shadow-sm'
-                            : 'bg-sand/30 text-espresso/60 border-espresso/10 hover:bg-sand/60'
-                        }`}
-                        title="Toggle to hide test/mock records and display only genuine paid checkouts"
-                      >
-                        <span className={`w-2 h-2 rounded-full ${onlyRealPayments ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
-                        <span>{onlyRealPayments ? 'Real Payments Only' : 'Showing All (incl. Tests)'}</span>
-                      </button>
+                  return (
+                    <div className="bg-white rounded-[3rem] border border-espresso/5 shadow-xl overflow-hidden">
+                      {/* Top Master Header with View Tabs */}
+                      <div className="p-8 sm:p-10 border-b border-espresso/5 flex flex-col xl:flex-row xl:items-center justify-between gap-6 bg-sand/10">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-green-700">Athlete Roster &amp; Management</span>
+                          </div>
+                          <h3 className="text-2xl font-condensed font-black uppercase text-espresso">
+                            {unifiedStatusFilter === 'confirmed' 
+                              ? `Confirmed Registrations (${realConfirmedCount})` 
+                              : unifiedStatusFilter === 'pending'
+                                ? `Incomplete Checkout Leads (${pendingCount})`
+                                : `All Athletes & Leads (${allAthletesCount})`}
+                          </h3>
+                          <p className="text-espresso/50 text-xs font-medium mt-0.5">
+                            {unifiedStatusFilter === 'confirmed'
+                              ? 'All genuine Stripe-verified enrollee checkouts (Card, Apple Pay, Google Pay, Link) and confirmed payments.'
+                              : unifiedStatusFilter === 'pending'
+                                ? 'Prospective athletes who entered their info at checkout but did not complete final payment.'
+                                : 'Master unified view containing both paid enrollees and open checkout inquiries.'}
+                          </p>
+                        </div>
 
-                      {/* Purge Test Records */}
-                      <button
-                        type="button"
-                        onClick={handlePurgeMockRecords}
-                        disabled={isPurgingMock}
-                        className="px-3.5 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer"
-                        title="Permanently remove mock / test records from database"
-                      >
-                        <Trash className="w-3.5 h-3.5" />
-                        <span>{isPurgingMock ? 'Purging...' : 'Purge Test Records'}</span>
-                      </button>
+                        {/* Top Action Controls */}
+                        <div className="flex flex-wrap items-center gap-3">
+                          {/* Master Status Filter Tabs */}
+                          <div className="flex items-center bg-white p-1 rounded-2xl border border-espresso/10 shadow-sm">
+                            <button
+                              type="button"
+                              onClick={() => setUnifiedStatusFilter('confirmed')}
+                              className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+                                unifiedStatusFilter === 'confirmed'
+                                  ? 'bg-emerald-600 text-white shadow-md'
+                                  : 'text-espresso/60 hover:text-espresso'
+                              }`}
+                            >
+                              ✓ Confirmed Paid ({realConfirmedCount})
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setUnifiedStatusFilter('pending')}
+                              className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+                                unifiedStatusFilter === 'pending'
+                                  ? 'bg-amber-500 text-white shadow-md'
+                                  : 'text-espresso/60 hover:text-espresso'
+                              }`}
+                            >
+                              ⏳ Pending Leads ({pendingCount})
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setUnifiedStatusFilter('all')}
+                              className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+                                unifiedStatusFilter === 'all'
+                                  ? 'bg-espresso text-white shadow-md'
+                                  : 'text-espresso/60 hover:text-espresso'
+                              }`}
+                            >
+                              All ({allAthletesCount})
+                            </button>
+                          </div>
 
-                      {/* Retry Email Queue */}
-                      <button
-                        type="button"
-                        onClick={handleProcessEmailQueue}
-                        disabled={isProcessingEmails}
-                        className="px-3.5 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer"
-                        title="Process and retry all pending or failed email notifications"
-                      >
-                        <Mail className={`w-3.5 h-3.5 ${isProcessingEmails ? 'animate-bounce text-blue-600' : ''}`} />
-                        <span>{isProcessingEmails ? 'Retrying...' : 'Retry Email Queue'}</span>
-                      </button>
-
-                      {/* Statement PDF Export Buttons */}
-                      <div className="flex items-center gap-1.5 bg-emerald-50/80 p-1 rounded-2xl border border-emerald-200">
-                        <button
-                          type="button"
-                          onClick={() => handleOpenStatementModal('payments_only')}
-                          className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
-                          title="Open statement export modal with custom filters"
-                        >
-                          <FileText className="w-3.5 h-3.5" />
-                          <span>Download Statement (PDF)</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleQuickDownloadPdf('payments_only')}
-                          disabled={isQuickDownloadingStatement}
-                          className="p-2 bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl transition-all shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer"
-                          title="Instant 1-Click Quick Download of Payment Ledger"
-                        >
-                          {isQuickDownloadingStatement ? (
-                            <div className="w-3.5 h-3.5 border-2 border-emerald-700 border-t-transparent rounded-full animate-spin" />
-                          ) : (
-                            <Download className="w-3.5 h-3.5" />
-                          )}
-                        </button>
-                      </div>
-
-                      {/* Sync With Stripe */}
-                      <button
-                        onClick={handleSyncStripe}
-                        disabled={isSyncingStripe}
-                        className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all shadow-md active:scale-95 disabled:opacity-50 cursor-pointer"
-                        title="Directly pull and match all successful transactions from Stripe API"
-                      >
-                        <RefreshCcw className={`w-3.5 h-3.5 ${isSyncingStripe ? 'animate-spin text-orange' : ''}`} />
-                        <span>{isSyncingStripe ? 'Syncing Stripe...' : 'Sync with Stripe'}</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* ── Filter and Search Bar ── */}
-                  <div className="px-8 py-4 bg-white border-b border-espresso/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    {/* Payment Method Filter Pills */}
-                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 no-scrollbar text-xs font-bold">
-                      {[
-                        { id: 'all', label: `All (${registrationsList.filter(r => onlyRealPayments ? !isMockPayment(r) : true).length})` },
-                        { id: 'card', label: '💳 Cards' },
-                        { id: 'apple_pay', label: ' Apple Pay' },
-                        { id: 'google_pay', label: 'GPay' },
-                        { id: 'link', label: '🟢 Link' },
-                        { id: 'qr', label: '📱 QR Code' },
-                      ].map((tab) => (
-                        <button
-                          key={tab.id}
-                          onClick={() => setPaymentFilter(tab.id as any)}
-                          className={`px-3 py-1.5 rounded-lg text-[11px] transition-all cursor-pointer whitespace-nowrap ${
-                            paymentFilter === tab.id
-                              ? 'bg-[#D62828] text-white shadow-sm font-black'
-                              : 'bg-sand/30 text-espresso/60 hover:bg-sand/60 hover:text-espresso'
-                          }`}
-                        >
-                          {tab.label}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Search Field */}
-                    <div className="relative min-w-[240px]">
-                      <Search className="w-3.5 h-3.5 text-espresso/40 absolute left-3 top-1/2 -translate-y-1/2" />
-                      <input
-                        type="text"
-                        placeholder="Search athlete, email, Stripe ID..."
-                        value={regSearchQuery}
-                        onChange={(e) => setRegSearchQuery(e.target.value)}
-                        className="w-full bg-sand/20 border border-espresso/10 rounded-xl pl-9 pr-7 py-1.5 text-xs text-espresso outline-none focus:border-[#D62828] transition-all"
-                      />
-                      {regSearchQuery && (
-                        <button
-                          onClick={() => setRegSearchQuery('')}
-                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-espresso/40 hover:text-espresso"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  <div 
-                    data-lenis-prevent="true"
-                    className="overflow-x-auto overflow-y-auto admin-table-scroll max-h-[580px] border-t border-espresso/5"
-                  >
-                    <table className="w-full text-left border-collapse">
-                      <thead className="sticky top-0 z-10 bg-[#FBF9F6] shadow-sm">
-                        <tr className="bg-[#FBF9F6] text-[10px] font-black uppercase tracking-widest text-espresso/50 border-b border-espresso/10">
-                          <th className="px-8 py-4 bg-[#FBF9F6]">Athlete &amp; Code</th>
-                          <th className="px-6 py-4 bg-[#FBF9F6]">Program / Session</th>
-                          <th className="px-6 py-4 bg-[#FBF9F6]">Amount</th>
-                          <th className="px-6 py-4 bg-[#FBF9F6]">Customer Contact</th>
-                          <th className="px-6 py-4 bg-[#FBF9F6]">Payment Method</th>
-                          <th className="px-6 py-4 bg-[#FBF9F6]">Stripe / Ref ID</th>
-                          <th className="px-6 py-4 bg-[#FBF9F6]">Date</th>
-                          <th className="px-8 py-4 bg-[#FBF9F6] text-right">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-espresso/5">
-                        {registrationsList.filter(reg => {
-                          if (onlyRealPayments && isMockPayment(reg)) return false;
-                          if (paymentFilter !== 'all') {
-                            const pm = String(reg.paymentMethod || '').toLowerCase();
-                            if (paymentFilter === 'apple_pay' && !pm.includes('apple')) return false;
-                            if (paymentFilter === 'google_pay' && !pm.includes('google') && !pm.includes('gpay')) return false;
-                            if (paymentFilter === 'link' && !pm.includes('link')) return false;
-                            if (paymentFilter === 'qr' && !pm.includes('qr') && !pm.includes('zelle') && !pm.includes('venmo')) return false;
-                            if (paymentFilter === 'card' && (pm.includes('apple') || pm.includes('google') || pm.includes('link') || pm.includes('qr'))) return false;
-                          }
-                          if (regSearchQuery.trim()) {
-                            const q = regSearchQuery.toLowerCase();
-                            const match = 
-                              (reg.playerName || '').toLowerCase().includes(q) ||
-                              (reg.parentName || '').toLowerCase().includes(q) ||
-                              (reg.email || '').toLowerCase().includes(q) ||
-                              (reg.phone || '').toLowerCase().includes(q) ||
-                              (reg.registrationId || '').toLowerCase().includes(q) ||
-                              (reg.stripePaymentIntentId || '').toLowerCase().includes(q) ||
-                              (reg.transactionId || '').toLowerCase().includes(q) ||
-                              (reg.paymentMethod || '').toLowerCase().includes(q) ||
-                              (reg.sessionName || '').toLowerCase().includes(q);
-                            if (!match) return false;
-                          }
-                          return true;
-                        }).length === 0 ? (
-                          <tr>
-                            <td colSpan={8} className="px-8 py-16 text-center text-espresso/40 italic text-xs">
-                              {regSearchQuery || paymentFilter !== 'all' 
-                                ? 'No registrations match your current filter criteria.' 
-                                : onlyRealPayments 
-                                  ? 'No live realtime payments found. Use "Sync with Stripe" above to pull recent transactions.' 
-                                  : 'No confirmed registrations yet. Completed checkouts will appear here instantly!'}
-                            </td>
-                          </tr>
-                        ) : registrationsList.filter(reg => {
-                          if (onlyRealPayments && isMockPayment(reg)) return false;
-                          if (paymentFilter !== 'all') {
-                            const pm = String(reg.paymentMethod || '').toLowerCase();
-                            if (paymentFilter === 'apple_pay' && !pm.includes('apple')) return false;
-                            if (paymentFilter === 'google_pay' && !pm.includes('google') && !pm.includes('gpay')) return false;
-                            if (paymentFilter === 'link' && !pm.includes('link')) return false;
-                            if (paymentFilter === 'qr' && !pm.includes('qr') && !pm.includes('zelle') && !pm.includes('venmo')) return false;
-                            if (paymentFilter === 'card' && (pm.includes('apple') || pm.includes('google') || pm.includes('link') || pm.includes('qr'))) return false;
-                          }
-                          if (regSearchQuery.trim()) {
-                            const q = regSearchQuery.toLowerCase();
-                            const match = 
-                              (reg.playerName || '').toLowerCase().includes(q) ||
-                              (reg.parentName || '').toLowerCase().includes(q) ||
-                              (reg.email || '').toLowerCase().includes(q) ||
-                              (reg.phone || '').toLowerCase().includes(q) ||
-                              (reg.registrationId || '').toLowerCase().includes(q) ||
-                              (reg.stripePaymentIntentId || '').toLowerCase().includes(q) ||
-                              (reg.transactionId || '').toLowerCase().includes(q) ||
-                              (reg.paymentMethod || '').toLowerCase().includes(q) ||
-                              (reg.sessionName || '').toLowerCase().includes(q);
-                            if (!match) return false;
-                          }
-                          return true;
-                        }).map((reg) => {
-                          const stripeTxId = reg.stripePaymentIntentId || reg.transactionId || '';
-                          return (
-                            <tr key={reg.registrationId || reg._id} className="hover:bg-sand/5 transition-colors group">
-                              <td className="px-8 py-5">
-                                <div className="flex items-center gap-3.5">
-                                  <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold text-sm shrink-0">
-                                    {reg.playerName?.charAt(0) || 'A'}
-                                  </div>
-                                  <div>
-                                    <div className="text-sm font-bold text-espresso">
-                                      {reg.playerName}
-                                      {reg.hasSibling && (
-                                        <span className="ml-1.5 text-[9px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded">
-                                          + Sibling ({reg.siblingName || 'Sibling'})
-                                        </span>
-                                      )}
-                                    </div>
-                                    <span className="inline-block bg-espresso/5 text-espresso font-mono text-[10px] font-bold px-2 py-0.5 rounded mt-0.5">
-                                      {reg.registrationId}
-                                    </span>
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="px-6 py-5">
-                                <div className="text-xs font-bold text-espresso">{reg.sessionName || reg.sessionId}</div>
-                                <div className="text-[10px] text-espresso/50 font-medium">{reg.schedule || 'Flexible'} · {reg.location || reg.preferredLocation || 'Fremont (Kerala House)'}</div>
-                              </td>
-                              <td className="px-6 py-5">
-                                <span className="text-sm font-black text-green-600 font-mono">
-                                  ${reg.amountPaid}
-                                </span>
-                              </td>
-                              <td className="px-6 py-5">
-                                <div className="text-xs font-bold text-espresso">{reg.email}</div>
-                                <div className="text-[10px] text-espresso/50 mb-1">{reg.phone}</div>
-                                <div>{renderEmailStatusBadge(reg)}</div>
-                              </td>
-                              <td className="px-6 py-5">
-                                <div className="flex flex-col gap-1.5">
-                                  <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-green-100 text-green-700 flex items-center gap-1 w-fit">
-                                    <CheckCircle2 className="w-3 h-3" /> {reg.paymentStatus || 'PAID'}
-                                  </span>
-                                  <div>{renderPaymentMethodBadge(reg)}</div>
-                                </div>
-                              </td>
-                              <td className="px-6 py-5">
-                                {stripeTxId ? (
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="font-mono text-[11px] text-slate-700 max-w-[140px] truncate" title={stripeTxId}>
-                                      {stripeTxId}
-                                    </span>
-                                    <button
-                                      onClick={() => handleCopyStripeId(stripeTxId)}
-                                      className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
-                                      title="Copy Stripe / Transaction ID"
-                                    >
-                                      {copiedStripeId === stripeTxId ? (
-                                        <Check className="w-3.5 h-3.5 text-emerald-600" />
-                                      ) : (
-                                        <Copy className="w-3.5 h-3.5" />
-                                      )}
-                                    </button>
-                                  </div>
-                                ) : (
-                                  <span className="text-espresso/30 text-xs italic">N/A</span>
-                                )}
-                              </td>
-                              <td className="px-6 py-5 text-xs text-espresso/40 font-medium">
-                                {reg.registeredAt ? new Date(reg.registeredAt).toLocaleDateString() : 'Recent'}
-                              </td>
-                              <td className="px-8 py-5 text-right">
-                                <div className="flex items-center justify-end gap-1.5">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleResendEmail(reg)}
-                                    disabled={resendingEmailId === (reg.registrationId || reg._id)}
-                                    className="p-2 text-espresso/40 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all cursor-pointer disabled:opacity-50"
-                                    title="Resend Confirmation & Admin Notification Email"
-                                  >
-                                    {resendingEmailId === (reg.registrationId || reg._id) ? (
-                                      <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                                    ) : (
-                                      <Mail className="w-4 h-4" />
-                                    )}
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleOpenEditStudent(reg)}
-                                    className="p-2 text-espresso/40 hover:text-espresso hover:bg-espresso/5 rounded-xl transition-all cursor-pointer"
-                                    title="Edit Student Details"
-                                  >
-                                    <Edit3 className="w-4 h-4" />
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleDeleteStudent(reg)}
-                                    className="p-2 text-espresso/40 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
-                                    title="Delete Permanently"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                {/* ── 2. ABANDONED / IN-PROGRESS CHECKOUT LEADS ── */}
-                <div className="bg-white rounded-[3rem] border border-espresso/5 shadow-xl overflow-hidden">
-                  <div className="p-8 sm:p-10 border-b border-espresso/5 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-sand/10">
-                    <div>
-                      <div className="flex flex-wrap items-center gap-3">
-                        <h3 className="text-xl font-condensed font-black uppercase text-espresso">
-                          Checkout Inquiries &amp; Leads ({displayedLeads.length})
-                        </h3>
-                        <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-espresso/10 text-xs">
+                          {/* Real vs All Payments Toggle */}
                           <button
                             type="button"
-                            onClick={() => setLeadsFilter('all')}
-                            className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
-                              leadsFilter === 'all'
-                                ? 'bg-orange text-white shadow-xs'
-                                : 'text-espresso/60 hover:text-espresso'
+                            onClick={() => setOnlyRealPayments(prev => !prev)}
+                            className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all border cursor-pointer ${
+                              onlyRealPayments 
+                                ? 'bg-emerald-50 text-emerald-800 border-emerald-300 shadow-sm'
+                                : 'bg-sand/30 text-espresso/60 border-espresso/10 hover:bg-sand/60'
                             }`}
+                            title="Toggle to hide test/mock records and display only genuine paid checkouts"
                           >
-                            All ({deduplicatedLeads.length})
+                            <span className={`w-2 h-2 rounded-full ${onlyRealPayments ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
+                            <span>{onlyRealPayments ? 'Real Payments Only' : 'Showing All'}</span>
                           </button>
+
+                          {/* Statement Export Button */}
+                          <div className="flex items-center gap-1.5 bg-emerald-50/80 p-1 rounded-2xl border border-emerald-200">
+                            <button
+                              type="button"
+                              onClick={() => handleOpenStatementModal(unifiedStatusFilter === 'pending' ? 'leads_only' : 'payments_only')}
+                              className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
+                              title="Open statement export modal with custom filters"
+                            >
+                              <FileText className="w-3.5 h-3.5" />
+                              <span>{unifiedStatusFilter === 'pending' ? 'Export Leads PDF' : 'Download Statement (PDF)'}</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleQuickDownloadPdf(unifiedStatusFilter === 'pending' ? 'leads_only' : 'payments_only')}
+                              disabled={isQuickDownloadingStatement}
+                              className="p-2 bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl transition-all shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer"
+                              title="Instant 1-Click Quick Download"
+                            >
+                              {isQuickDownloadingStatement ? (
+                                <div className="w-3.5 h-3.5 border-2 border-emerald-700 border-t-transparent rounded-full animate-spin" />
+                              ) : (
+                                <Download className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                          </div>
+
+                          {/* Sync With Stripe */}
                           <button
-                            type="button"
-                            onClick={() => setLeadsFilter('pending')}
-                            className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
-                              leadsFilter === 'pending'
-                                ? 'bg-amber-500 text-white shadow-xs'
-                                : 'text-espresso/60 hover:text-espresso'
-                            }`}
+                            onClick={handleSyncStripe}
+                            disabled={isSyncingStripe}
+                            className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all shadow-md active:scale-95 disabled:opacity-50 cursor-pointer"
+                            title="Directly pull and match all successful transactions from Stripe API"
                           >
-                            Pending ({pendingLeadsCount})
+                            <RefreshCcw className={`w-3.5 h-3.5 ${isSyncingStripe ? 'animate-spin text-orange' : ''}`} />
+                            <span>{isSyncingStripe ? 'Syncing...' : 'Sync Stripe'}</span>
                           </button>
+
+                          {/* Purge Test Records */}
                           <button
                             type="button"
-                            onClick={() => setLeadsFilter('confirmed')}
-                            className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
-                              leadsFilter === 'confirmed'
-                                ? 'bg-emerald-600 text-white shadow-xs'
-                                : 'text-espresso/60 hover:text-espresso'
-                            }`}
+                            onClick={handlePurgeMockRecords}
+                            disabled={isPurgingMock}
+                            className="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer"
+                            title="Permanently remove mock / test records from database"
                           >
-                            Converted ({confirmedLeadsCount})
+                            <Trash className="w-3.5 h-3.5" />
+                            <span>{isPurgingMock ? 'Purging...' : 'Purge Tests'}</span>
+                          </button>
+
+                          {/* Retry Email Queue */}
+                          <button
+                            type="button"
+                            onClick={handleProcessEmailQueue}
+                            disabled={isProcessingEmails}
+                            className="px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer"
+                            title="Process and retry all pending or failed email notifications"
+                          >
+                            <Mail className={`w-3.5 h-3.5 ${isProcessingEmails ? 'animate-bounce text-blue-600' : ''}`} />
+                            <span>{isProcessingEmails ? 'Retrying...' : 'Retry Emails'}</span>
                           </button>
                         </div>
                       </div>
-                      <p className="text-espresso/40 text-[10px] font-black uppercase tracking-widest mt-0.5">
-                        Deduplicated prospective athlete inquiries (1 canonical record per applicant)
-                      </p>
-                    </div>
 
-                    <div className="flex items-center gap-1.5 bg-amber-50/80 p-1 rounded-2xl border border-amber-200">
-                      <button
-                        type="button"
-                        onClick={() => handleOpenStatementModal('leads_only')}
-                        className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 active:scale-95 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
-                        title="Open leads statement export modal with custom filters"
-                      >
-                        <FileText className="w-3.5 h-3.5 text-amber-400" />
-                        <span>Download Leads PDF</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleQuickDownloadPdf('leads_only')}
-                        disabled={isQuickDownloadingStatement}
-                        className="p-2 bg-white hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-xl transition-all shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer"
-                        title="Instant 1-Click Quick Download of Leads Statement"
-                      >
-                        {isQuickDownloadingStatement ? (
-                          <div className="w-3.5 h-3.5 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          <Download className="w-3.5 h-3.5" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
+                      {/* ── Filter and Search Bar ── */}
+                      <div className="px-8 py-4 bg-white border-b border-espresso/5 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+                        {/* Payment Method Filter Pills */}
+                        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 xl:pb-0 no-scrollbar text-xs font-bold">
+                          {[
+                            { id: 'all', label: `All Methods (${registrationsList.filter(r => onlyRealPayments ? !isMockPayment(r) : true).length})` },
+                            { id: 'card', label: '💳 Cards' },
+                            { id: 'apple_pay', label: ' Apple Pay' },
+                            { id: 'google_pay', label: 'GPay' },
+                            { id: 'link', label: '🟢 Link' },
+                            { id: 'qr', label: '📱 QR Code' },
+                          ].map((tab) => (
+                            <button
+                              key={tab.id}
+                              onClick={() => setPaymentFilter(tab.id as any)}
+                              className={`px-3 py-1.5 rounded-lg text-[11px] transition-all cursor-pointer whitespace-nowrap ${
+                                paymentFilter === tab.id
+                                  ? 'bg-[#D62828] text-white shadow-sm font-black'
+                                  : 'bg-sand/30 text-espresso/60 hover:bg-sand/60 hover:text-espresso'
+                              }`}
+                            >
+                              {tab.label}
+                            </button>
+                          ))}
+                        </div>
 
-                  <div 
-                    data-lenis-prevent="true"
-                    className="overflow-x-auto overflow-y-auto admin-table-scroll max-h-[440px] border-t border-espresso/5"
-                  >
-                    <table className="w-full text-left border-collapse">
-                      <thead className="sticky top-0 z-10 bg-[#FBF9F6] shadow-sm">
-                        <tr className="bg-[#FBF9F6] text-[10px] font-black uppercase tracking-widest text-espresso/50 border-b border-espresso/10">
-                          <th className="px-8 py-4 bg-[#FBF9F6]">Athlete</th>
-                          <th className="px-6 py-4 bg-[#FBF9F6]">Program</th>
-                          <th className="px-6 py-4 bg-[#FBF9F6]">Status</th>
-                          <th className="px-6 py-4 bg-[#FBF9F6]">Date</th>
-                          <th className="px-8 py-4 bg-[#FBF9F6] text-right">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-espresso/5">
-                        {displayedLeads.length === 0 ? (
-                          <tr>
-                            <td colSpan={5} className="px-8 py-12 text-center text-espresso/40 italic text-xs">
-                              No {leadsFilter !== 'all' ? `${leadsFilter} ` : ''}leads found.
-                            </td>
-                          </tr>
-                        ) : displayedLeads.map((lead) => (
-                          <tr key={lead.id} className="hover:bg-sand/5 transition-colors group">
-                            <td className="px-8 py-5">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-orange/10 flex items-center justify-center text-orange font-bold text-xs">
-                                  {lead.playerName?.charAt(0) || lead.studentName?.charAt(0) || '?'}
-                                </div>
-                                <div>
-                                  <div className="text-xs font-bold text-espresso">{lead.playerName || lead.studentName || lead.fullName}</div>
-                                  <div className="text-[10px] text-espresso/40 uppercase font-bold">{lead.email || lead.primaryEmail}</div>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-5 text-xs font-medium text-espresso/60">
-                              {lead.sessionName || lead.sessionId || lead.programId}
-                            </td>
-                            <td className="px-6 py-5">
-                              {(() => {
-                                const isPaid = lead.status === 'confirmed' || registrationsList.some(r => 
-                                  (r.email && lead.email && r.email.toLowerCase().trim() === lead.email.toLowerCase().trim() && lead.email.includes('@') && !lead.email.includes('example.com')) ||
-                                  (r.registrationId && lead.registrationId && r.registrationId === lead.registrationId) ||
-                                  (r.transactionId && lead.paymentIntentId && r.transactionId === lead.paymentIntentId) ||
-                                  (r.stripePaymentIntentId && lead.paymentIntentId && r.stripePaymentIntentId === lead.paymentIntentId)
-                                );
-                                return (
-                                  <span className={`text-[8px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${
-                                    isPaid ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                                  }`}>
-                                    {isPaid ? 'CONFIRMED (PAID)' : (lead.status || 'pending')}
-                                  </span>
-                                );
-                              })()}
-                            </td>
-                            <td className="px-6 py-5 text-xs text-espresso/40 font-medium">
-                              {lead.createdAt ? new Date(lead.createdAt).toLocaleDateString() : 'Recent'}
-                            </td>
-                            <td className="px-8 py-5 text-right">
-                              <button onClick={() => handleDeleteLead(lead.id)} className="p-2 text-espresso/20 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
-                                <Trash2 className="w-4 h-4" />
+                        {/* Location Filter & Search Field */}
+                        <div className="flex flex-wrap items-center gap-2.5">
+                          {/* Location Dropdown */}
+                          <div className="relative">
+                            <MapPin className="w-3.5 h-3.5 text-espresso/40 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <select
+                              value={locationFilter}
+                              onChange={(e) => setLocationFilter(e.target.value as any)}
+                              className={`pl-8 pr-8 py-1.5 text-xs font-bold rounded-xl border outline-none transition-all cursor-pointer appearance-none ${
+                                locationFilter !== 'all'
+                                  ? 'bg-orange/10 border-orange text-orange font-black shadow-xs'
+                                  : 'bg-sand/20 hover:bg-sand/30 border-espresso/10 text-espresso'
+                              }`}
+                              title="Filter by Academy Location"
+                            >
+                              <option value="all">📍 All 3 Locations</option>
+                              <option value="fremont">Fremont (Kerala House)</option>
+                              <option value="mountain_house">Mountain House (Hansen)</option>
+                              <option value="san_jose">San Jose</option>
+                            </select>
+                            <ChevronDown className="w-3 h-3 text-espresso/40 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          </div>
+
+                          {/* Search Field */}
+                          <div className="relative min-w-[240px] sm:min-w-[280px]">
+                            <Search className="w-3.5 h-3.5 text-espresso/40 absolute left-3 top-1/2 -translate-y-1/2" />
+                            <input
+                              type="text"
+                              placeholder="Search athlete, location, email, Stripe ID..."
+                              value={regSearchQuery}
+                              onChange={(e) => setRegSearchQuery(e.target.value)}
+                              className="w-full bg-sand/20 border border-espresso/10 rounded-xl pl-9 pr-7 py-1.5 text-xs text-espresso outline-none focus:border-[#D62828] transition-all font-medium"
+                            />
+                            {regSearchQuery && (
+                              <button
+                                onClick={() => setRegSearchQuery('')}
+                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-espresso/40 hover:text-espresso cursor-pointer"
+                                title="Clear search"
+                              >
+                                <X className="w-3 h-3" />
                               </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </motion.div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
 
+                      {/* Active Filter Bar & Quick Location Chips */}
+                      <div className="px-8 py-2.5 bg-sand/10 border-b border-espresso/5 flex flex-wrap items-center justify-between gap-2 text-xs">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-[10px] font-black uppercase tracking-wider text-espresso/50 mr-1 flex items-center gap-1">
+                            <MapPin className="w-3 h-3 text-orange" /> Location:
+                          </span>
+                          {[
+                            { label: 'All', query: '', filterId: 'all' },
+                            { label: 'Fremont', query: 'Fremont', filterId: 'fremont' },
+                            { label: 'Mountain House', query: 'Mountain House', filterId: 'mountain_house' },
+                            { label: 'San Jose', query: 'San Jose', filterId: 'san_jose' },
+                          ].map((item) => {
+                            const isActive = 
+                              (item.filterId === 'all' && locationFilter === 'all' && !regSearchQuery) ||
+                              (item.filterId !== 'all' && (locationFilter === item.filterId || regSearchQuery.toLowerCase() === item.query.toLowerCase()));
+                            return (
+                              <button
+                                key={item.label}
+                                type="button"
+                                onClick={() => {
+                                  if (item.filterId === 'all') {
+                                    setLocationFilter('all');
+                                    setRegSearchQuery('');
+                                  } else {
+                                    if (locationFilter === item.filterId || regSearchQuery.toLowerCase() === item.query.toLowerCase()) {
+                                      setLocationFilter('all');
+                                      setRegSearchQuery('');
+                                    } else {
+                                      setLocationFilter('all');
+                                      setRegSearchQuery(item.query);
+                                    }
+                                  }
+                                }}
+                                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer border ${
+                                  isActive
+                                    ? 'bg-orange text-white border-orange shadow-xs font-black'
+                                    : 'bg-white hover:bg-sand/30 text-espresso/70 border-espresso/10'
+                                }`}
+                              >
+                                {item.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] font-bold text-espresso/60">
+                            Showing {unifiedAthletesList.length} {unifiedStatusFilter === 'confirmed' ? 'enrollees' : unifiedStatusFilter === 'pending' ? 'leads' : 'athletes'}
+                          </span>
+                          {(locationFilter !== 'all' || regSearchQuery || paymentFilter !== 'all') && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setLocationFilter('all');
+                                setRegSearchQuery('');
+                                setPaymentFilter('all');
+                              }}
+                              className="text-[11px] font-bold text-[#D62828] hover:underline cursor-pointer"
+                            >
+                              Clear all
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Unified Athletes Table */}
+                      <div 
+                        data-lenis-prevent="true"
+                        className="overflow-x-auto overflow-y-auto admin-table-scroll max-h-[620px] border-t border-espresso/5"
+                      >
+                        <table className="w-full text-left border-collapse">
+                          <thead className="sticky top-0 z-10 bg-[#FBF9F6] shadow-sm">
+                            <tr className="bg-[#FBF9F6] text-[10px] font-black uppercase tracking-widest text-espresso/50 border-b border-espresso/10">
+                              <th className="px-8 py-4 bg-[#FBF9F6]">Athlete &amp; Code</th>
+                              <th className="px-6 py-4 bg-[#FBF9F6]">Program / Session</th>
+                              <th className="px-6 py-4 bg-[#FBF9F6]">Amount</th>
+                              <th className="px-6 py-4 bg-[#FBF9F6]">Customer Contact</th>
+                              <th className="px-6 py-4 bg-[#FBF9F6]">Status &amp; Method</th>
+                              <th className="px-6 py-4 bg-[#FBF9F6]">Stripe / Ref ID</th>
+                              <th className="px-6 py-4 bg-[#FBF9F6]">Date</th>
+                              <th className="px-8 py-4 bg-[#FBF9F6] text-right">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-espresso/5">
+                            {unifiedAthletesList.length === 0 ? (
+                              <tr>
+                                <td colSpan={8} className="px-8 py-16 text-center text-espresso/40 italic text-xs">
+                                  {regSearchQuery || paymentFilter !== 'all' || locationFilter !== 'all'
+                                    ? `No ${unifiedStatusFilter} records match your current filter criteria${regSearchQuery ? ` ("${regSearchQuery}")` : ''}${locationFilter !== 'all' ? ` in ${locationFilter.replace('_', ' ')}` : ''}.`
+                                    : unifiedStatusFilter === 'confirmed'
+                                      ? onlyRealPayments 
+                                        ? 'No live payments found. Click "Sync Stripe" above to pull recent transactions.' 
+                                        : 'No confirmed registrations found.'
+                                      : unifiedStatusFilter === 'pending'
+                                        ? 'No pending leads! All inquiries have either completed payment or been resolved.'
+                                        : 'No athlete records found.'}
+                                </td>
+                              </tr>
+                            ) : unifiedAthletesList.map((item) => {
+                              const stripeTxId = item.stripePaymentIntentId || item.transactionId || '';
+                              const isLead = !!item.isLead;
+
+                              return (
+                                <tr key={item.registrationId || item.id || item._id} className="hover:bg-sand/5 transition-colors group">
+                                  {/* Athlete & Code */}
+                                  <td className="px-8 py-5">
+                                    <div className="flex items-center gap-3.5">
+                                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${
+                                        isLead ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-700'
+                                      }`}>
+                                        {item.playerName?.charAt(0) || 'A'}
+                                      </div>
+                                      <div>
+                                        <div className="text-sm font-bold text-espresso">
+                                          {item.playerName}
+                                          {item.hasSibling && (
+                                            <span className="ml-1.5 text-[9px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded">
+                                              + Sibling ({item.siblingName || 'Sibling'})
+                                            </span>
+                                          )}
+                                        </div>
+                                        <div className="flex items-center gap-1.5 mt-0.5">
+                                          <span className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded ${
+                                            isLead ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-espresso/5 text-espresso'
+                                          }`}>
+                                            {item.registrationId}
+                                          </span>
+                                          {isLead && (
+                                            <span className="text-[8px] font-black uppercase tracking-wider text-amber-700 bg-amber-100 px-1.5 py-0.2 rounded">
+                                              Lead
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </td>
+
+                                  {/* Program / Session */}
+                                  <td className="px-6 py-5">
+                                    <div className="text-xs font-bold text-espresso">{item.sessionName || item.sessionId}</div>
+                                    <div className="text-[10px] text-espresso/50 font-medium">
+                                      {item.schedule || 'Flexible'} · {item.location || item.preferredLocation || 'Fremont (Kerala House)'}
+                                    </div>
+                                  </td>
+
+                                  {/* Amount */}
+                                  <td className="px-6 py-5">
+                                    {isLead ? (
+                                      <span className="text-xs font-bold text-espresso/40">
+                                        ${item.amountPaid || '0'}{' '}
+                                        <span className="text-[9px] uppercase font-bold text-amber-600">(Unpaid)</span>
+                                      </span>
+                                    ) : (
+                                      <span className="text-sm font-black text-green-600 font-mono">
+                                        ${item.amountPaid}
+                                      </span>
+                                    )}
+                                  </td>
+
+                                  {/* Customer Contact */}
+                                  <td className="px-6 py-5">
+                                    <div className="text-xs font-bold text-espresso">{item.email || 'No email'}</div>
+                                    <div className="text-[10px] text-espresso/50 mb-1">{item.phone || 'No phone'}</div>
+                                    <div>
+                                      {isLead ? (
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                                          <span>Checkout Drop-off</span>
+                                        </span>
+                                      ) : (
+                                        renderEmailStatusBadge(item)
+                                      )}
+                                    </div>
+                                  </td>
+
+                                  {/* Status & Method */}
+                                  <td className="px-6 py-5">
+                                    <div className="flex flex-col gap-1.5">
+                                      {isLead ? (
+                                        <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 flex items-center gap-1 w-fit">
+                                          <Clock className="w-3 h-3" /> PENDING PAYMENT
+                                        </span>
+                                      ) : (
+                                        <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-green-100 text-green-700 flex items-center gap-1 w-fit">
+                                          <CheckCircle2 className="w-3 h-3" /> {item.paymentStatus || 'PAID'}
+                                        </span>
+                                      )}
+                                      <div>
+                                        {isLead ? (
+                                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold text-espresso/50 bg-sand/30">
+                                            Checkout Incomplete
+                                          </span>
+                                        ) : (
+                                          renderPaymentMethodBadge(item)
+                                        )}
+                                      </div>
+                                    </div>
+                                  </td>
+
+                                  {/* Stripe / Ref ID */}
+                                  <td className="px-6 py-5">
+                                    {stripeTxId ? (
+                                      <div className="flex items-center gap-1.5">
+                                        <span className="font-mono text-[11px] text-slate-700 max-w-[140px] truncate" title={stripeTxId}>
+                                          {stripeTxId}
+                                        </span>
+                                        <button
+                                          onClick={() => handleCopyStripeId(stripeTxId)}
+                                          className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+                                          title="Copy ID"
+                                        >
+                                          {copiedStripeId === stripeTxId ? (
+                                            <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                          ) : (
+                                            <Copy className="w-3.5 h-3.5" />
+                                          )}
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <span className="text-espresso/30 text-xs italic">—</span>
+                                    )}
+                                  </td>
+
+                                  {/* Date */}
+                                  <td className="px-6 py-5 text-xs text-espresso/40 font-medium">
+                                    {item.registeredAt || item.createdAt 
+                                      ? new Date(item.registeredAt || item.createdAt).toLocaleDateString() 
+                                      : 'Recent'}
+                                  </td>
+
+                                  {/* Actions */}
+                                  <td className="px-8 py-5 text-right">
+                                    <div className="flex items-center justify-end gap-1.5">
+                                      {isLead ? (
+                                        <>
+                                          {item.email && (
+                                            <a
+                                              href={`mailto:${item.email}?subject=Challengers%20Volleyball%20Academy%20Enrollment`}
+                                              className="p-2 text-espresso/40 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all cursor-pointer"
+                                              title="Email Lead"
+                                            >
+                                              <Mail className="w-4 h-4" />
+                                            </a>
+                                          )}
+                                          <button
+                                            type="button"
+                                            onClick={() => handleDeleteLead(item.id)}
+                                            className="p-2 text-espresso/40 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
+                                            title="Delete Lead"
+                                          >
+                                            <Trash2 className="w-4 h-4" />
+                                          </button>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleResendEmail(item)}
+                                            disabled={resendingEmailId === (item.registrationId || item._id)}
+                                            className="p-2 text-espresso/40 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all cursor-pointer disabled:opacity-50"
+                                            title="Resend Confirmation Email"
+                                          >
+                                            {resendingEmailId === (item.registrationId || item._id) ? (
+                                              <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                                            ) : (
+                                              <Mail className="w-4 h-4" />
+                                            )}
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleOpenEditStudent(item)}
+                                            className="p-2 text-espresso/40 hover:text-espresso hover:bg-espresso/5 rounded-xl transition-all cursor-pointer"
+                                            title="Edit Student Details"
+                                          >
+                                            <Edit3 className="w-4 h-4" />
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleDeleteStudent(item)}
+                                            className="p-2 text-espresso/40 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
+                                            title="Delete Permanently"
+                                          >
+                                            <Trash2 className="w-4 h-4" />
+                                          </button>
+                                        </>
+                                      )}
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </motion.div>
             )}
 
             {activeTab === 'overview' && (
@@ -1839,11 +2054,21 @@ export default function Admin() {
                     const realRegs = registrationsList.filter(r => !isMockPayment(r));
                     const activeRegs = onlyRealPayments ? realRegs : registrationsList;
                     const computedRevenue = activeRegs.reduce((acc, r) => acc + (Number(r.amountPaid) || 0), 0);
+
+                    const nowMs = Date.now();
+                    const startOfTodayMs = new Date().setHours(0, 0, 0, 0);
+                    const todayRegs = activeRegs.filter(r => {
+                      const t = getRegTimestamp(r);
+                      return t >= startOfTodayMs || (nowMs - t <= 24 * 60 * 60 * 1000);
+                    });
+                    const todayCount = todayRegs.length > 0 ? todayRegs.length : (stats?.recentGrowth ?? 0);
+                    const todayChangeText = todayRegs.length > 0 ? `${todayRegs.length} new today` : 'Last 24h';
+
                     return [
                       { label: 'Total Inquiries & Leads', value: stats?.totalLeads ?? leads.length, change: `${leads.length} active`, icon: Users, color: 'orange' },
                       { label: 'Confirmed Athletes', value: activeRegs.length, change: `${activeRegs.length} enrollees`, icon: CheckCircle2, color: 'yellow' },
                       { label: 'Live Revenue', value: `$${Math.round(computedRevenue * 100) / 100}`, change: 'Stripe Verified', icon: BarChart3, color: 'espresso' },
-                      { label: 'Registrations (Today)', value: stats?.recentGrowth ?? 0, change: 'Last 24h', icon: Clock, color: 'orange' },
+                      { label: 'Registrations (Today)', value: todayCount, change: todayChangeText, icon: Clock, color: 'orange' },
                     ];
                   })().map((stat, i) => (
                     <div key={i} className="bg-white p-8 rounded-[2.5rem] border border-espresso/5 shadow-xl shadow-espresso/5">
@@ -1862,23 +2087,195 @@ export default function Admin() {
 
                 {/* Main Activity Row */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                  <div className="lg:col-span-2 bg-white p-10 rounded-[3rem] border border-espresso/5 shadow-xl">
-                    <div className="flex justify-between items-center mb-10">
-                      <h3 className="text-xl font-condensed font-black uppercase text-espresso">Registration Trends</h3>
-                      <div className="flex gap-2">
-                        <button className="px-4 py-2 text-[10px] font-black uppercase bg-sand rounded-xl">7 Days</button>
-                        <button className="px-4 py-2 text-[10px] font-black uppercase bg-espresso text-white rounded-xl">30 Days</button>
+                  <div className="lg:col-span-2 bg-white p-6 sm:p-10 rounded-[3rem] border border-espresso/5 shadow-xl flex flex-col justify-between min-w-0 overflow-hidden">
+                    {/* Header */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-xl font-condensed font-black uppercase text-espresso">Registration Trends</h3>
+                          <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-orange/10 text-orange">
+                            {trendData.totalCount} Enrolled
+                          </span>
+                        </div>
+                        <p className="text-xs text-espresso/50 font-medium">
+                          Daily athlete sign-ups and enrollment velocity across the last {trendRange} days.
+                          {trendRange === 30 && (
+                            <span className="ml-2 inline-block text-[10px] text-orange font-black">
+                              (← Scroll horizontally inside box →)
+                            </span>
+                          )}
+                        </p>
+                      </div>
+
+                      {/* Interactive Time Filter */}
+                      <div className="flex items-center bg-sand/30 p-1 rounded-2xl border border-espresso/5 shrink-0 self-start sm:self-auto">
+                        <button
+                          type="button"
+                          onClick={() => setTrendRange(7)}
+                          className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer ${
+                            trendRange === 7 
+                              ? 'bg-espresso text-white shadow-md' 
+                              : 'text-espresso/60 hover:text-espresso'
+                          }`}
+                        >
+                          7 Days
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setTrendRange(30)}
+                          className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer ${
+                            trendRange === 30 
+                              ? 'bg-espresso text-white shadow-md' 
+                              : 'text-espresso/60 hover:text-espresso'
+                          }`}
+                        >
+                          30 Days
+                        </button>
                       </div>
                     </div>
-                    <div className="h-64 w-full bg-sand/20 rounded-[2rem] flex items-end justify-between p-8 gap-4">
-                      {(stats?.trends || Array.from({ length: 7 }).map((_, i) => ({ count: Math.random() * 10 }))).map((t: any, i: number) => (
-                        <div 
-                          key={i} 
-                          title={`${t.date || 'Day'}: ${t.count} registrations`}
-                          className="w-full bg-orange/40 rounded-t-lg hover:bg-orange transition-all cursor-help"
-                          style={{ height: `${Math.min(100, (t.count / 10) * 100 + 5)}%` }}
-                        />
-                      ))}
+
+                    {/* Chart Body Container with bounded overflow and inner horizontal scroll */}
+                    <div className="relative bg-sand/15 rounded-[2.5rem] p-4 sm:p-7 border border-espresso/5 overflow-hidden">
+                      <div
+                        ref={trendScrollRef}
+                        data-lenis-prevent="true"
+                        className="overflow-x-auto admin-table-scroll pb-1"
+                      >
+                        <div className={`relative ${trendRange === 30 ? 'min-w-[860px] px-2' : 'w-full'}`}>
+                          {/* Y-axis guidelines */}
+                          <div className="absolute inset-x-2 sm:inset-x-4 top-6 bottom-16 pointer-events-none flex flex-col justify-between opacity-20">
+                            <div className="border-b border-dashed border-espresso w-full flex justify-between">
+                              <span className="text-[9px] font-bold font-mono -mt-2.5 text-espresso">{trendData.maxCount}</span>
+                            </div>
+                            <div className="border-b border-dashed border-espresso w-full flex justify-between">
+                              <span className="text-[9px] font-bold font-mono -mt-2.5 text-espresso">{Math.round(trendData.maxCount / 2)}</span>
+                            </div>
+                            <div className="border-b border-espresso w-full flex justify-between">
+                              <span className="text-[9px] font-bold font-mono -mt-2.5 text-espresso">0</span>
+                            </div>
+                          </div>
+
+                          {/* Bars Container */}
+                          <div className="h-56 w-full flex items-end justify-between gap-1 sm:gap-2.5 pt-6 pb-2 relative z-10">
+                            {trendData.days.map((day, idx) => {
+                              const isHovered = hoveredTrendIndex === idx;
+                              const heightPct = day.count > 0 
+                                ? Math.max(14, Math.round((day.count / trendData.maxCount) * 100))
+                                : 6;
+
+                              return (
+                                <div
+                                  key={idx}
+                                  onMouseEnter={() => setHoveredTrendIndex(idx)}
+                                  onMouseLeave={() => setHoveredTrendIndex(null)}
+                                  className={`flex-1 flex flex-col items-center justify-end h-full group relative cursor-pointer ${
+                                    trendRange === 30 ? 'min-w-[24px]' : ''
+                                  }`}
+                                >
+                                  {/* Numbers above the bar — ALWAYS PROMINENTLY VISIBLE */}
+                                  <div className={`mb-2 text-[10px] sm:text-xs font-black transition-all ${
+                                    day.count > 0 
+                                      ? (day.isToday ? 'text-[#D62828] scale-110 font-mono font-black' : 'text-espresso font-mono font-black') 
+                                      : 'text-espresso/25 font-mono'
+                                  }`}>
+                                    {day.count}
+                                  </div>
+
+                                  {/* Bar Column */}
+                                  <div 
+                                    className={`w-full ${trendRange === 30 ? 'max-w-[26px] sm:max-w-[32px]' : 'max-w-[42px]'} bg-sand/30 rounded-t-xl overflow-hidden flex flex-col justify-end`} 
+                                    style={{ height: '100%' }}
+                                  >
+                                    <div
+                                      className={`w-full rounded-t-xl transition-all duration-300 relative ${
+                                        day.count > 0
+                                          ? (day.isToday 
+                                              ? 'bg-gradient-to-t from-[#D62828] to-[#F3722C] shadow-md shadow-[#D62828]/25 group-hover:brightness-110' 
+                                              : 'bg-orange/80 group-hover:bg-orange shadow-sm')
+                                          : 'bg-espresso/10 group-hover:bg-espresso/20'
+                                      }`}
+                                      style={{ height: `${heightPct}%` }}
+                                    >
+                                      {day.isToday && day.count > 0 && (
+                                        <div className="absolute top-1 inset-x-0 h-1 bg-white/40 rounded-full mx-1" />
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Day & Date Labels Underneath — ALWAYS VISIBLE */}
+                                  <div className="mt-3 text-center">
+                                    {trendRange === 7 ? (
+                                      <>
+                                        <div className={`text-[10px] sm:text-[11px] font-black uppercase ${
+                                          day.isToday ? 'text-[#D62828]' : 'text-espresso/70'
+                                        }`}>
+                                          {day.isToday ? 'Today' : day.dayLabel}
+                                        </div>
+                                        <div className="text-[9px] font-bold text-espresso/40">
+                                          {day.dateLabel}
+                                        </div>
+                                      </>
+                                    ) : (
+                                      <div className={`text-[9px] font-bold ${
+                                        day.isToday ? 'text-[#D62828] font-black' : 'text-espresso/60'
+                                      }`}>
+                                        {day.isToday ? 'Today' : (day.dateLabel || day.dayLabel)}
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {/* Tooltip on Hover */}
+                                  {isHovered && (
+                                    <div className="absolute bottom-full mb-8 z-30 bg-espresso text-white px-3.5 py-2.5 rounded-2xl shadow-2xl text-left pointer-events-none whitespace-nowrap border border-white/10 -translate-x-1/2 left-1/2">
+                                      <div className="flex items-center gap-1.5 mb-1">
+                                        <span className="text-[9px] font-black uppercase tracking-wider text-orange">
+                                          {day.fullDate}
+                                        </span>
+                                        {day.isToday && (
+                                          <span className="text-[8px] font-black uppercase px-1.5 py-0.2 bg-[#D62828] text-white rounded-full">
+                                            Today
+                                          </span>
+                                        )}
+                                      </div>
+                                      <div className="text-sm font-black text-white">
+                                        {day.count} {day.count === 1 ? 'Registration' : 'Registrations'}
+                                      </div>
+                                      {day.revenue > 0 && (
+                                        <div className="text-[10px] font-mono font-bold text-green-400 mt-0.5">
+                                          ${day.revenue} revenue
+                                        </div>
+                                      )}
+                                      {day.students.length > 0 && (
+                                        <div className="mt-1 text-[9px] text-white/60 truncate max-w-[160px]">
+                                          {day.students.slice(0, 2).join(', ')}{day.students.length > 2 ? ` +${day.students.length - 2} more` : ''}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Summary Footer */}
+                    <div className="mt-6 flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-espresso/5 text-xs">
+                      <div className="flex items-center gap-4 text-espresso/60 font-medium">
+                        <span className="flex items-center gap-1.5">
+                          <span className="w-2.5 h-2.5 rounded-sm bg-[#D62828]" /> Today
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <span className="w-2.5 h-2.5 rounded-sm bg-orange/80" /> Prior Days
+                        </span>
+                      </div>
+                      <div className="font-bold text-espresso/80">
+                        Total Enrolled: <span className="font-mono text-espresso font-black">{trendData.totalCount}</span>
+                        {trendData.totalRevenue > 0 && (
+                          <span className="ml-2">| Revenue: <span className="font-mono text-green-600 font-black">${trendData.totalRevenue}</span></span>
+                        )}
+                      </div>
                     </div>
                   </div>
 

@@ -44,8 +44,9 @@ export interface SessionItem {
   popular?: boolean;
 }
 
-// 7 Official Academy Training Packages
+// Official Academy Training Packages
 const OFFICIAL_SESSIONS: SessionItem[] = [
+  // ── 1. REGULAR GYM COACHING ──
   {
     id: 'gym-training-1hr',
     name: 'Gym Training Package',
@@ -55,8 +56,8 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     packageCount: '4 Sessions',
     ageGroup: 'Ages 5 - 18',
     skillLevel: 'Beginner to Advanced',
-    location: 'Fremont · Manteca · Mountain House · San Jose',
-    locationAddress: 'Fremont (Kerala House) · Manteca (Courtside Sports) · Mountain House (Hansen Elementary) · San Jose',
+    location: 'Fremont · Mountain House · San Jose',
+    locationAddress: 'Fremont (Kerala House) · Mountain House (Hansen Elementary) · San Jose',
     schedule: 'Weekly Batches',
     dates: 'Starting Next Weekend',
     time: '1 Hour per Session',
@@ -78,8 +79,8 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     packageCount: '4 Sessions',
     ageGroup: 'Ages 5 - 18',
     skillLevel: 'Beginner to Advanced',
-    location: 'Fremont · Manteca · Mountain House · San Jose',
-    locationAddress: 'Fremont (Kerala House) · Manteca (Courtside Sports) · Mountain House (Hansen Elementary) · San Jose',
+    location: 'Fremont · Mountain House · San Jose',
+    locationAddress: 'Fremont (Kerala House) · Mountain House (Hansen Elementary) · San Jose',
     schedule: 'Weekly Batches',
     dates: 'Starting Next Weekend',
     time: '2 Hours per Session',
@@ -101,8 +102,8 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     packageCount: '12 Sessions',
     ageGroup: 'Ages 5 - 18',
     skillLevel: 'All Skill Levels (Best Value)',
-    location: 'Fremont · Manteca · Mountain House · San Jose',
-    locationAddress: 'Fremont (Kerala House) · Manteca (Courtside Sports) · Mountain House (Hansen Elementary) · San Jose',
+    location: 'Fremont · Mountain House · San Jose',
+    locationAddress: 'Fremont (Kerala House) · Mountain House (Hansen Elementary) · San Jose',
     schedule: '3 Days / Week Batches',
     dates: 'Rolling Monthly Batches',
     time: '2 Hours per Session',
@@ -115,6 +116,8 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     features: ['Best Value Package', 'Position Specialization', 'School & Club Tryout Prep', 'Full Athlete Progression'],
     popular: true
   },
+
+  // ── 2. TRYOUT SESSION ──
   {
     id: 'tryout-session',
     name: 'Tryout Session & Evaluation',
@@ -124,8 +127,8 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     packageCount: '1 Session',
     ageGroup: 'Ages 5 - 18',
     skillLevel: 'Placement Evaluation',
-    location: 'Fremont · Manteca · Mountain House · San Jose',
-    locationAddress: 'Fremont (Kerala House) · Manteca (Courtside Sports) · Mountain House (Hansen Elementary) · San Jose',
+    location: 'Fremont · Mountain House · San Jose',
+    locationAddress: 'Fremont (Kerala House) · Mountain House (Hansen Elementary) · San Jose',
     schedule: 'Weekly Tryout Batches',
     dates: 'Upcoming Weekend Batch',
     time: '2 Hours Assessment',
@@ -138,6 +141,8 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     features: ['Court Evaluation', 'Mechanics & Skill Audit', 'Roster Level Recommendation', 'No Long-Term Commitment'],
     popular: false
   },
+
+  // ── 3. OPEN PARK GROUP ──
   {
     id: 'open-park-group',
     name: 'Open Park – Group Training',
@@ -145,7 +150,7 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     students: 'Group Training',
     sessionDuration: '2 Hours',
     packageCount: '4 Sessions',
-    ageGroup: 'Ages 5 - 18',
+    ageGroup: 'All Age Groups',
     skillLevel: 'Fundamental & Repetitive Drills',
     location: 'Open Park Facilities',
     locationAddress: 'Outdoor Open Park Courts',
@@ -154,13 +159,15 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     time: '2 Hours per Session',
     price: 150,
     priceNote: 'per student',
-    capacity: 12,
+    capacity: 20,
     filled: 9,
     coach: 'Head Coach Wilson Mathew & Assistants',
-    description: 'High-repetition group training sessions in open park atmosphere building stamina and ball control.',
+    description: 'High-repetition open park coaching building stamina, ball control, and defense for 12+ students.',
     features: ['Outdoor Open Air Training', 'High-Rep Passing & Defense', 'Economical Group Rate', 'Stamina & Ball Control'],
     popular: false
   },
+
+  // ── 4. PRIVATE COACHING ──
   {
     id: 'open-park-travel',
     name: 'Private Coaching – Open Park (Short Distance)',
@@ -168,7 +175,7 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     students: '1 Student',
     sessionDuration: '1 Hour',
     packageCount: '4 Sessions',
-    ageGroup: 'Ages 5 - 18',
+    ageGroup: 'All Age Groups',
     skillLevel: 'Convenient Travel Coaching',
     location: 'Short Distance',
     locationAddress: 'Coach travels to your preferred nearby location',
@@ -191,7 +198,7 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     students: '1 Student',
     sessionDuration: '1 Hour',
     packageCount: '4 Sessions',
-    ageGroup: 'Ages 5 - 18',
+    ageGroup: 'All Age Groups',
     skillLevel: 'Personalized Progression',
     location: 'Long Distance',
     locationAddress: 'Coach travels to your preferred location',
@@ -207,13 +214,15 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     features: ['4 x 1-Hour Sessions', '100% Focused 1-on-1', 'Long Distance Travel Included', 'Personal Mechanics Coaching'],
     popular: false
   },
+
+  // ── 5. SUMMER CAMPS ──
   {
     id: 'summer-camp-7day',
     name: '7-Day Intensive Summer Clinic',
     category: 'Summer Camp',
-    students: 'Youth & Junior',
-    sessionDuration: '4 Hours Daily',
-    packageCount: '7 Days',
+    students: 'Group',
+    sessionDuration: '2 Hours',
+    packageCount: 'Coaching Package',
     ageGroup: 'Ages 5 - 18',
     skillLevel: 'Technique Refinement',
     location: 'Fremont Arena / Regional Facility',
@@ -222,21 +231,21 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     dates: 'June & July 2026',
     time: '9:00 AM - 1:00 PM',
     price: 350,
-    priceNote: 'clinic fee',
+    priceNote: 'package fee',
     capacity: 25,
     filled: 14,
     coach: 'Wilson Mathew & Coaching Staff',
     description: 'Comprehensive 7-day clinic focused on rapid skill acceleration, positional mastery, and match play.',
-    features: ['7 Days Intensive Training', 'Technique Refinement', 'Match Play Scrimmages', 'Professional Mentorship'],
+    features: ['7 Days Intensive Training', '4 Hours Daily (9am-1pm)', 'Match Play Scrimmages', 'Professional Mentorship'],
     popular: false
   },
   {
     id: 'summer-camp-10day',
     name: '10-Day Elite Summer Intensive',
     category: 'Summer Camp',
-    students: 'Youth & Junior',
-    sessionDuration: '4 Hours Daily',
-    packageCount: '10 Days',
+    students: 'Group',
+    sessionDuration: '2 Hours',
+    packageCount: 'Coaching Package',
     ageGroup: 'Ages 5 - 18',
     skillLevel: 'Game Strategy & Tactics',
     location: 'Fremont Arena / Regional Facility',
@@ -245,21 +254,21 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     dates: 'June & July 2026',
     time: '9:00 AM - 1:00 PM',
     price: 500,
-    priceNote: 'intensive fee',
+    priceNote: 'package fee',
     capacity: 25,
     filled: 18,
     coach: 'Wilson Mathew & Senior Staff',
     description: 'Position-specific mastery, advanced rotational systems, high-rep scrimmage sets, and agility conditioning.',
-    features: ['10 Days Elite Bootcamp', 'Rotational Tactics (5-1)', 'Block & Defense Timing', 'Conditioning & Scrimmages'],
+    features: ['10 Days Elite Bootcamp', '4 Hours Daily (9am-1pm)', '5-1 Rotational Tactics', 'Conditioning & Scrimmages'],
     popular: true
   },
   {
     id: 'summer-camp-15day',
     name: '15-Day Masterclass Camp',
     category: 'Summer Camp',
-    students: 'Youth & Junior',
-    sessionDuration: '4 Hours Daily',
-    packageCount: '15 Days',
+    students: 'Group',
+    sessionDuration: '2 Hours',
+    packageCount: 'Coaching Package',
     ageGroup: 'Ages 5 - 18',
     skillLevel: 'Competitive Club & High School Prep',
     location: 'Fremont Arena / Regional Facility',
@@ -268,12 +277,83 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     dates: 'June & July 2026',
     time: '9:00 AM - 1:00 PM',
     price: 750,
-    priceNote: 'masterclass fee',
+    priceNote: 'package fee',
     capacity: 25,
     filled: 19,
     coach: 'Wilson Mathew & Master Staff',
     description: 'Full biomechanical breakdown, video analysis, college recruitment guidance, and high-speed match play.',
     features: ['15 Days Full Masterclass', 'Biomechanical & Video Review', 'High-Speed Match Play', 'Tournament Showcase'],
+    popular: false
+  },
+
+  // ── 7. SEMI-PRIVATE COACHING ──
+  {
+    id: 'semi-private-2',
+    name: 'Semi-Private Coaching (2 Students)',
+    category: 'Semi-Private Coaching',
+    students: '2 Students',
+    sessionDuration: '1 Hour',
+    packageCount: '4 Sessions',
+    ageGroup: 'All Age Groups',
+    skillLevel: 'Focused Small Group',
+    location: 'Fremont Arena / Regional Facility',
+    locationAddress: 'Bay Area Facility',
+    schedule: 'Flexible Small Group Slots',
+    dates: 'Book on Demand (4 Sessions)',
+    time: '1 Hour per Session (2 Students)',
+    price: 320,
+    priceNote: 'package fee',
+    capacity: 10,
+    filled: 4,
+    coach: 'Head Coach Wilson Mathew',
+    description: 'Focused semi-private training for 2 students. 4 focused 1-hour sessions of intense personalized skill reps.',
+    features: ['4 Sessions', '1 Hour per Session', '2 Students', 'Certified Coaches'],
+    popular: false
+  },
+  {
+    id: 'semi-private-4',
+    name: 'Semi-Private Coaching (4 Students)',
+    category: 'Semi-Private Coaching',
+    students: '4 Students',
+    sessionDuration: '1 Hour',
+    packageCount: '4 Sessions',
+    ageGroup: 'All Age Groups',
+    skillLevel: 'Focused Small Group',
+    location: 'Fremont Arena / Regional Facility',
+    locationAddress: 'Bay Area Facility',
+    schedule: 'Flexible Small Group Slots',
+    dates: 'Book on Demand (4 Sessions)',
+    time: '1 Hour per Session (4 Students)',
+    price: 280,
+    priceNote: 'package fee',
+    capacity: 12,
+    filled: 6,
+    coach: 'Head Coach Wilson Mathew',
+    description: 'Semi-private small group coaching with 4 students. 4 focused 1-hour sessions focusing on team chemistry and skill execution.',
+    features: ['4 Sessions', '1 Hour per Session', '4 Students', 'Certified Coaches'],
+    popular: false
+  },
+  {
+    id: 'semi-private-6',
+    name: 'Semi-Private Coaching (6 Students)',
+    category: 'Semi-Private Coaching',
+    students: '6 Students',
+    sessionDuration: '1 Hour',
+    packageCount: '4 Sessions',
+    ageGroup: 'All Age Groups',
+    skillLevel: 'Focused Small Group',
+    location: 'Fremont Arena / Regional Facility',
+    locationAddress: 'Bay Area Facility',
+    schedule: 'Flexible Small Group Slots',
+    dates: 'Book on Demand (4 Sessions)',
+    time: '1 Hour per Session (6 Students)',
+    price: 300,
+    priceNote: 'package fee',
+    capacity: 18,
+    filled: 10,
+    coach: 'Head Coach Wilson Mathew',
+    description: 'Semi-private training for 6 students. 4 focused 1-hour sessions with tactical sets and game simulation.',
+    features: ['4 Sessions', '1 Hour per Session', '6 Students', 'Certified Coaches'],
     popular: false
   }
 ];
@@ -504,12 +584,14 @@ export default function Register() {
       s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.location.toLowerCase().includes(searchQuery.toLowerCase());
+      s.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (s.id && s.id.toLowerCase().includes(searchQuery.toLowerCase()));
 
     if (!matchesSearch) return false;
     if (activeCategory === 'gym') return s.category.includes('Gym') || s.id.includes('gym');
     if (activeCategory === 'park') return s.category.includes('Park') || s.id.includes('park');
-    if (activeCategory === 'private') return s.category.includes('Private') || s.id.includes('private') || s.id.includes('travel');
+    if (activeCategory === 'semi-private') return s.id.includes('semi-private') || s.category.toLowerCase().includes('semi-private');
+    if (activeCategory === 'private') return (s.category === 'Private Coaching' || s.id === 'open-park-travel' || s.id === 'open-park-private') && !s.id.includes('semi') && !s.category.toLowerCase().includes('semi');
     if (activeCategory === 'tryout') return s.id.includes('tryout') || s.category.includes('Assessment');
     if (activeCategory === 'camp') return s.category.toLowerCase().includes('camp') || s.id.includes('camp') || s.name.toLowerCase().includes('camp') || s.name.toLowerCase().includes('clinic');
     return true;
@@ -879,7 +961,12 @@ export default function Register() {
             <span className="font-bold uppercase tracking-wider text-[11px] block text-amber-800 mb-1">
               ⚠️ IMPORTANT ENROLLMENT POLICY:
             </span>
-            All coaching program fees and registrations are <strong className="bg-red-600 text-white px-2 py-0.5 rounded-md font-bold shadow-sm inline-block mx-1">non-refundable</strong> once enrolled to guarantee court bookings, equipment reservations, and master coach allocations.
+            <p className="mb-2">
+              All coaching program fees and registrations are <strong className="bg-red-600 text-white px-2 py-0.5 rounded-md font-bold shadow-sm inline-block mx-1">non-refundable</strong> once enrolled to guarantee court bookings, equipment reservations, and master coach allocations.
+            </p>
+            <p className="text-sm sm:text-[15px] text-red-600 font-extrabold leading-snug">
+              Full payment is required prior to the commencement of the session. The session will only be confirmed and initiated once the payment has been received in full.
+            </p>
           </div>
         </div>
 
@@ -916,13 +1003,14 @@ export default function Register() {
           </div>
 
           {/* Category Filter Pills */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-6 no-scrollbar">
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-8 no-scrollbar">
             {[
-              { id: 'all', label: `All Packages (${sessions.length})` },
-              { id: 'gym', label: 'Gym Training ($100 - $550)' },
-              { id: 'park', label: 'Open Park Groups ($150)' },
-              { id: 'private', label: 'Private 1-on-1 ($320 - $360)' },
+              { id: 'all', label: `All Options (${sessions.length})` },
               { id: 'tryout', label: 'Tryout Session ($30)' },
+              { id: 'gym', label: 'Regular Gym Coaching ($100 - $550)' },
+              { id: 'park', label: 'Open Park Coaching ($150)' },
+              { id: 'semi-private', label: 'Semi-Private Coaching ($280 - $320)' },
+              { id: 'private', label: 'Private 1-on-1 ($320 - $360)' },
               { id: 'camp', label: 'Summer Camps ($350 - $750)' },
             ].map(tab => {
               const isActive = activeCategory === tab.id;
@@ -930,7 +1018,7 @@ export default function Register() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveCategory(tab.id)}
-                  className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all shadow-sm ${
+                  className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all shadow-sm cursor-pointer ${
                     isActive
                       ? 'bg-[#D62828] text-white ring-2 ring-[#D62828]/20 scale-[1.02]'
                       : 'bg-white text-slate-700 hover:text-slate-950 border border-slate-200 hover:bg-slate-50'
@@ -943,90 +1031,103 @@ export default function Register() {
           </div>
 
           {/* Course Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filteredSessions.map((session) => {
-              const isSelected = selectedSessionId === session.id;
-              
-              // Helper to get custom background theme & image per package type
-              const getTheme = (id: string, category: string) => {
-                if (id.includes('tryout') || category.includes('Assessment')) {
-                  return {
-                    bgClass: 'bg-white border-espresso/15',
-                    badgeClass: 'bg-[#F3722C] text-white font-black',
-                    bgImage: '/vb_tryout.jpg',
-                    btnBg: '#F3722C',
-                    btnShadow: '#A84308',
-                    btnTextColor: '#FFFFFF',
-                    btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#F3722C]'
-                  };
-                }
-                if (id.includes('gym-training-12')) {
-                  return {
-                    bgClass: 'bg-white border-espresso/15',
-                    badgeClass: 'bg-[#D62828] text-white font-black',
-                    bgImage: '/vb_intensive.jpg',
-                    btnBg: '#D62828',
-                    btnShadow: '#851010',
-                    btnTextColor: '#FFFFFF',
-                    btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#D62828]'
-                  };
-                }
-                if (id.includes('gym-training') || category.includes('Gym Training')) {
-                  return {
-                    bgClass: 'bg-white border-espresso/15',
-                    badgeClass: 'bg-[#D62828] text-white font-black',
-                    bgImage: '/vb_gym.jpg',
-                    btnBg: '#D62828',
-                    btnShadow: '#851010',
-                    btnTextColor: '#FFFFFF',
-                    btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#D62828]'
-                  };
-                }
-                if (id.includes('private') || id.includes('travel') || category.includes('Private') || category.includes('Travel')) {
-                  return {
-                    bgClass: 'bg-white border-espresso/15',
-                    badgeClass: 'bg-[#F9BC00] text-espresso font-black',
-                    bgImage: '/vb_private.jpg',
-                    btnBg: '#F9BC00',
-                    btnShadow: '#B88500',
-                    btnTextColor: '#1B1B1D',
-                    btnIconClass: 'bg-espresso/15 text-espresso group-hover/btn:bg-espresso group-hover/btn:text-white'
-                  };
-                }
-                if (id.includes('park') || category.includes('Park')) {
-                  return {
-                    bgClass: 'bg-white border-espresso/15',
-                    badgeClass: 'bg-[#15803D] text-white font-black',
-                    bgImage: '/vb_park.jpg',
-                    btnBg: '#15803D',
-                    btnShadow: '#14532D',
-                    btnTextColor: '#FFFFFF',
-                    btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#15803D]'
-                  };
-                }
-                if (id.includes('large-group') || category.includes('Large Group')) {
-                  return {
-                    bgClass: 'bg-white border-espresso/15',
-                    badgeClass: 'bg-blue-600 text-white font-black',
-                    bgImage: '/vb_gym.jpg',
-                    btnBg: '#D62828',
-                    btnShadow: '#851010',
-                    btnTextColor: '#FFFFFF',
-                    btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#D62828]'
-                  };
-                }
-                if (id.includes('camp') || category.toLowerCase().includes('camp') || category.toLowerCase().includes('clinic')) {
-                  return {
-                    bgClass: 'bg-white border-espresso/15',
-                    badgeClass: 'bg-[#0284C7] text-white font-black',
-                    bgImage: '/vb_intensive.jpg',
-                    btnBg: '#0284C7',
-                    btnShadow: '#0369A1',
-                    btnTextColor: '#FFFFFF',
-                    btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#0284C7]'
-                  };
-                }
-                // Fallback / Default theme
+          {(() => {
+            const filteredSessions = sessions.filter(session => {
+              // 1. Category filter
+              let matchesCategory = true;
+              if (activeCategory === 'tryout') {
+                matchesCategory = session.id.includes('tryout') || session.category.toLowerCase().includes('assessment');
+              } else if (activeCategory === 'gym') {
+                matchesCategory = session.category.toLowerCase().includes('gym') || session.id.includes('gym');
+              } else if (activeCategory === 'park') {
+                matchesCategory = session.id === 'open-park-group' || (session.category.toLowerCase().includes('park') && !session.category.toLowerCase().includes('private'));
+              } else if (activeCategory === 'semi-private') {
+                matchesCategory = session.id.includes('semi-private') || session.category.toLowerCase().includes('semi-private');
+              } else if (activeCategory === 'private') {
+                matchesCategory = (session.category === 'Private Coaching' || session.id === 'open-park-travel' || session.id === 'open-park-private') && !session.id.includes('semi') && !session.category.toLowerCase().includes('semi');
+              } else if (activeCategory === 'camp') {
+                matchesCategory = session.category.toLowerCase().includes('camp') || session.id.includes('camp');
+              }
+
+              // 2. Search query filter
+              const matchesSearch = searchQuery.trim() === '' || 
+                session.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                session.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                session.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                session.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                session.id.toLowerCase().includes(searchQuery.toLowerCase());
+
+              return matchesCategory && matchesSearch;
+            });
+
+            const getTheme = (id: string, category: string) => {
+              if (id.includes('tryout') || category.includes('Assessment')) {
+                return {
+                  bgClass: 'bg-white border-espresso/15',
+                  badgeClass: 'bg-[#F3722C] text-white font-black',
+                  bgImage: '/vb_tryout.jpg',
+                  btnBg: '#F3722C',
+                  btnShadow: '#A84308',
+                  btnTextColor: '#FFFFFF',
+                  btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#F3722C]'
+                };
+              }
+              if (id.includes('gym-training-12')) {
+                return {
+                  bgClass: 'bg-white border-espresso/15',
+                  badgeClass: 'bg-[#D62828] text-white font-black',
+                  bgImage: '/vb_intensive.jpg',
+                  btnBg: '#D62828',
+                  btnShadow: '#851010',
+                  btnTextColor: '#FFFFFF',
+                  btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#D62828]'
+                };
+              }
+              if (id.includes('gym-training') || category.includes('Gym Training')) {
+                return {
+                  bgClass: 'bg-white border-espresso/15',
+                  badgeClass: 'bg-[#D62828] text-white font-black',
+                  bgImage: '/vb_gym.jpg',
+                  btnBg: '#D62828',
+                  btnShadow: '#851010',
+                  btnTextColor: '#FFFFFF',
+                  btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#D62828]'
+                };
+              }
+              if (id.includes('semi-private') || category.toLowerCase().includes('semi-private')) {
+                return {
+                  bgClass: 'bg-white border-espresso/15',
+                  badgeClass: 'bg-[#7E22CE] text-white font-black',
+                  bgImage: '/vb_private.jpg',
+                  btnBg: '#7E22CE',
+                  btnShadow: '#581C87',
+                  btnTextColor: '#FFFFFF',
+                  btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#7E22CE]'
+                };
+              }
+              if (id.includes('private') || id.includes('travel') || category.includes('Private') || category.includes('Travel')) {
+                return {
+                  bgClass: 'bg-white border-espresso/15',
+                  badgeClass: 'bg-[#F9BC00] text-espresso font-black',
+                  bgImage: '/vb_private.jpg',
+                  btnBg: '#F9BC00',
+                  btnShadow: '#B88500',
+                  btnTextColor: '#1B1B1D',
+                  btnIconClass: 'bg-espresso/15 text-espresso group-hover/btn:bg-espresso group-hover/btn:text-white'
+                };
+              }
+              if (id.includes('park') || category.includes('Park')) {
+                return {
+                  bgClass: 'bg-white border-espresso/15',
+                  badgeClass: 'bg-[#15803D] text-white font-black',
+                  bgImage: '/vb_park.jpg',
+                  btnBg: '#15803D',
+                  btnShadow: '#14532D',
+                  btnTextColor: '#FFFFFF',
+                  btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#15803D]'
+                };
+              }
+              if (id.includes('camp') || category.toLowerCase().includes('camp') || category.toLowerCase().includes('clinic')) {
                 return {
                   bgClass: 'bg-white border-espresso/15',
                   badgeClass: 'bg-[#0284C7] text-white font-black',
@@ -1036,110 +1137,148 @@ export default function Register() {
                   btnTextColor: '#FFFFFF',
                   btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#0284C7]'
                 };
+              }
+              return {
+                bgClass: 'bg-white border-espresso/15',
+                badgeClass: 'bg-[#0284C7] text-white font-black',
+                bgImage: '/vb_intensive.jpg',
+                btnBg: '#0284C7',
+                btnShadow: '#0369A1',
+                btnTextColor: '#FFFFFF',
+                btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#0284C7]'
               };
+            };
 
-              const theme = getTheme(session.id, session.category);
-
-              return (
-                <div
-                  key={session.id}
-                  onClick={() => handleSelectPackage(session.id)}
-                  className={`group text-left p-6 rounded-[1.8rem] border transition-all duration-500 relative flex flex-col justify-between cursor-pointer overflow-hidden hover:shadow-2xl hover:border-espresso/30 hover:-translate-y-1.5 ${theme.bgClass} ${
-                    isSelected ? 'ring-4 ring-[#D62828]/30 scale-[1.02] shadow-xl' : 'shadow-lg'
-                  }`}
-                >
-                  {/* Background Image Overlay — same as Programs page */}
-                  <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-                    <img
-                      src={theme.bgImage}
-                      alt=""
-                      aria-hidden="true"
-                      className="w-full h-full object-cover opacity-40 group-hover:opacity-65 scale-105 group-hover:scale-110 transition-all duration-700 filter brightness-105 contrast-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-white via-white/85 to-white/30" />
-                  </div>
-
-                  {session.popular && (
-                    <div className="absolute -top-3 right-4 bg-[#D62828] text-white text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-md z-20">
-                      BEST VALUE
-                    </div>
-                  )}
-
-                  <div className="relative z-10">
-                    {/* Top Row: Badges */}
-                    <div className="flex flex-wrap items-center gap-1.5 mb-3">
-                      <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-espresso text-white shrink-0">
-                        PKG
-                      </span>
-                      <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md shrink-0 ${theme.badgeClass}`}>
-                        {session.category}
-                      </span>
-                    </div>
-
-                    {/* Price */}
-                    <div className="mb-1 flex items-baseline gap-2">
-                      <span className="text-3xl sm:text-4xl font-condensed font-black tracking-tighter text-espresso">
-                        ${session.price}
-                      </span>
-                      <span className="text-[9px] font-black uppercase tracking-widest text-espresso/60">
-                        / {session.priceNote || 'package'}
-                      </span>
-                    </div>
-
-                    {/* Course Title */}
-                    <h3 className="font-condensed font-black text-xl uppercase tracking-tight text-espresso mb-1 leading-tight group-hover:text-[#D62828] transition-colors">
-                      {session.name}
-                    </h3>
-                    <div className="text-[10px] font-black uppercase tracking-wider text-espresso/60 mb-3">
-                      {!session.ageGroup || session.ageGroup.toLowerCase().includes('all ages') ? 'Ages 5 - 18' : (session.ageGroup.toLowerCase().startsWith('age') ? session.ageGroup : `Ages ${session.ageGroup}`)}
-                    </div>
-
-                    {/* Feature List */}
-                    <ul className="space-y-2 mb-4">
-                      {[session.sessionDuration, session.packageCount, session.students, 'Certified Coaches'].map((item, i) => (
-                        <li key={i} className="flex items-center gap-2.5 text-xs font-bold text-espresso/85">
-                          <div className="w-1.5 h-1.5 rounded-full bg-espresso/40 shrink-0" />
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* Enroll Button — 3D Minimal style */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSelectPackage(session.id);
-                    }}
-                    style={{
-                      '--btn-bg': theme.btnBg,
-                      '--btn-shadow': theme.btnShadow,
-                      '--btn-text': theme.btnTextColor
-                    } as React.CSSProperties}
-                    className="btn-3d relative z-10 flex items-center justify-between w-full px-6 py-3.5 rounded-xl font-black uppercase tracking-[0.16em] text-[10px] group/btn cursor-pointer"
-                  >
-                    <span>ENROLL NOW</span>
-                    <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all shadow-sm ${theme.btnIconClass}`}>
-                      <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-0.5 transition-transform" />
-                    </div>
-                  </button>
+            return (
+              <>
+                {/* Mobile scroll indicator */}
+                <div className="flex md:hidden items-center justify-between text-[11px] font-bold text-slate-500 mb-3 px-1">
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-[#D62828] animate-pulse" />
+                    Swipe horizontally to view packages &rarr;
+                  </span>
+                  <span className="text-[10px] uppercase tracking-wider font-black text-slate-400">
+                    {filteredSessions.length} {filteredSessions.length === 1 ? 'package' : 'packages'}
+                  </span>
                 </div>
-              );
-            })}
-          </div>
 
-          {filteredSessions.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-slate-600 text-sm font-medium">No coaching packages found matching "{searchQuery}".</p>
-              <button
-                onClick={() => { setSearchQuery(''); setActiveCategory('all'); }}
-                className="mt-3 text-xs text-[#D62828] font-bold underline"
-              >
-                Reset Search Filters
-              </button>
-            </div>
-          )}
+                <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-8 overflow-x-auto md:overflow-visible pb-6 md:pb-0 pt-2 -mx-4 px-4 md:mx-0 md:px-0 no-scrollbar snap-x snap-mandatory">
+                  {filteredSessions.map((session) => {
+                    const isSelected = selectedSessionId === session.id;
+                    const theme = getTheme(session.id, session.category);
+
+                    return (
+                      <div
+                        key={session.id}
+                        onClick={() => handleSelectPackage(session.id)}
+                        className={`group text-left p-6 rounded-[1.8rem] border transition-all duration-500 relative flex flex-col justify-between cursor-pointer overflow-hidden hover:shadow-2xl hover:border-espresso/30 hover:-translate-y-1.5 w-[84vw] max-w-[320px] md:w-auto md:max-w-none shrink-0 md:shrink snap-center md:snap-align-none ${theme.bgClass} ${
+                          isSelected ? 'ring-4 ring-[#D62828]/30 scale-[1.02] shadow-xl' : 'shadow-lg'
+                        }`}
+                      >
+                        {/* Background Image Overlay */}
+                        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+                          <img
+                            src={theme.bgImage}
+                            alt=""
+                            aria-hidden="true"
+                            className="w-full h-full object-cover opacity-65 group-hover:opacity-85 scale-105 group-hover:scale-110 transition-all duration-700 filter brightness-105 contrast-110"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-white/95 via-white/55 to-white/10" />
+                        </div>
+
+                        {session.popular && (
+                          <div className="absolute -top-3 right-4 bg-[#D62828] text-white text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-md z-20">
+                            BEST VALUE
+                          </div>
+                        )}
+
+                        <div className="relative z-10">
+                          {/* Top Row: Badges */}
+                          <div className="flex flex-wrap items-center gap-1.5 mb-3">
+                            <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-espresso text-white shrink-0">
+                              PKG
+                            </span>
+                            <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md shrink-0 ${theme.badgeClass}`}>
+                              {session.category}
+                            </span>
+                          </div>
+
+                          {/* Price */}
+                          <div className="mb-1 flex items-baseline gap-2">
+                            <span className="text-3xl sm:text-4xl font-condensed font-black tracking-tighter text-espresso">
+                              ${session.price}
+                            </span>
+                            <span className="text-[9px] font-black uppercase tracking-widest text-espresso/60">
+                              / {session.priceNote || 'package'}
+                            </span>
+                          </div>
+
+                          {/* Course Title */}
+                          <h3 className="font-condensed font-black text-xl uppercase tracking-tight text-espresso mb-1 leading-tight group-hover:text-[#D62828] transition-colors">
+                            {session.name}
+                          </h3>
+                          <div className="text-[10px] font-black uppercase tracking-wider text-espresso/60 mb-3">
+                            {session.ageGroup?.toLowerCase().includes('all') ? 'All Age Groups' : (session.ageGroup?.toLowerCase().startsWith('age') ? session.ageGroup : `Ages ${session.ageGroup || '5 - 18'}`)}
+                          </div>
+
+                          {/* Feature List */}
+                          <ul className="space-y-2 mb-4">
+                            {[session.sessionDuration, session.packageCount, session.students, 'Certified Coaches'].map((item, i) => (
+                              <li key={i} className="flex items-center gap-2.5 text-xs font-bold text-espresso/85">
+                                <div className="w-1.5 h-1.5 rounded-full bg-espresso/40 shrink-0" />
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        {/* Enroll Button — 3D Minimal style */}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSelectPackage(session.id);
+                          }}
+                          style={{
+                            '--btn-bg': theme.btnBg,
+                            '--btn-shadow': theme.btnShadow,
+                            '--btn-text': theme.btnTextColor
+                          } as React.CSSProperties}
+                          className="btn-3d relative z-10 flex items-center justify-between w-full px-6 py-3.5 rounded-xl font-black uppercase tracking-[0.16em] text-[10px] group/btn cursor-pointer"
+                        >
+                          <span>ENROLL NOW</span>
+                          <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all shadow-sm ${theme.btnIconClass}`}>
+                            <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-0.5 transition-transform" />
+                          </div>
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Footnote for Semi-Private Coaching */}
+                {(activeCategory === 'semi-private' || activeCategory === 'all') && (
+                  <div className="text-center mt-8 pt-4 border-t border-slate-100">
+                    <p className="text-xs font-bold text-slate-500 italic">
+                      * Semi-private coaching: 4 sessions of 1-hour focused training for groups of 2, 4, or 6 students (All Age Groups).
+                    </p>
+                  </div>
+                )}
+
+                {filteredSessions.length === 0 && (
+                  <div className="text-center py-12">
+                    <p className="text-slate-600 text-sm font-medium">No coaching packages found matching "{searchQuery}".</p>
+                    <button
+                      onClick={() => { setSearchQuery(''); setActiveCategory('all'); }}
+                      className="mt-3 text-xs text-[#D62828] font-bold underline cursor-pointer"
+                    >
+                      Reset Search Filters
+                    </button>
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </div>
 
       </div>
@@ -1252,7 +1391,12 @@ export default function Register() {
                     <div className="bg-amber-50 border border-amber-200 text-amber-900 px-4 py-3 rounded-xl text-xs mb-6 flex items-start gap-2.5">
                       <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                       <div>
-                        <strong>Non-Refundable Policy:</strong> Program fee of <strong>${selectedSession.price}</strong> is final and non-refundable upon submission.
+                        <p className="mb-1.5">
+                          <strong>Non-Refundable Policy:</strong> Program fee of <strong>${selectedSession.price}</strong> is final and non-refundable upon submission.
+                        </p>
+                        <p className="text-xs sm:text-sm text-red-600 font-extrabold leading-snug">
+                          Full payment is required prior to the commencement of the session. The session will only be confirmed and initiated once the payment has been received in full.
+                        </p>
                       </div>
                     </div>
 
@@ -1522,7 +1666,6 @@ export default function Register() {
                             className="w-full bg-[#F8FAFC] border border-slate-200 focus:border-[#D62828] focus:bg-white rounded-xl px-4 py-2.5 text-xs text-slate-900 font-medium outline-none transition-all cursor-pointer font-bold"
                           >
                             <option value="Fremont (Kerala House)">Fremont (Kerala House)</option>
-                            <option value="Manteca (Courtside Sports)">Manteca (Courtside Sports)</option>
                             <option value="Mountain House (Hansen Elementary)">Mountain House (Hansen Elementary)</option>
                             <option value="San Jose">San Jose</option>
                           </select>
@@ -1655,6 +1798,9 @@ export default function Register() {
                               <p className="font-bold text-slate-900 text-xs">7. Strict Non-Refundable Enrollment Policy</p>
                               <p>
                                 All registration fees (${totalRegistrationFee}.00) are 100% non-refundable once registered. Court bookings, insurance, and coach allocations are finalized immediately upon registration submission.
+                              </p>
+                              <p className="text-xs sm:text-sm text-red-600 font-extrabold leading-snug">
+                                Full payment is required prior to the commencement of the session. The session will only be confirmed and initiated once the payment has been received in full.
                               </p>
                             </div>
 

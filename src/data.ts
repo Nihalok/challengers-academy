@@ -48,9 +48,39 @@ export const PROGRAMS: Program[] = [
     description: 'High-repetition outdoor group training building agility, ball control, and match readiness.',
     longDescription: 'High-repetition group training sessions in an open park atmosphere building stamina, passing control, and team communication with up to 12 students.',
     image: ASSETS.HERO.ACTION_CARD_3,
-    ageRange: '5 - 18',
-    ageGroups: ['5-10', '11-14', '15-18'],
+    ageRange: 'All Age Groups',
+    ageGroups: ['All Age Groups'],
     features: ['4 x 2-Hour Sessions ($150)', 'Outdoor Park Court', '12 Members Max', 'High Rep Drills']
+  },
+  {
+    id: 'semi-private-2',
+    title: 'Semi-Private Coaching (2 Players)',
+    description: 'Intense 1-hour skill sessions for 2 players only with Head Coach Wilson Mathew.',
+    longDescription: 'Semi-private coaching focused exclusively on 2 athletes. 4 focused 1-hour sessions with fast-paced high-repetition drill architecture engineered for accelerated technical growth.',
+    image: ASSETS.HERO.ACTION_CARD_2,
+    ageRange: 'All Age Groups',
+    ageGroups: ['All Age Groups'],
+    features: ['4 Sessions ($320)', '2 Players Only', '1-Hour Session', 'Intensive Personal Reps']
+  },
+  {
+    id: 'semi-private-4',
+    title: 'Semi-Private Coaching (4 Players)',
+    description: 'Focused small-group coaching for 4 players building team chemistry and skill execution.',
+    longDescription: 'High-rep small group session tailored for 4 players. 4 focused 1-hour sessions covering positional coordination, serve-receive rotations, and tactical gameplay.',
+    image: ASSETS.HERO.ACTION_CARD_2,
+    ageRange: 'All Age Groups',
+    ageGroups: ['All Age Groups'],
+    features: ['4 Sessions ($280)', '4 Players Only', '1-Hour Session', 'Rotational Tactics']
+  },
+  {
+    id: 'semi-private-6',
+    title: 'Semi-Private Coaching (6 Players)',
+    description: 'Dynamic 1-hour small squad coaching for 6 players emphasizing rotational skills.',
+    longDescription: 'Comprehensive 1-hour small squad training for 6 players across 4 sessions. Focuses on full court execution, setter-hitter connections, and defensive transition.',
+    image: ASSETS.HERO.ACTION_CARD_2,
+    ageRange: 'All Age Groups',
+    ageGroups: ['All Age Groups'],
+    features: ['4 Sessions ($300)', '6 Players Only', '1-Hour Session', 'Match System Drills']
   },
   {
     id: 'open-park-travel',
@@ -58,8 +88,8 @@ export const PROGRAMS: Program[] = [
     description: 'Personalized 1-on-1 coaching with coach travel to your local designated park court.',
     longDescription: 'Personalized 1-on-1 private coaching with the convenience of coach travel to a designated park court near you. Customized drill progression for individual growth.',
     image: ASSETS.EXPERTISE.ELITE,
-    ageRange: '5 - 18',
-    ageGroups: ['5-10', '11-14', '15-18'],
+    ageRange: 'All Age Groups',
+    ageGroups: ['All Age Groups'],
     features: ['4 Private Sessions ($320)', '1-on-1 Dedicated Coach', 'Coach Travels Near You', 'Custom Mechanics']
   },
   {
@@ -68,9 +98,39 @@ export const PROGRAMS: Program[] = [
     description: 'Dedicated 1-on-1 private coaching tailored entirely to your personal mechanics with extended travel.',
     longDescription: 'Dedicated 1-on-1 private coaching sessions with coach traveling to your preferred location, focusing intensively on player mechanics, hitting power, and match readiness.',
     image: ASSETS.EXPERTISE.TACTICAL,
+    ageRange: 'All Age Groups',
+    ageGroups: ['All Age Groups'],
+    features: ['4 x 1-Hour Sessions ($360)', '1-on-1 Dedicated Coach', 'Extended Travel Service', 'Rapid Progression']
+  },
+  {
+    id: 'summer-camp-7day',
+    title: '7-Day Intensive Summer Clinic',
+    description: 'Immersive 7-day volleyball clinic covering fundamental skill acceleration and game play.',
+    longDescription: 'Immersive 7-day volleyball clinic covering position specialization, competitive matches, and video breakdown for youth and junior players.',
+    image: ASSETS.HERO.ACTION_CARD_1,
     ageRange: '5 - 18',
     ageGroups: ['5-10', '11-14', '15-18'],
-    features: ['4 x 1-Hour Sessions ($360)', '1-on-1 Dedicated Coach', 'Extended Travel Service', 'Rapid Progression']
+    features: ['7 Days Intensive ($350)', '4 Hours Daily', 'Youth & Junior', 'Competitive Scrimmages']
+  },
+  {
+    id: 'summer-camp-10day',
+    title: '10-Day Elite Summer Intensive',
+    description: 'Position-specific mastery, advanced rotational systems, and agility conditioning.',
+    longDescription: '10 days of elite volleyball training designed for maximum growth. Comprehensive position specialization, tactical systems, and conditioning.',
+    image: ASSETS.HERO.ACTION_CARD_2,
+    ageRange: '5 - 18',
+    ageGroups: ['5-10', '11-14', '15-18'],
+    features: ['10 Days Bootcamp ($500)', '4 Hours Daily', 'Rotational Tactics', 'Match Systems']
+  },
+  {
+    id: 'summer-camp-15day',
+    title: '15-Day Masterclass Camp',
+    description: 'Full biomechanical breakdown, video analysis, college recruitment guidance, and high-speed match play.',
+    longDescription: 'Full 15-day masterclass camp with complete biomechanical review, film breakdown, collegiate prep guidance, and daily competitive tournaments.',
+    image: ASSETS.EXPERTISE.ELITE,
+    ageRange: '5 - 18',
+    ageGroups: ['5-10', '11-14', '15-18'],
+    features: ['15 Days Masterclass ($750)', '4 Hours Daily', 'Video & Mechanics', 'Tournament Showcase']
   }
 ];
 
@@ -135,16 +195,6 @@ export const LOCATIONS: Location[] = [
     description: 'Kerala House facility in Fremont. Sunday evening sessions covering fundamentals and advanced volleyball training.'
   },
   {
-    id: 'manteca',
-    name: 'Courtside Sports - Manteca',
-    address: '450 Commerce CT',
-    city: 'Manteca',
-    zip: '95336',
-    coords: { lat: 37.7972, lng: -121.2161 },
-    schedule: 'Fridays | 5:00 pm - 7:00 pm',
-    description: 'Courtside Sports facility in Manteca. Friday evening sessions - high quality courts for team drills, skills development, and game play.'
-  },
-  {
     id: 'san-jose',
     name: 'San Jose',
     address: 'Coming Soon',
@@ -159,7 +209,7 @@ export const LOCATIONS: Location[] = [
 export const STATS: Stat[] = [
   { label: 'Years Coaching', value: 35, suffix: '+' },
   { label: 'Athletes Trained', value: 5000, suffix: '+' },
-  { label: 'Program Locations', value: 4 },
+  { label: 'Program Locations', value: 3 },
   { label: 'Success Rate', value: 98, suffix: '%' }
 ];
 

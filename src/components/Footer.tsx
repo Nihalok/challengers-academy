@@ -94,13 +94,6 @@ From first-time players to competitive athletes, we help young Volleyball player
                 <p className="text-white/50 mt-0.5">Sundays · 6:30 pm – 8:30 pm</p>
               </div>
 
-              {/* Manteca */}
-              <div>
-                <p className="text-white font-bold text-[11px] uppercase tracking-wider">Courtside Sports · Manteca</p>
-                <p className="text-white/60 text-[10px]">450 Commerce CT, Manteca CA 95336</p>
-                <p className="text-white/50 mt-0.5">Fridays · 5:00 pm – 6:30 pm</p>
-              </div>
-
               {/* San Jose */}
               <div>
                 <p className="text-white font-bold text-[11px] uppercase tracking-wider">San Jose</p>

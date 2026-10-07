@@ -29,11 +29,17 @@ export default function Programs() {
   }, []);
 
   const ORDERED_PROGRAM_IDS = [
+    'tryout-session',
     'gym-training-1hr',
     'gym-training-4',
     'gym-training-12',
-    'tryout-session',
     'open-park-group',
+    'semi-private-2',
+    'semi-private-4',
+    'semi-private-6',
+    'summer-camp-7day',
+    'summer-camp-10day',
+    'summer-camp-15day',
     'open-park-travel',
     'open-park-private'
   ];
@@ -48,6 +54,24 @@ export default function Programs() {
   });
 
   const REGULAR_PACKAGES = [
+    {
+      id: 'tryout-session',
+      title: 'Tryout Session',
+      fee: '$30',
+      sessions: '1 Court Evaluation',
+      duration: '2 Hours Duration',
+      students: 'Individual / Group',
+      popular: false,
+      tag: 'EVALUATION',
+      bgImage: '/vb_tryout.jpg',
+      badgeStyle: 'bg-[#F3722C] text-white font-black',
+      btnBg: '#F3722C',
+      btnShadow: '#A84308',
+      btnTextColor: '#FFFFFF',
+      btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#F3722C]',
+      ageRange: '5 - 18',
+      ageGroups: ['5-10', '11-14', '15-18']
+    },
     {
       id: 'gym-training-1hr',
       title: 'Gym Training Package',
@@ -103,30 +127,12 @@ export default function Programs() {
       ageGroups: ['5-10', '11-14', '15-18']
     },
     {
-      id: 'tryout-session',
-      title: 'Tryout Session',
-      fee: '$30',
-      sessions: '1 Court Evaluation',
-      duration: '2 Hours Duration',
-      students: 'Individual / Group',
-      popular: false,
-      tag: 'EVALUATION',
-      bgImage: '/vb_tryout.jpg',
-      badgeStyle: 'bg-[#F3722C] text-white font-black',
-      btnBg: '#F3722C',
-      btnShadow: '#A84308',
-      btnTextColor: '#FFFFFF',
-      btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#F3722C]',
-      ageRange: '5 - 18',
-      ageGroups: ['5-10', '11-14', '15-18']
-    },
-    {
       id: 'open-park-group',
       title: 'Open Park – Group Training',
       fee: '$150',
       sessions: '4 Outdoor Sessions',
-      duration: '1 Hours per Session',
-      students: 'Group Training',
+      duration: '2 Hours per Session',
+      students: '12+ Students',
       popular: false,
       tag: 'OUTDOOR PARK',
       bgImage: '/vb_park.jpg',
@@ -135,44 +141,62 @@ export default function Programs() {
       btnShadow: '#14532D',
       btnTextColor: '#FFFFFF',
       btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#15803D]',
-      ageRange: '5 - 18',
-      ageGroups: ['5-10', '11-14', '15-18']
+      ageRange: 'All Age Groups',
+      ageGroups: ['All Age Groups']
     },
     {
-      id: 'open-park-travel',
-      title: 'Private Coaching – Open Park (Short Distance)',
+      id: 'semi-private-2',
+      title: 'Semi-Private Coaching (2 Players)',
       fee: '$320',
-      sessions: '4 Private Sessions',
-      duration: '1 Hour per Session',
-      students: '1 Student ',
+      sessions: '4 Sessions',
+      duration: '1 Hour',
+      students: '2 Students',
       popular: false,
-      tag: 'PRIVATE SHORT',
+      tag: 'SEMI-PRIVATE',
       bgImage: '/vb_private.jpg',
-      badgeStyle: 'bg-[#F9BC00] text-espresso font-black',
-      btnBg: '#F9BC00',
-      btnShadow: '#B88500',
-      btnTextColor: '#1B1B1D',
-      btnIconClass: 'bg-espresso/15 text-espresso group-hover/btn:bg-espresso group-hover/btn:text-white',
-      ageRange: '5 - 18',
-      ageGroups: ['5-10', '11-14', '15-18']
+      badgeStyle: 'bg-purple-700 text-white font-black',
+      btnBg: '#7E22CE',
+      btnShadow: '#581C87',
+      btnTextColor: '#FFFFFF',
+      btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-purple-800',
+      ageRange: 'All Age Groups',
+      ageGroups: ['All Age Groups']
     },
     {
-      id: 'open-park-private',
-      title: 'Private Coaching – Open Park (Long Distance)',
-      fee: '$360',
-      sessions: '4 Private Sessions',
-      duration: '1 Hour per Session',
-      students: '1 Student',
+      id: 'semi-private-4',
+      title: 'Semi-Private Coaching (4 Players)',
+      fee: '$280',
+      sessions: '4 Sessions',
+      duration: '1 Hour',
+      students: '4 Students',
       popular: false,
-      tag: 'PRIVATE LONG',
+      tag: 'SEMI-PRIVATE',
       bgImage: '/vb_private.jpg',
-      badgeStyle: 'bg-[#F9BC00] text-espresso font-black',
-      btnBg: '#F9BC00',
-      btnShadow: '#B88500',
-      btnTextColor: '#1B1B1D',
-      btnIconClass: 'bg-espresso/15 text-espresso group-hover/btn:bg-espresso group-hover/btn:text-white',
-      ageRange: '5 - 18',
-      ageGroups: ['5-10', '11-14', '15-18']
+      badgeStyle: 'bg-indigo-600 text-white font-black',
+      btnBg: '#4F46E5',
+      btnShadow: '#3730A3',
+      btnTextColor: '#FFFFFF',
+      btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-indigo-700',
+      ageRange: 'All Age Groups',
+      ageGroups: ['All Age Groups']
+    },
+    {
+      id: 'semi-private-6',
+      title: 'Semi-Private Coaching (6 Players)',
+      fee: '$300',
+      sessions: '4 Sessions',
+      duration: '1 Hour',
+      students: '6 Students',
+      popular: false,
+      tag: 'SEMI-PRIVATE',
+      bgImage: '/vb_private.jpg',
+      badgeStyle: 'bg-blue-600 text-white font-black',
+      btnBg: '#2563EB',
+      btnShadow: '#1D4ED8',
+      btnTextColor: '#FFFFFF',
+      btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-blue-700',
+      ageRange: 'All Age Groups',
+      ageGroups: ['All Age Groups']
     },
     {
       id: 'summer-camp-7day',
@@ -227,6 +251,42 @@ export default function Programs() {
       btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#0284C7]',
       ageRange: '5 - 18',
       ageGroups: ['5-10', '11-14', '15-18']
+    },
+    {
+      id: 'open-park-travel',
+      title: 'Private Coaching – Open Park (Short Distance)',
+      fee: '$320',
+      sessions: '4 Private Sessions',
+      duration: '1 Hour per Session',
+      students: '1 Student',
+      popular: false,
+      tag: 'PRIVATE SHORT',
+      bgImage: '/vb_private.jpg',
+      badgeStyle: 'bg-[#F9BC00] text-espresso font-black',
+      btnBg: '#F9BC00',
+      btnShadow: '#B88500',
+      btnTextColor: '#1B1B1D',
+      btnIconClass: 'bg-espresso/15 text-espresso group-hover/btn:bg-espresso group-hover/btn:text-white',
+      ageRange: 'All Age Groups',
+      ageGroups: ['All Age Groups']
+    },
+    {
+      id: 'open-park-private',
+      title: 'Private Coaching – Open Park (Long Distance)',
+      fee: '$360',
+      sessions: '4 Private Sessions',
+      duration: '1 Hour per Session',
+      students: '1 Student',
+      popular: false,
+      tag: 'PRIVATE LONG',
+      bgImage: '/vb_private.jpg',
+      badgeStyle: 'bg-[#F9BC00] text-espresso font-black',
+      btnBg: '#F9BC00',
+      btnShadow: '#B88500',
+      btnTextColor: '#1B1B1D',
+      btnIconClass: 'bg-espresso/15 text-espresso group-hover/btn:bg-espresso group-hover/btn:text-white',
+      ageRange: 'All Age Groups',
+      ageGroups: ['All Age Groups']
     }
   ];
 
@@ -340,9 +400,9 @@ export default function Programs() {
                       src={pkg.bgImage} 
                       alt=""
                       aria-hidden="true"
-                      className="w-full h-full object-cover opacity-40 sm:opacity-45 group-hover:opacity-65 scale-105 group-hover:scale-110 transition-all duration-700 filter brightness-105 contrast-105"
+                      className="w-full h-full object-cover opacity-65 group-hover:opacity-85 scale-105 group-hover:scale-110 transition-all duration-700 filter brightness-105 contrast-110"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-white via-white/85 to-white/30" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-white/95 via-white/55 to-white/10" />
                   </div>
 
                   {/* Content Layer */}
@@ -350,7 +410,7 @@ export default function Programs() {
                     <div className="flex flex-wrap items-center justify-between gap-1.5 mb-3 min-h-[28px]">
                       <div className="flex flex-wrap items-center gap-1.5">
                         <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-espresso text-white shrink-0">
-                          PKG 0{idx + 1}
+                          PKG {String(idx + 1).padStart(2, '0')}
                         </span>
                         <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider shrink-0 ${pkg.badgeStyle}`}>
                           {pkg.tag}
@@ -367,7 +427,7 @@ export default function Programs() {
                       {pkg.title}
                     </h3>
                     <div className="text-[10px] font-black uppercase tracking-wider text-espresso/60 mb-3">
-                      Ages {pkg.ageRange}
+                      {pkg.ageRange.toLowerCase().includes('all') ? 'All Age Groups' : `Ages ${pkg.ageRange}`}
                     </div>
                     
                     <div className="mb-4 flex items-baseline gap-2">

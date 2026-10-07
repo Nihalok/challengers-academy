@@ -112,7 +112,7 @@ export default function Navigation() {
               >
                 {Array.from({ length: 4 }).map((_, i) => (
                   <span key={i} className="text-white/50 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mr-8">
-                    • WEEKEND BATCHES AVAILABLE &nbsp;• FREMONT &nbsp;• MANTECA &nbsp;• MOUNTAIN HOUSE &nbsp;• SAN JOSE &nbsp;
+                    • WEEKEND BATCHES AVAILABLE &nbsp;• FREMONT &nbsp;• MOUNTAIN HOUSE &nbsp;• SAN JOSE &nbsp;
                   </span>
                 ))}
               </motion.div>

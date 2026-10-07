@@ -438,8 +438,8 @@ export const DEFAULT_PROGRAMS = [
     description: 'Dedicated 1-on-1 private coaching tailored entirely to your personal mechanics.',
     longDescription: '4 private coaching sessions (1 hour each) in open park courts. 100% focused one-on-one attention with personalized drills to eliminate technical weaknesses.',
     image: 'https://images.unsplash.com/photo-1547347298-4074fc3086f0?q=80&w=1200&auto=format&fit=crop',
-    ageRange: '5 - 18',
-    ageGroups: ['5-10', '11-14', '15-18'],
+    ageRange: 'All Age Groups',
+    ageGroups: ['All Age Groups'],
     features: ['4 x 1-Hour Sessions', '100% 1-on-1 Focus', 'Custom Mechanics', 'Flexible Booking'],
     price: 360,
     schedule: 'Flexible Schedule (1 Hour / Session)',
@@ -457,8 +457,8 @@ export const DEFAULT_PROGRAMS = [
     description: 'Personalized 1-on-1 coaching with coach travel to your local designated park court.',
     longDescription: '4 private sessions (1 hour each) with coach short-distance travel to your local park. Convenient, focused, and tailored to the athlete.',
     image: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1200&auto=format&fit=crop',
-    ageRange: '5 - 18',
-    ageGroups: ['5-10', '11-14', '15-18'],
+    ageRange: 'All Age Groups',
+    ageGroups: ['All Age Groups'],
     features: ['4 x 1-Hour Sessions', 'Coach Travels to You', 'Personalized Drills', 'Flexible Times'],
     price: 320,
     schedule: 'Flexible Schedule (1 Hour / Session)',
@@ -476,8 +476,8 @@ export const DEFAULT_PROGRAMS = [
     description: 'High-repetition outdoor group training building agility, ball control, and defense.',
     longDescription: '4 outdoor group training sessions (2 hours each). Great high-energy atmosphere focusing on agility, passing, court defense, and stamina ($150 per student).',
     image: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?q=80&w=1200&auto=format&fit=crop',
-    ageRange: '5 - 18',
-    ageGroups: ['5-10', '11-14', '15-18'],
+    ageRange: 'All Age Groups',
+    ageGroups: ['All Age Groups'],
     features: ['4 x 2-Hour Sessions', '$150 Per Student', 'High Repetition Drills', 'Outdoor Park Court'],
     price: 150,
     schedule: 'Weekly Batches (2 Hours / Session)',
@@ -487,6 +487,63 @@ export const DEFAULT_PROGRAMS = [
     coach: 'Academy Coaching Staff',
     isActive: true,
     order: 5
+  },
+  {
+    id: 'semi-private-2',
+    title: 'Semi-Private Coaching (2 Players)',
+    phase: 'SEMI-PRIVATE',
+    description: 'Intense 1-hour skill sessions for 2 players only with Head Coach Wilson Mathew.',
+    longDescription: 'Semi-private coaching focused exclusively on 2 athletes. 4 focused 1-hour sessions with fast-paced high-repetition drill architecture engineered for accelerated technical growth ($320).',
+    image: 'https://images.unsplash.com/photo-1547347298-4074fc3086f0?q=80&w=1200&auto=format&fit=crop',
+    ageRange: 'All Age Groups',
+    ageGroups: ['All Age Groups'],
+    features: ['4 Sessions ($320)', '2 Players Only', '1-Hour Session', 'Intensive Personal Reps'],
+    price: 320,
+    schedule: 'Weekly Batches (1 Hour / Session)',
+    location: 'Fremont Arena / Regional Facility',
+    capacity: 10,
+    filled: 4,
+    coach: 'Wilson Mathew',
+    isActive: true,
+    order: 6
+  },
+  {
+    id: 'semi-private-4',
+    title: 'Semi-Private Coaching (4 Players)',
+    phase: 'SEMI-PRIVATE',
+    description: 'Focused small-group coaching for 4 players building team chemistry and skill execution.',
+    longDescription: 'High-rep small group session tailored for 4 players. 4 focused 1-hour sessions covering positional coordination, serve-receive rotations, and tactical gameplay ($280).',
+    image: 'https://images.unsplash.com/photo-1547347298-4074fc3086f0?q=80&w=1200&auto=format&fit=crop',
+    ageRange: 'All Age Groups',
+    ageGroups: ['All Age Groups'],
+    features: ['4 Sessions ($280)', '4 Players Only', '1-Hour Session', 'Rotational Tactics'],
+    price: 280,
+    schedule: 'Weekly Batches (1 Hour / Session)',
+    location: 'Fremont Arena / Regional Facility',
+    capacity: 12,
+    filled: 6,
+    coach: 'Wilson Mathew & Senior Staff',
+    isActive: true,
+    order: 7
+  },
+  {
+    id: 'semi-private-6',
+    title: 'Semi-Private Coaching (6 Players)',
+    phase: 'SEMI-PRIVATE',
+    description: 'Dynamic 1-hour small squad coaching for 6 players emphasizing rotational skills.',
+    longDescription: 'Comprehensive 1-hour small squad training for 6 players across 4 sessions. Focuses on full court execution, setter-hitter connections, and defensive transition ($300).',
+    image: 'https://images.unsplash.com/photo-1547347298-4074fc3086f0?q=80&w=1200&auto=format&fit=crop',
+    ageRange: 'All Age Groups',
+    ageGroups: ['All Age Groups'],
+    features: ['4 Sessions ($300)', '6 Players Only', '1-Hour Session', 'Match System Drills'],
+    price: 300,
+    schedule: 'Weekly Batches (1 Hour / Session)',
+    location: 'Fremont Arena / Regional Facility',
+    capacity: 18,
+    filled: 8,
+    coach: 'Wilson Mathew & Staff',
+    isActive: true,
+    order: 8
   },
   {
     id: 'tryout-session',
@@ -505,7 +562,7 @@ export const DEFAULT_PROGRAMS = [
     filled: 12,
     coach: 'Wilson Mathew',
     isActive: true,
-    order: 7
+    order: 9
   }
 ];
 
@@ -1018,7 +1075,7 @@ export const SESSIONS_CATALOG: Record<string, SessionCatalogItem> = {
     id: 'open-park-private',
     name: 'Open Park (Private Coaching - 1-on-1)',
     category: 'Private Coaching',
-    ageGroup: 'Ages 5 - 18',
+    ageGroup: 'All Age Groups',
     skillLevel: 'Personalized Progression',
     location: 'Long Distance',
     locationAddress: 'Coach travels to your preferred location',
@@ -1035,7 +1092,7 @@ export const SESSIONS_CATALOG: Record<string, SessionCatalogItem> = {
     id: 'open-park-travel',
     name: 'Open Park (Short Distance Travel)',
     category: 'Private Coaching',
-    ageGroup: 'Ages 5 - 18',
+    ageGroup: 'All Age Groups',
     skillLevel: 'Personalized',
     location: 'Nearby Park Facility of Choice',
     locationAddress: 'Local Bay Area Park',
@@ -1149,6 +1206,108 @@ export const SESSIONS_CATALOG: Record<string, SessionCatalogItem> = {
     filled: 42,
     coach: 'Wilson Mathew & Senior Staff',
     description: 'Immersive 7-day volleyball boot camp covering position specialization, competitive matches, and video breakdown.'
+  },
+  'semi-private-2': {
+    id: 'semi-private-2',
+    name: 'Semi-Private Coaching (2 Students)',
+    category: 'Semi-Private Coaching',
+    ageGroup: 'All Age Groups',
+    skillLevel: 'Focused Small Group',
+    location: 'Fremont Arena / Regional Facility',
+    locationAddress: 'Bay Area Facility',
+    schedule: 'Flexible Small Group Slots',
+    dates: 'Book on Demand (4 Sessions)',
+    time: '1 Hour per Session (2 Students)',
+    price: 320,
+    capacity: 10,
+    filled: 4,
+    coach: 'Head Coach Wilson Mathew',
+    description: 'Focused small group training for 2 students. 4 focused 1-hour sessions ($320 package).'
+  },
+  'semi-private-4': {
+    id: 'semi-private-4',
+    name: 'Semi-Private Coaching (4 Students)',
+    category: 'Semi-Private Coaching',
+    ageGroup: 'All Age Groups',
+    skillLevel: 'Focused Small Group',
+    location: 'Fremont Arena / Regional Facility',
+    locationAddress: 'Bay Area Facility',
+    schedule: 'Flexible Small Group Slots',
+    dates: 'Book on Demand (4 Sessions)',
+    time: '1 Hour per Session (4 Students)',
+    price: 280,
+    capacity: 12,
+    filled: 6,
+    coach: 'Head Coach Wilson Mathew',
+    description: 'Focused training for 4 students. 4 focused 1-hour sessions ($280 package).'
+  },
+  'semi-private-6': {
+    id: 'semi-private-6',
+    name: 'Semi-Private Coaching (6 Students)',
+    category: 'Semi-Private Coaching',
+    ageGroup: 'All Age Groups',
+    skillLevel: 'Focused Small Group',
+    location: 'Fremont Arena / Regional Facility',
+    locationAddress: 'Bay Area Facility',
+    schedule: 'Flexible Small Group Slots',
+    dates: 'Book on Demand (4 Sessions)',
+    time: '1 Hour per Session (6 Students)',
+    price: 300,
+    capacity: 18,
+    filled: 10,
+    coach: 'Head Coach Wilson Mathew',
+    description: 'Focused training for 6 students. 4 focused 1-hour sessions ($300 package).'
+  },
+  'summer-camp-7day': {
+    id: 'summer-camp-7day',
+    name: 'Summer Camp (7 Days)',
+    category: 'Summer Camp',
+    ageGroup: 'Ages 5 - 18',
+    skillLevel: 'Technique Refinement',
+    location: 'Fremont Arena / Regional Facility',
+    locationAddress: 'Bay Area Training Facility',
+    schedule: 'Mon - Fri (9:00 AM - 1:00 PM)',
+    dates: 'June & July 2026',
+    time: '9:00 AM - 1:00 PM',
+    price: 350,
+    capacity: 25,
+    filled: 14,
+    coach: 'Wilson Mathew & Coaching Staff',
+    description: '7-day clinic focused on rapid skill acceleration, positional mastery, and match play.'
+  },
+  'summer-camp-10day': {
+    id: 'summer-camp-10day',
+    name: 'Summer Camp (10 Days)',
+    category: 'Summer Camp',
+    ageGroup: 'Ages 5 - 18',
+    skillLevel: 'Game Strategy & Tactics',
+    location: 'Fremont Arena / Regional Facility',
+    locationAddress: 'Bay Area Training Facility',
+    schedule: 'Mon - Fri (9:00 AM - 1:00 PM)',
+    dates: 'June & July 2026',
+    time: '9:00 AM - 1:00 PM',
+    price: 500,
+    capacity: 25,
+    filled: 18,
+    coach: 'Wilson Mathew & Senior Staff',
+    description: '10-day elite intensive covering position-specific mastery, rotational systems, and agility.'
+  },
+  'summer-camp-15day': {
+    id: 'summer-camp-15day',
+    name: 'Summer Camp (15 Days)',
+    category: 'Summer Camp',
+    ageGroup: 'Ages 5 - 18',
+    skillLevel: 'Competitive Club & High School Prep',
+    location: 'Fremont Arena / Regional Facility',
+    locationAddress: 'Bay Area Training Facility',
+    schedule: 'Mon - Fri (9:00 AM - 1:00 PM)',
+    dates: 'June & July 2026',
+    time: '9:00 AM - 1:00 PM',
+    price: 750,
+    capacity: 25,
+    filled: 19,
+    coach: 'Wilson Mathew & Master Staff',
+    description: '15-day masterclass camp with full biomechanical review and high-speed match play.'
   }
 };
 
@@ -4615,7 +4774,21 @@ Challengers Volleyball Academy
       }
     }
 
-    const allRegistrations = Array.from(regMap.values());
+    // Deduplicate registrations: if two records share the same genuine stripePaymentIntentId or transactionId, merge them into 1 canonical record
+    const deduplicatedRegMap = new Map<string, any>();
+    for (const r of regMap.values()) {
+      const pi = String(r.stripePaymentIntentId || r.transactionId || '').trim();
+      const isRealPi = pi && (pi.startsWith('pi_') || pi.startsWith('ch_') || pi.startsWith('cs_'));
+      const key = isRealPi ? `stripe_${pi.toLowerCase()}` : (r.registrationId || String(r._id));
+      
+      const existing = deduplicatedRegMap.get(key);
+      if (!existing) {
+        deduplicatedRegMap.set(key, r);
+      } else {
+        deduplicatedRegMap.set(key, { ...existing, ...r });
+      }
+    }
+    const allRegistrations = Array.from(deduplicatedRegMap.values());
     const allLeads = Array.from(leadMap.values());
 
     // Map email jobs by registrationId to compute email delivery status for each registration
@@ -4705,21 +4878,48 @@ Challengers Volleyball Academy
       total: emailJobs.length
     };
 
-    // Compute real 7-day registration trends
-    const now = Date.now();
+    // Helper to extract timestamp from any registration record
+    const getRegTime = (r: any): number => {
+      if (!r) return 0;
+      if (typeof r.registeredAt === 'number') return r.registeredAt;
+      if (r.registeredAt) {
+        const t = new Date(r.registeredAt).getTime();
+        if (!isNaN(t) && t > 0) return t;
+      }
+      if (typeof r.createdAt === 'number') return r.createdAt;
+      if (r.createdAt) {
+        const t = new Date(r.createdAt).getTime();
+        if (!isNaN(t) && t > 0) return t;
+      }
+      return 0;
+    };
+
+    // Compute calendar-day aligned 7-day registration trends
+    const nowTime = Date.now();
     const dayMs = 24 * 60 * 60 * 1000;
+    const todayMidnight = new Date();
+    todayMidnight.setHours(0, 0, 0, 0);
+    const todayMidnightMs = todayMidnight.getTime();
+
     const trends = Array.from({ length: 7 }).map((_, i) => {
-      const dayStart = now - (6 - i) * dayMs;
+      const dayStart = todayMidnightMs - (6 - i) * dayMs;
       const dayEnd = dayStart + dayMs;
-      const count = allRegistrations.filter(r => r.registeredAt >= dayStart && r.registeredAt < dayEnd).length;
+      const count = allRegistrations.filter(r => {
+        const t = getRegTime(r);
+        return t >= dayStart && t < dayEnd;
+      }).length;
       const d = new Date(dayStart);
       return {
         date: `${d.getMonth() + 1}/${d.getDate()}`,
+        day: d.toLocaleDateString('en-US', { weekday: 'short' }),
         count
       };
     });
 
-    const recentGrowth = trends[6]?.count || 0;
+    const recentGrowth = allRegistrations.filter(r => {
+      const t = getRegTime(r);
+      return t >= todayMidnightMs || (nowTime - t <= dayMs);
+    }).length;
 
     res.json({
       success: true,

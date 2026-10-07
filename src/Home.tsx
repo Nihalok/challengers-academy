@@ -46,7 +46,7 @@ export default function Home() {
     <div ref={containerRef} className="flex flex-col">
       <SEO 
         title="Challengers Volleyball Academy" 
-        description="Volleyball coaching for kids and adults. We train at Fremont, Manteca, Mountain House, and San Jose. All skill levels welcome."
+        description="Volleyball coaching for kids and adults. We train at Fremont, Mountain House, and San Jose. All skill levels welcome."
       />
       <ModernHero />
       <div className="overflow-x-hidden">

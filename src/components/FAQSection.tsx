@@ -30,7 +30,7 @@ const faqs: FAQ[] = [
   },
   {
     question: "Where are you located?",
-    answer: "We currently run sessions in Fremont, Manteca, Mountain House, and San Jose. We always make sure to book top facilities with quality flooring and proper nets."
+    answer: "We currently run sessions in Fremont, Mountain House, and San Jose. We always make sure to book top facilities with quality flooring and proper nets."
   },
   {
     question: "What should my child bring to practice?",

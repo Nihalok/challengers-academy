@@ -97,7 +97,7 @@ export default function Camps() {
     <div className="relative bg-[#FBF9F6] min-h-screen overflow-hidden font-sans pt-32 sm:pt-36 md:pt-40">
       <SEO 
         title="Summer Elite Camps 2026" 
-        description="High-energy summer volleyball camps for youth and high school players in Fremont, Manteca, Mountain House, and San Jose."
+        description="High-energy summer volleyball camps for youth and high school players in Fremont, Mountain House, and San Jose."
       />
 
       {/* Blended Background */}

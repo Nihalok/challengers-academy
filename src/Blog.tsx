@@ -198,7 +198,7 @@ export default function Blog() {
                 <div className="space-y-1 text-center sm:text-left">
                   <span className="text-yellow font-black text-[10px] uppercase tracking-widest block">Ready to Train on Court?</span>
                   <h4 className="text-lg font-serif font-black text-white">Join Head Coach Wilson's Batches</h4>
-                  <p className="text-xs text-white/70 max-w-sm">From beginners to competitive juniors — enroll in court sessions across Fremont, Manteca, Mountain House &amp; San Jose.</p>
+                  <p className="text-xs text-white/70 max-w-sm">From beginners to competitive juniors — enroll in court sessions across Fremont, Mountain House &amp; San Jose.</p>
                 </div>
                 <NavLink
                   to="/register"

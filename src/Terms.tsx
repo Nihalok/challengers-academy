@@ -42,6 +42,9 @@ export default function Terms() {
                 <li className="leading-relaxed">
                   <strong>Non-Refundable:</strong> All enrollment fees, including regular coaching packages and summer camps, are non-refundable.
                 </li>
+                <li className="leading-relaxed text-red-600 font-extrabold text-sm sm:text-base">
+                  Full payment is required prior to the commencement of the session. The session will only be confirmed and initiated once the payment has been received in full.
+                </li>
                 <li className="leading-relaxed">
                   <strong>Registration:</strong> Registration is only complete once the registration form is submitted and payment is confirmed.
                 </li>

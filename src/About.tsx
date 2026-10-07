@@ -29,7 +29,7 @@ const STATS = [
   { value: '35+', label: 'Years Experience', sub: 'Coaching & Playing' },
   { value: '500+', label: 'Athletes Mentored', sub: 'Youth to Advanced' },
   { value: 'FIVB L2', label: 'Certified Coaching', sub: 'International Standards' },
-  { value: '4 Centers', label: 'Bay Area Hubs', sub: 'Fremont, Manteca, Mountain House, San Jose' },
+  { value: '3 Centers', label: 'Bay Area Hubs', sub: 'Fremont, Mountain House, San Jose' },
 ];
 
 const FOUNDER_PILLARS = [
@@ -98,7 +98,7 @@ const MILESTONES = [
     period: 'Current Era',
     title: 'Challengers Academy Expansion',
     location: 'SFO Bay Area, CA',
-    desc: 'Bringing international FIVB training standards to young athletes across Fremont, Manteca, Mountain House, and San Jose.'
+    desc: 'Bringing international FIVB training standards to young athletes across Fremont, Mountain House, and San Jose.'
   }
 ];
 
@@ -169,7 +169,7 @@ const TICKER_ITEMS = [
   'FOUNDATION & DISCIPLINE',
   'SAI NATIONAL DEVELOPMENT',
   'JUNIOR INDIAN CAMP SELECTION',
-  'FREMONT • MANTECA • MH • SAN JOSE'
+  'FREMONT • MOUNTAIN HOUSE • SAN JOSE'
 ];
 
 export default function About() {

@@ -44,7 +44,7 @@ export default function OptimizedImage({
       if (height) optimized += `&h=${height}`;
       return optimized;
     }
-    return url;
+    return url; 
   };
 
   const optimizedSrc = getOptimizedUrl(src);
