@@ -52,7 +52,7 @@ export default function Footer() {
             </div>
             <p className="text-white/80 text-sm leading-relaxed max-w-xs font-medium">
 
-**Volleyball Training for Ages 5–18 | Bay Area**
+**Volleyball Training for Ages 5–18 / Adults | Bay Area**
 
 From first-time players to competitive athletes, we help young Volleyball players build skills, confidence, and a passion for the game.
 

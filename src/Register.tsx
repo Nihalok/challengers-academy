@@ -302,11 +302,11 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     dates: 'Book on Demand (4 Sessions)',
     time: '1 Hour per Session (2 Students)',
     price: 320,
-    priceNote: 'package fee',
+    priceNote: 'per person',
     capacity: 10,
     filled: 4,
     coach: 'Head Coach Wilson Mathew',
-    description: 'Focused semi-private training for 2 students. 4 focused 1-hour sessions of intense personalized skill reps.',
+    description: 'Focused semi-private training for 2 students. 4 focused 1-hour sessions of intense personalized skill reps ($320 per person).',
     features: ['4 Sessions', '1 Hour per Session', '2 Students', 'Certified Coaches'],
     popular: false
   },
@@ -325,11 +325,11 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     dates: 'Book on Demand (4 Sessions)',
     time: '1 Hour per Session (4 Students)',
     price: 280,
-    priceNote: 'package fee',
+    priceNote: 'per person',
     capacity: 12,
     filled: 6,
     coach: 'Head Coach Wilson Mathew',
-    description: 'Semi-private small group coaching with 4 students. 4 focused 1-hour sessions focusing on team chemistry and skill execution.',
+    description: 'Semi-private small group coaching with 4 students. 4 focused 1-hour sessions focusing on team chemistry and skill execution ($280 per person).',
     features: ['4 Sessions', '1 Hour per Session', '4 Students', 'Certified Coaches'],
     popular: false
   },
@@ -348,11 +348,11 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     dates: 'Book on Demand (4 Sessions)',
     time: '1 Hour per Session (6 Students)',
     price: 300,
-    priceNote: 'package fee',
+    priceNote: 'per person',
     capacity: 18,
     filled: 10,
     coach: 'Head Coach Wilson Mathew',
-    description: 'Semi-private training for 6 students. 4 focused 1-hour sessions with tactical sets and game simulation.',
+    description: 'Semi-private training for 6 students. 4 focused 1-hour sessions with tactical sets and game simulation ($300 per person).',
     features: ['4 Sessions', '1 Hour per Session', '6 Students', 'Certified Coaches'],
     popular: false
   }
@@ -510,7 +510,7 @@ export default function Register() {
               dates: s.months || s.dates || 'Rolling Enrollment',
               time: s.time || (isPrivate || s.id?.includes('1hr') ? '1 Hour per Session' : '2 Hours per Session'),
               price: Number(s.price) || 200,
-              priceNote: 'package fee',
+              priceNote: s.priceNote || (s.id?.includes('semi-private') ? 'per person' : 'package fee'),
               capacity: Number(s.capacity) || 25,
               filled: Number(s.filled) || 0,
               coach: s.coach || 'Head Coach Wilson Mathew & Coaches',
@@ -1009,7 +1009,7 @@ export default function Register() {
               { id: 'tryout', label: 'Tryout Session ($30)' },
               { id: 'gym', label: 'Regular Gym Coaching ($100 - $550)' },
               { id: 'park', label: 'Open Park Coaching ($150)' },
-              { id: 'semi-private', label: 'Semi-Private Coaching ($280 - $320)' },
+              { id: 'semi-private', label: 'Semi-Private Coaching ($280 - $320/person)' },
               { id: 'private', label: 'Private 1-on-1 ($320 - $360)' },
               { id: 'camp', label: 'Summer Camps ($350 - $750)' },
             ].map(tab => {
@@ -1260,7 +1260,7 @@ export default function Register() {
                 {(activeCategory === 'semi-private' || activeCategory === 'all') && (
                   <div className="text-center mt-8 pt-4 border-t border-slate-100">
                     <p className="text-xs font-bold text-slate-500 italic">
-                      * Semi-private coaching: 4 sessions of 1-hour focused training for groups of 2, 4, or 6 students (All Age Groups).
+                      * Semi-private coaching: 4 sessions of 1-hour focused training for groups of 2, 4, or 6 students (All Age Groups). Rates shown are per person.
                     </p>
                   </div>
                 )}

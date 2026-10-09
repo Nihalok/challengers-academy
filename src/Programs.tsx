@@ -148,6 +148,7 @@ export default function Programs() {
       id: 'semi-private-2',
       title: 'Semi-Private Coaching (2 Players)',
       fee: '$320',
+      feeNote: '/ per person',
       sessions: '4 Sessions',
       duration: '1 Hour',
       students: '2 Students',
@@ -166,6 +167,7 @@ export default function Programs() {
       id: 'semi-private-4',
       title: 'Semi-Private Coaching (4 Players)',
       fee: '$280',
+      feeNote: '/ per person',
       sessions: '4 Sessions',
       duration: '1 Hour',
       students: '4 Students',
@@ -184,6 +186,7 @@ export default function Programs() {
       id: 'semi-private-6',
       title: 'Semi-Private Coaching (6 Players)',
       fee: '$300',
+      feeNote: '/ per person',
       sessions: '4 Sessions',
       duration: '1 Hour',
       students: '6 Students',
@@ -435,7 +438,7 @@ export default function Programs() {
                         {pkg.fee}
                       </span>
                       <span className="text-[9px] font-black uppercase tracking-widest text-espresso/60">
-                        {pkg.students.includes('Per Student') ? '/ student' : '/ package'}
+                        {pkg.feeNote || (pkg.tag === 'SEMI-PRIVATE' || pkg.id?.includes('semi-private') ? '/ per person' : (pkg.students?.includes('Per Student') ? '/ student' : '/ package'))}
                       </span>
                     </div>
                     <ul className="space-y-2 mb-6">

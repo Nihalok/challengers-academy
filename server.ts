@@ -492,12 +492,13 @@ export const DEFAULT_PROGRAMS = [
     id: 'semi-private-2',
     title: 'Semi-Private Coaching (2 Players)',
     phase: 'SEMI-PRIVATE',
-    description: 'Intense 1-hour skill sessions for 2 players only with Head Coach Wilson Mathew.',
-    longDescription: 'Semi-private coaching focused exclusively on 2 athletes. 4 focused 1-hour sessions with fast-paced high-repetition drill architecture engineered for accelerated technical growth ($320).',
+    description: 'Intense 1-hour skill sessions for 2 players only with Head Coach Wilson Mathew ($320/person).',
+    longDescription: 'Semi-private coaching focused exclusively on 2 athletes. 4 focused 1-hour sessions with fast-paced high-repetition drill architecture engineered for accelerated technical growth ($320 per person).',
     image: 'https://images.unsplash.com/photo-1547347298-4074fc3086f0?q=80&w=1200&auto=format&fit=crop',
     ageRange: 'All Age Groups',
     ageGroups: ['All Age Groups'],
-    features: ['4 Sessions ($320)', '2 Players Only', '1-Hour Session', 'Intensive Personal Reps'],
+    features: ['4 Sessions ($320/person)', '2 Players Only', '1-Hour Session', 'Intensive Personal Reps'],
+    feeNote: '/ per person',
     price: 320,
     schedule: 'Weekly Batches (1 Hour / Session)',
     location: 'Fremont Arena / Regional Facility',
@@ -511,12 +512,13 @@ export const DEFAULT_PROGRAMS = [
     id: 'semi-private-4',
     title: 'Semi-Private Coaching (4 Players)',
     phase: 'SEMI-PRIVATE',
-    description: 'Focused small-group coaching for 4 players building team chemistry and skill execution.',
-    longDescription: 'High-rep small group session tailored for 4 players. 4 focused 1-hour sessions covering positional coordination, serve-receive rotations, and tactical gameplay ($280).',
+    description: 'Focused small-group coaching for 4 players building team chemistry and skill execution ($280/person).',
+    longDescription: 'High-rep small group session tailored for 4 players. 4 focused 1-hour sessions covering positional coordination, serve-receive rotations, and tactical gameplay ($280 per person).',
     image: 'https://images.unsplash.com/photo-1547347298-4074fc3086f0?q=80&w=1200&auto=format&fit=crop',
     ageRange: 'All Age Groups',
     ageGroups: ['All Age Groups'],
-    features: ['4 Sessions ($280)', '4 Players Only', '1-Hour Session', 'Rotational Tactics'],
+    features: ['4 Sessions ($280/person)', '4 Players Only', '1-Hour Session', 'Rotational Tactics'],
+    feeNote: '/ per person',
     price: 280,
     schedule: 'Weekly Batches (1 Hour / Session)',
     location: 'Fremont Arena / Regional Facility',
@@ -530,12 +532,13 @@ export const DEFAULT_PROGRAMS = [
     id: 'semi-private-6',
     title: 'Semi-Private Coaching (6 Players)',
     phase: 'SEMI-PRIVATE',
-    description: 'Dynamic 1-hour small squad coaching for 6 players emphasizing rotational skills.',
-    longDescription: 'Comprehensive 1-hour small squad training for 6 players across 4 sessions. Focuses on full court execution, setter-hitter connections, and defensive transition ($300).',
+    description: 'Dynamic 1-hour small squad coaching for 6 players emphasizing rotational skills ($300/person).',
+    longDescription: 'Comprehensive 1-hour small squad training for 6 players across 4 sessions. Focuses on full court execution, setter-hitter connections, and defensive transition ($300 per person).',
     image: 'https://images.unsplash.com/photo-1547347298-4074fc3086f0?q=80&w=1200&auto=format&fit=crop',
     ageRange: 'All Age Groups',
     ageGroups: ['All Age Groups'],
-    features: ['4 Sessions ($300)', '6 Players Only', '1-Hour Session', 'Match System Drills'],
+    features: ['4 Sessions ($300/person)', '6 Players Only', '1-Hour Session', 'Match System Drills'],
+    feeNote: '/ per person',
     price: 300,
     schedule: 'Weekly Batches (1 Hour / Session)',
     location: 'Fremont Arena / Regional Facility',
@@ -1222,7 +1225,7 @@ export const SESSIONS_CATALOG: Record<string, SessionCatalogItem> = {
     capacity: 10,
     filled: 4,
     coach: 'Head Coach Wilson Mathew',
-    description: 'Focused small group training for 2 students. 4 focused 1-hour sessions ($320 package).'
+    description: 'Focused small group training for 2 students. 4 focused 1-hour sessions ($320 per person).'
   },
   'semi-private-4': {
     id: 'semi-private-4',
@@ -1239,7 +1242,7 @@ export const SESSIONS_CATALOG: Record<string, SessionCatalogItem> = {
     capacity: 12,
     filled: 6,
     coach: 'Head Coach Wilson Mathew',
-    description: 'Focused training for 4 students. 4 focused 1-hour sessions ($280 package).'
+    description: 'Focused training for 4 students. 4 focused 1-hour sessions ($280 per person).'
   },
   'semi-private-6': {
     id: 'semi-private-6',
@@ -1256,7 +1259,7 @@ export const SESSIONS_CATALOG: Record<string, SessionCatalogItem> = {
     capacity: 18,
     filled: 10,
     coach: 'Head Coach Wilson Mathew',
-    description: 'Focused training for 6 students. 4 focused 1-hour sessions ($300 package).'
+    description: 'Focused training for 6 students. 4 focused 1-hour sessions ($300 per person).'
   },
   'summer-camp-7day': {
     id: 'summer-camp-7day',

@@ -42,7 +42,7 @@ export default function Waiver() {
 
       // Paragraph 1
       addParagraph(
-        `I understand that observation of or physical activity in, including but not limited to hitting, passing, jumping and blocking can be a dangerous activity and that, by participating in those activities like (“Volleyball Coaching”), I am taking a risk that my child may be injured. I hereby assume all the risk described above, even if the Challengers Volleyball Coaching Center like Clinics, Camps and training activities organized by Wilson Mathew Challengers Volleyball Coaching Center program at any Gym, School, Park or facility in California. Any of the aforementioned Parties, Owners, Members, Coaches, Employees or Agents, through negligence or otherwise, are deemed liable. I hereby release, waive, discharge covenant not to sue Challengers Volleyball Coaching Center, California or any of the aforementioned Parties’ Owners, Members, Coaches, Employees or Agents (individually and together herein referred to as “Released Parties”),`,
+        `I understand that observation of or physical activity in, including but not limited to hitting, passing, jumping and blocking can be a dangerous activity and that, by participating in those activities like (“Volleyball Coaching”), I am taking a risk that my child may be injured. I hereby assume all the risk described above, even if the Challengers Volleyball Academy like Clinics, Camps and training activities organized by Wilson Mathew Challengers Volleyball Coaching Academy program at any Gym, School, Park or facility in California. Any of the aforementioned Parties, Owners, Members, Coaches, Employees or Agents, through negligence or otherwise, are deemed liable. I hereby release, waive, discharge covenant not to sue Challengers Volleyball Coaching Academy, California or any of the aforementioned Parties’ Owners, Members, Coaches, Employees or Agents (individually and together herein referred to as “Released Parties”),`,
         16,
         'normal',
         10
@@ -211,13 +211,13 @@ export default function Waiver() {
                 General Waiver
               </h2>
               <p className="text-[10px] font-bold uppercase tracking-widest text-espresso/50 mt-1">
-                Challengers Volleyball Coaching Center
+                Challengers Volleyball Coaching Academy
               </p>
             </div>
 
             <div className="space-y-6 text-xs sm:text-sm text-espresso/80 leading-relaxed font-normal">
               <p>
-                I understand that observation of or physical activity in,including but not limited to hitting,passing, jumping and blocking can be a dangerous activity and that, by participating in those activities like (“Volleyball Coaching”), I am taking a risk that my child may be injured.I hereby assume all the risk described above, even if the Challengers Volleyball Coaching Center like Clinics, Camps and training activities organized by Wilson Mathew Challengers Volleyball Coaching Center program at any Gym,School, Park or facility in California. Any of the aforementioned Parties, Owners, Members, Coaches, Employees or Agents, through negligence or otherwise, are deemed liable. I hereby release, waive,discharge covenant not to sue Challengers Volleyball Coaching Center, California or any of the aforementioned Parties’ Owners, Members, Coaches, Employees or Agents (individually and together herein referred to as “Released Parties”),
+                I understand that observation of or physical activity in,including but not limited to hitting,passing, jumping and blocking can be a dangerous activity and that, by participating in those activities like (“Volleyball Coaching”), I am taking a risk that my child may be injured.I hereby assume all the risk described above, even if the Challengers Volleyball Coaching Academy like Clinics, Camps and training activities organized by Wilson Mathew Challengers Volleyball Academy program at any Gym,School, Park or facility in California. Any of the aforementioned Parties, Owners, Members, Coaches, Employees or Agents, through negligence or otherwise, are deemed liable. I hereby release, waive,discharge covenant not to sue Challengers Volleyball Coaching Academy, California or any of the aforementioned Parties’ Owners, Members, Coaches, Employees or Agents (individually and together herein referred to as “Released Parties”),
               </p>
 
               <p>
