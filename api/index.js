@@ -323,6 +323,7 @@ var DEFAULT_PROGRAMS = [
     ageRange: "5 - 18",
     ageGroups: ["5-10", "11-14", "15-18"],
     features: ["4 x 1-Hour Sessions", "Group Format", "Indoor Gym Facility", "Drills & Rotations"],
+    feeNote: "/ per student",
     price: 100,
     schedule: "Weekly Batches (1 Hour / Session)",
     location: "Fremont Arena / Tracy Gym",
@@ -342,6 +343,7 @@ var DEFAULT_PROGRAMS = [
     ageRange: "5 - 18",
     ageGroups: ["5-10", "11-14", "15-18"],
     features: ["4 x 2-Hour Sessions", "Group Format", "Indoor Gym Facility", "Skills & Scrimmages"],
+    feeNote: "/ per student",
     price: 200,
     schedule: "Weekly Batches (2 Hours / Session)",
     location: "Fremont Arena / Tracy Gym",
@@ -361,6 +363,7 @@ var DEFAULT_PROGRAMS = [
     ageRange: "5 - 18",
     ageGroups: ["5-10", "11-14", "15-18"],
     features: ["12 x 2-Hour Sessions", "Best Value Package", "Save $50 vs 4-Pack", "Tryout & Match Prep"],
+    feeNote: "/ per student",
     price: 550,
     schedule: "3 Days / Week (2 Hours / Session)",
     location: "Fremont Arena / Tracy Gym",
@@ -380,6 +383,7 @@ var DEFAULT_PROGRAMS = [
     ageRange: "All Age Groups",
     ageGroups: ["All Age Groups"],
     features: ["4 x 1-Hour Sessions", "100% 1-on-1 Focus", "Custom Mechanics", "Flexible Booking"],
+    feeNote: "/ per student",
     price: 360,
     schedule: "Flexible Schedule (1 Hour / Session)",
     location: "Long Distance",
@@ -399,6 +403,7 @@ var DEFAULT_PROGRAMS = [
     ageRange: "All Age Groups",
     ageGroups: ["All Age Groups"],
     features: ["4 x 1-Hour Sessions", "Coach Travels to You", "Personalized Drills", "Flexible Times"],
+    feeNote: "/ per student",
     price: 320,
     schedule: "Flexible Schedule (1 Hour / Session)",
     location: "Nearby Park Facility of Choice",
@@ -409,15 +414,76 @@ var DEFAULT_PROGRAMS = [
     order: 4
   },
   {
+    id: "semi-private-2",
+    title: "Semi-Private Coaching (2 Players)",
+    phase: "SEMI-PRIVATE",
+    description: "Intense 1-hour skill sessions for 2 players only with Head Coach Wilson Mathew ($320/student).",
+    longDescription: "Semi-private coaching focused exclusively on 2 athletes. 4 focused 1-hour sessions with fast-paced high-repetition drill architecture engineered for accelerated technical growth ($320 per student).",
+    image: "https://images.unsplash.com/photo-1547347298-4074fc3086f0?q=80&w=1200&auto=format&fit=crop",
+    ageRange: "All Age Groups",
+    ageGroups: ["All Age Groups"],
+    features: ["4 Sessions ($320/student)", "2 Players Only", "1-Hour Session", "Intensive Personal Reps"],
+    feeNote: "/ per student",
+    price: 320,
+    schedule: "Weekly Batches (1 Hour / Session)",
+    location: "Fremont Arena / Regional Facility",
+    capacity: 10,
+    filled: 4,
+    coach: "Wilson Mathew",
+    isActive: true,
+    order: 6
+  },
+  {
+    id: "semi-private-4",
+    title: "Semi-Private Coaching (4 Players)",
+    phase: "SEMI-PRIVATE",
+    description: "Focused small-group coaching for 4 players building team chemistry and skill execution ($240/student).",
+    longDescription: "High-rep small group session tailored for 4 players. 4 focused 1-hour sessions covering positional coordination, serve-receive rotations, and tactical gameplay ($240 per student).",
+    image: "https://images.unsplash.com/photo-1547347298-4074fc3086f0?q=80&w=1200&auto=format&fit=crop",
+    ageRange: "All Age Groups",
+    ageGroups: ["All Age Groups"],
+    features: ["4 Sessions ($240/student)", "4 Players Only", "1-Hour Session", "Rotational Tactics"],
+    feeNote: "/ per student",
+    price: 240,
+    schedule: "Weekly Batches (1 Hour / Session)",
+    location: "Fremont Arena / Regional Facility",
+    capacity: 12,
+    filled: 6,
+    coach: "Wilson Mathew & Senior Staff",
+    isActive: true,
+    order: 7
+  },
+  {
+    id: "semi-private-6",
+    title: "Semi-Private Coaching (6 Players)",
+    phase: "SEMI-PRIVATE",
+    description: "Dynamic 1-hour small squad coaching for 6 players emphasizing rotational skills ($200/student).",
+    longDescription: "Comprehensive 1-hour small squad training for 6 players across 4 sessions. Focuses on full court execution, setter-hitter connections, and defensive transition ($200 per student).",
+    image: "https://images.unsplash.com/photo-1547347298-4074fc3086f0?q=80&w=1200&auto=format&fit=crop",
+    ageRange: "All Age Groups",
+    ageGroups: ["All Age Groups"],
+    features: ["4 Sessions ($200/student)", "6 Players Only", "1-Hour Session", "Match System Drills"],
+    feeNote: "/ per student",
+    price: 200,
+    schedule: "Weekly Batches (1 Hour / Session)",
+    location: "Fremont Arena / Regional Facility",
+    capacity: 18,
+    filled: 8,
+    coach: "Wilson Mathew & Staff",
+    isActive: true,
+    order: 8
+  },
+  {
     id: "open-park-group",
     title: "Open Park - Group Training",
     phase: "OUTDOOR GROUP",
     description: "High-repetition outdoor group training building agility, ball control, and defense.",
     longDescription: "4 outdoor group training sessions (2 hours each). Great high-energy atmosphere focusing on agility, passing, court defense, and stamina ($150 per student).",
     image: "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?q=80&w=1200&auto=format&fit=crop",
-    ageRange: "5 - 18",
-    ageGroups: ["5-10", "11-14", "15-18"],
+    ageRange: "All Age Groups",
+    ageGroups: ["All Age Groups"],
     features: ["4 x 2-Hour Sessions", "$150 Per Student", "High Repetition Drills", "Outdoor Park Court"],
+    feeNote: "/ per student",
     price: 150,
     schedule: "Weekly Batches (2 Hours / Session)",
     location: "Open Park Facilities",
@@ -425,7 +491,27 @@ var DEFAULT_PROGRAMS = [
     filled: 11,
     coach: "Academy Coaching Staff",
     isActive: true,
-    order: 5
+    order: 9
+  },
+  {
+    id: "open-park-summer-camp",
+    title: "Open Park \u2013 Summer Camp",
+    phase: "OUTDOOR GROUP",
+    description: "10-day intensive open park summer clinic covering volleyball fundamentals, high-rep drills, stamina, and team play ($350 per student).",
+    longDescription: "10-day outdoor open park summer clinic (2 hours per day). Intensive repetition, footwork agility, ball control, and competitive match scrimmages ($350 per student).",
+    image: "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?q=80&w=1200&auto=format&fit=crop",
+    ageRange: "All Age Groups",
+    ageGroups: ["All Age Groups"],
+    features: ["10 Days (2 Hours/Day)", "$350 Per Student", "High Repetition Drills", "Outdoor Park Court"],
+    feeNote: "/ per student",
+    price: 350,
+    schedule: "Mon - Fri Batches (2 Hours / Session)",
+    location: "Open Park Facilities",
+    capacity: 20,
+    filled: 6,
+    coach: "Academy Coaching Staff",
+    isActive: true,
+    order: 10
   },
   {
     id: "tryout-session",
@@ -437,6 +523,7 @@ var DEFAULT_PROGRAMS = [
     ageRange: "5 - 18",
     ageGroups: ["5-10", "11-14", "15-18"],
     features: ["2-Hour Court Evaluation", "Coach Skill Feedback", "Placement Advice", "No Long-Term Commitment"],
+    feeNote: "/ evaluation fee",
     price: 30,
     schedule: "Weekly Tryout Slots (2 Hours Total)",
     location: "Fremont Arena / Regional Gym",
@@ -444,7 +531,7 @@ var DEFAULT_PROGRAMS = [
     filled: 12,
     coach: "Wilson Mathew",
     isActive: true,
-    order: 7
+    order: 11
   }
 ];
 var DEFAULT_CAMPS = [
@@ -454,6 +541,7 @@ var DEFAULT_CAMPS = [
     duration: "7 Days",
     months: "June & July 2026",
     bestFor: "Technique Refinement",
+    feeNote: "/ per student",
     price: 350,
     schedule: "Mon - Fri (9:00 AM - 1:00 PM)",
     location: "Fremont Arena / Regional Facility",
@@ -470,6 +558,7 @@ var DEFAULT_CAMPS = [
     duration: "10 Days",
     months: "June & July 2026",
     bestFor: "Game Strategy & Tactics",
+    feeNote: "/ per student",
     price: 500,
     schedule: "Mon - Fri (9:00 AM - 1:00 PM)",
     location: "Fremont Arena / Regional Facility",
@@ -486,6 +575,7 @@ var DEFAULT_CAMPS = [
     duration: "15 Days",
     months: "June & July 2026",
     bestFor: "Competitive Club & High School Prep",
+    feeNote: "/ per student",
     price: 750,
     schedule: "Mon - Fri (9:00 AM - 1:00 PM)",
     location: "Fremont Arena / Regional Facility",
@@ -506,6 +596,7 @@ async function seedPrograms(db) {
         $set: {
           title: prog.title,
           price: prog.price,
+          feeNote: prog.feeNote,
           phase: prog.phase,
           description: prog.description,
           longDescription: prog.longDescription,
@@ -840,6 +931,7 @@ var SESSIONS_CATALOG = {
     dates: "Starting Next Weekend",
     time: "1 Hour per Session",
     price: 100,
+    priceNote: "per student",
     capacity: 25,
     filled: 10,
     coach: "Wilson Mathew & Coaching Team",
@@ -857,6 +949,7 @@ var SESSIONS_CATALOG = {
     dates: "Starting Next Weekend",
     time: "2 Hours per Session",
     price: 200,
+    priceNote: "per student",
     capacity: 25,
     filled: 14,
     coach: "Wilson Mathew & Coaching Team",
@@ -874,6 +967,7 @@ var SESSIONS_CATALOG = {
     dates: "Rolling Monthly Batches",
     time: "2 Hours per Session",
     price: 550,
+    priceNote: "per student",
     capacity: 25,
     filled: 18,
     coach: "Wilson Mathew & Senior Staff",
@@ -891,6 +985,7 @@ var SESSIONS_CATALOG = {
     dates: "Book on Demand",
     time: "1 Hour per Session",
     price: 360,
+    priceNote: "per student",
     capacity: 10,
     filled: 6,
     coach: "Dedicated Master Coach",
@@ -908,6 +1003,7 @@ var SESSIONS_CATALOG = {
     dates: "Book on Demand",
     time: "1 Hour per Session",
     price: 320,
+    priceNote: "per student",
     capacity: 10,
     filled: 4,
     coach: "Coach Wilson Mathew / Specialist",
@@ -925,10 +1021,32 @@ var SESSIONS_CATALOG = {
     dates: "Weekly Batches",
     time: "2 Hours per Session",
     price: 150,
+    priceNote: "per student",
     capacity: 20,
     filled: 11,
     coach: "Academy Coaching Staff",
     description: "4 outdoor group training sessions (2 hours each). High reps, agility, ball control, and defense ($150 per student)."
+  },
+  "open-park-summer-camp": {
+    id: "open-park-summer-camp",
+    name: "Open Park \u2013 Summer Camp",
+    category: "Open Park Group",
+    students: "Group Training",
+    sessionDuration: "2 Hours",
+    packageCount: "10 Days",
+    ageGroup: "All Age Groups",
+    skillLevel: "Fundamental & Repetitive Drills",
+    location: "Open Park Facilities",
+    locationAddress: "Outdoor Open Park Courts",
+    schedule: "Mon - Fri Batches (10 Days)",
+    dates: "June & July 2026",
+    time: "2 Hours per Session (10 Days)",
+    price: 350,
+    priceNote: "per student",
+    capacity: 20,
+    filled: 6,
+    coach: "Head Coach Wilson Mathew & Assistants",
+    description: "10-day intensive open park summer clinic covering volleyball fundamentals, high-rep drills, stamina, and team play ($350 per student)."
   },
   "tryout-session": {
     id: "tryout-session",
@@ -942,6 +1060,7 @@ var SESSIONS_CATALOG = {
     dates: "Upcoming Weekend",
     time: "2 Hours Total",
     price: 30,
+    priceNote: "evaluation fee",
     capacity: 30,
     filled: 12,
     coach: "Wilson Mathew",
@@ -1014,6 +1133,111 @@ var SESSIONS_CATALOG = {
     filled: 42,
     coach: "Wilson Mathew & Senior Staff",
     description: "Immersive 7-day volleyball boot camp covering position specialization, competitive matches, and video breakdown."
+  },
+  "semi-private-2": {
+    id: "semi-private-2",
+    name: "Semi-Private Coaching (2 Students)",
+    category: "Semi-Private Coaching",
+    ageGroup: "All Age Groups",
+    skillLevel: "Focused Small Group",
+    location: "Fremont Arena / Regional Facility",
+    locationAddress: "Bay Area Facility",
+    schedule: "Flexible Small Group Slots",
+    dates: "Book on Demand (4 Sessions)",
+    time: "1 Hour per Session (2 Students)",
+    price: 320,
+    priceNote: "per student",
+    capacity: 10,
+    filled: 4,
+    coach: "Head Coach Wilson Mathew",
+    description: "Focused small group training for 2 students. 4 focused 1-hour sessions ($320 per student)."
+  },
+  "semi-private-4": {
+    id: "semi-private-4",
+    name: "Semi-Private Coaching (4 Students)",
+    category: "Semi-Private Coaching",
+    ageGroup: "All Age Groups",
+    skillLevel: "Focused Small Group",
+    location: "Fremont Arena / Regional Facility",
+    locationAddress: "Bay Area Facility",
+    schedule: "Flexible Small Group Slots",
+    dates: "Book on Demand (4 Sessions)",
+    time: "1 Hour per Session (4 Students)",
+    price: 240,
+    priceNote: "per student",
+    capacity: 12,
+    filled: 6,
+    coach: "Head Coach Wilson Mathew",
+    description: "Focused training for 4 students. 4 focused 1-hour sessions ($240 per student)."
+  },
+  "semi-private-6": {
+    id: "semi-private-6",
+    name: "Semi-Private Coaching (6 Students)",
+    category: "Semi-Private Coaching",
+    ageGroup: "All Age Groups",
+    skillLevel: "Focused Small Group",
+    location: "Fremont Arena / Regional Facility",
+    locationAddress: "Bay Area Facility",
+    schedule: "Flexible Small Group Slots",
+    dates: "Book on Demand (4 Sessions)",
+    time: "1 Hour per Session (6 Students)",
+    price: 200,
+    priceNote: "per student",
+    capacity: 18,
+    filled: 10,
+    coach: "Head Coach Wilson Mathew",
+    description: "Focused training for 6 students. 4 focused 1-hour sessions ($200 per student)."
+  },
+  "summer-camp-7day": {
+    id: "summer-camp-7day",
+    name: "Summer Camp (7 Days)",
+    category: "Summer Camp",
+    ageGroup: "Ages 5 - 18",
+    skillLevel: "Technique Refinement",
+    location: "Fremont Arena / Regional Facility",
+    locationAddress: "Bay Area Training Facility",
+    schedule: "Mon - Fri (9:00 AM - 1:00 PM)",
+    dates: "June & July 2026",
+    time: "9:00 AM - 1:00 PM",
+    price: 350,
+    capacity: 25,
+    filled: 14,
+    coach: "Wilson Mathew & Coaching Staff",
+    description: "7-day clinic focused on rapid skill acceleration, positional mastery, and match play."
+  },
+  "summer-camp-10day": {
+    id: "summer-camp-10day",
+    name: "Summer Camp (10 Days)",
+    category: "Summer Camp",
+    ageGroup: "Ages 5 - 18",
+    skillLevel: "Game Strategy & Tactics",
+    location: "Fremont Arena / Regional Facility",
+    locationAddress: "Bay Area Training Facility",
+    schedule: "Mon - Fri (9:00 AM - 1:00 PM)",
+    dates: "June & July 2026",
+    time: "9:00 AM - 1:00 PM",
+    price: 500,
+    capacity: 25,
+    filled: 18,
+    coach: "Wilson Mathew & Senior Staff",
+    description: "10-day elite intensive covering position-specific mastery, rotational systems, and agility."
+  },
+  "summer-camp-15day": {
+    id: "summer-camp-15day",
+    name: "Summer Camp (15 Days)",
+    category: "Summer Camp",
+    ageGroup: "Ages 5 - 18",
+    skillLevel: "Competitive Club & High School Prep",
+    location: "Fremont Arena / Regional Facility",
+    locationAddress: "Bay Area Training Facility",
+    schedule: "Mon - Fri (9:00 AM - 1:00 PM)",
+    dates: "June & July 2026",
+    time: "9:00 AM - 1:00 PM",
+    price: 750,
+    capacity: 25,
+    filled: 19,
+    coach: "Wilson Mathew & Master Staff",
+    description: "15-day masterclass camp with full biomechanical review and high-speed match play."
   }
 };
 var academyPaymentSettings = {
@@ -1622,7 +1846,7 @@ async function createApp() {
     message: { success: false, lockout: true, lockoutMs: 15 * 60 * 1e3, message: "Too many authentication attempts from this IP. Please try again in 15 minutes." }
   });
   const stripeWebhookParser = (req, res, next) => {
-    if (req.rawBody || (req.body && (Buffer.isBuffer(req.body) || typeof req.body === "string"))) {
+    if (req.rawBody || req.body && (Buffer.isBuffer(req.body) || typeof req.body === "string")) {
       if (!req.rawBody && req.body) {
         req.rawBody = Buffer.isBuffer(req.body) ? req.body : Buffer.from(req.body);
       }
@@ -1646,27 +1870,27 @@ async function createApp() {
       try {
         event = stripe.webhooks.constructEvent(rawPayload, sig, webhookSecret);
       } catch (err) {
-        console.warn(`⚠️ Webhook signature warning: ${err.message}. Attempting direct Stripe API verification...`);
+        console.warn(`\u26A0\uFE0F Webhook signature warning: ${err.message}. Attempting direct Stripe API verification...`);
         try {
           const parsed = typeof req.body === "object" && req.body !== null ? req.body : JSON.parse(rawPayload ? rawPayload.toString() : "{}");
-          const eventId = parsed?.id || (typeof req.query?.id === "string" ? req.query.id : null);
-          if (stripe && eventId && typeof eventId === "string" && eventId.startsWith("evt_")) {
-            event = await stripe.events.retrieve(eventId);
-            console.log(`✅ Authenticated event ${eventId} directly via Stripe API.`);
+          const eventId2 = parsed?.id || (typeof req.query?.id === "string" ? req.query.id : null);
+          if (stripe && eventId2 && typeof eventId2 === "string" && eventId2.startsWith("evt_")) {
+            event = await stripe.events.retrieve(eventId2);
+            console.log(`\u2705 Authenticated event ${eventId2} directly via Stripe API.`);
           } else if (parsed && parsed.type && parsed.data) {
             event = parsed;
           }
         } catch (apiErr) {
-          console.error(`⚠️ Webhook direct event retrieval notice:`, apiErr.message);
+          console.error(`\u26A0\uFE0F Webhook direct event retrieval notice:`, apiErr.message);
         }
       }
     } else if (stripe && req.body) {
       try {
         const parsed = typeof req.body === "object" && req.body !== null ? req.body : JSON.parse(rawPayload ? rawPayload.toString() : "{}");
-        const eventId = parsed?.id || (typeof req.query?.id === "string" ? req.query.id : null);
-        if (stripe && eventId && typeof eventId === "string" && eventId.startsWith("evt_")) {
-          event = await stripe.events.retrieve(eventId);
-          console.log(`✅ Authenticated Stripe event ${eventId} directly via API.`);
+        const eventId2 = parsed?.id || (typeof req.query?.id === "string" ? req.query.id : null);
+        if (stripe && eventId2 && typeof eventId2 === "string" && eventId2.startsWith("evt_")) {
+          event = await stripe.events.retrieve(eventId2);
+          console.log(`\u2705 Authenticated Stripe event ${eventId2} directly via API.`);
         } else if (parsed && parsed.type && parsed.data) {
           event = parsed;
         }
@@ -1681,10 +1905,10 @@ async function createApp() {
       }
     }
     if (!event) {
-      console.warn("⚠️ Webhook received unparseable or test ping. Acknowledging with 200 OK to keep Stripe webhook healthy.");
+      console.warn("\u26A0\uFE0F Webhook received unparseable or test ping. Acknowledging with 200 OK to keep Stripe webhook healthy.");
       return res.status(200).json({ received: true, notice: "Acknowledged test or unverified payload" });
     }
-    console.log(`🔔 Stripe Webhook Received: ${event?.type || "unknown_event"} (${event?.id || "no-id"})`);
+    console.log(`\u{1F514} Stripe Webhook Received: ${event?.type || "unknown_event"} (${event?.id || "no-id"})`);
     const db = await getMongoDb();
     const eventId = event?.id;
     if (eventId && db) {
@@ -2485,6 +2709,8 @@ Temp Password: ${tempPassword}
       if (db) {
         await db.collection("camps").deleteOne({ id: req.params.id });
       }
+      clearCache("public_camps");
+      clearCache("public_sessions");
       res.json({ success: true });
     } catch (err) {
       res.status(500).json({ success: false, message: err.message });
@@ -2497,7 +2723,6 @@ Temp Password: ${tempPassword}
       if (cached) {
         return res.json({ success: true, sessions: cached });
       }
-
       const db = await getMongoDb();
       if (db) {
         const [dbPrograms, dbCamps] = await Promise.all([
@@ -2508,10 +2733,14 @@ Temp Password: ${tempPassword}
           const sessionMap = /* @__PURE__ */ new Map();
           dbPrograms.forEach((p) => {
             if (!sessionMap.has(p.id)) {
+              const catalogEntry = SESSIONS_CATALOG[p.id];
               sessionMap.set(p.id, {
                 id: p.id,
-                name: p.title,
-                category: "Regular Program",
+                name: p.title || catalogEntry?.name,
+                category: catalogEntry?.category || (p.phase === "OUTDOOR GROUP" ? "Open Park Group" : p.id?.includes("semi-private") ? "Semi-Private Coaching" : p.id?.includes("tryout") ? "Tryout & Assessment" : "Regular Program"),
+                students: catalogEntry?.students || (p.phase === "OUTDOOR GROUP" ? "Group Training" : p.id?.includes("1-on-1") ? "1 Student" : "Group"),
+                sessionDuration: catalogEntry?.sessionDuration || (p.id?.includes("1hr") ? "1 Hour" : "2 Hours"),
+                packageCount: catalogEntry?.packageCount || (p.id === "open-park-summer-camp" ? "10 Days" : "4 Sessions"),
                 ageGroup: p.ageRange && !p.ageRange.toLowerCase().includes("all ages") ? p.ageRange.toLowerCase().startsWith("age") ? p.ageRange : `Ages ${p.ageRange}` : "Ages 5 - 18",
                 skillLevel: p.phase || "Foundations",
                 location: p.location || "Fremont Arena",
@@ -2520,6 +2749,7 @@ Temp Password: ${tempPassword}
                 dates: "Rolling Enrollment",
                 time: p.schedule?.includes("(") ? p.schedule.split("(")[1]?.replace(")", "") : "10:00 AM - 12:00 PM",
                 price: Number(p.price) || 200,
+                priceNote: p.id?.includes("tryout") ? p.feeNote ? p.feeNote.replace("/ ", "") : "evaluation fee" : "per student",
                 capacity: Number(p.capacity) || 20,
                 filled: Number(p.filled) || 0,
                 coach: p.coach || "Wilson Mathew",
@@ -2541,6 +2771,7 @@ Temp Password: ${tempPassword}
                 dates: c.months || "June & July 2026",
                 time: "9:00 AM - 1:00 PM",
                 price: Number(c.price) || 350,
+                priceNote: "per student",
                 capacity: Number(c.capacity) || 25,
                 filled: Number(c.filled) || 0,
                 coach: c.coach || "Wilson Mathew & Staff",
@@ -2659,7 +2890,7 @@ Temp Password: ${tempPassword}
     if (waiverAccepted !== true && waiverAccepted !== "true") {
       return res.status(400).json({ success: false, message: "Safety & Liability Waiver must be accepted to proceed." });
     }
-    const isTryout = String(sessionId || '').toLowerCase().includes('tryout');
+    const isTryout = String(sessionId || "").toLowerCase().includes("tryout");
     const isSibling = !isTryout && (hasSibling === true || hasSibling === "true");
     if (isSibling) {
       if (!siblingName || !String(siblingName).trim()) {
@@ -3260,6 +3491,7 @@ Temp Password: ${tempPassword}
       res.status(404).json({ success: false, message: "Registration not found" });
     }
   });
+  let lastBackgroundStripeSync = 0;
   async function syncStripePaymentsWithDb() {
     const stripe = getStripe();
     if (!stripe) {
@@ -3278,7 +3510,6 @@ Temp Password: ${tempPassword}
         });
         allPaymentIntents = piRes.data || [];
       } catch {
-        // Silently skip if connection momentarily dropped
       }
       let allCharges = [];
       try {
@@ -3733,12 +3964,12 @@ Temp Password: ${tempPassword}
       res.status(500).json({ success: false, message: err.message || "Stripe sync failed" });
     }
   });
-  let lastBackgroundStripeSync = 0;
   app.get("/api/admin/stats", requireAuth, async (req, res) => {
     const currentTime = Date.now();
-    if (getStripe() && (currentTime - lastBackgroundStripeSync > 15 * 60 * 1000)) {
+    if (getStripe() && currentTime - lastBackgroundStripeSync > 15 * 60 * 1e3) {
       lastBackgroundStripeSync = currentTime;
-      syncStripePaymentsWithDb().catch(() => {});
+      syncStripePaymentsWithDb().catch(() => {
+      });
     }
     const regMap = /* @__PURE__ */ new Map();
     for (const reg of Object.values(registrations)) {
@@ -3776,7 +4007,19 @@ Temp Password: ${tempPassword}
         console.error("MongoDB stats query error:", err.message);
       }
     }
-    const allRegistrations = Array.from(regMap.values());
+    const deduplicatedRegMap = /* @__PURE__ */ new Map();
+    for (const r of regMap.values()) {
+      const pi = String(r.stripePaymentIntentId || r.transactionId || "").trim();
+      const isRealPi = pi && (pi.startsWith("pi_") || pi.startsWith("ch_") || pi.startsWith("cs_"));
+      const key = isRealPi ? `stripe_${pi.toLowerCase()}` : r.registrationId || String(r._id);
+      const existing = deduplicatedRegMap.get(key);
+      if (!existing) {
+        deduplicatedRegMap.set(key, r);
+      } else {
+        deduplicatedRegMap.set(key, { ...existing, ...r });
+      }
+    }
+    const allRegistrations = Array.from(deduplicatedRegMap.values());
     const allLeads = Array.from(leadMap.values());
     const emailJobStatusMap = /* @__PURE__ */ new Map();
     for (const job of emailJobs) {
@@ -3846,19 +4089,43 @@ Temp Password: ${tempPassword}
       failed: emailJobs.filter((j) => j.status === "failed").length,
       total: emailJobs.length
     };
-    const now = Date.now();
+    const getRegTime = (r) => {
+      if (!r) return 0;
+      if (typeof r.registeredAt === "number") return r.registeredAt;
+      if (r.registeredAt) {
+        const t = new Date(r.registeredAt).getTime();
+        if (!isNaN(t) && t > 0) return t;
+      }
+      if (typeof r.createdAt === "number") return r.createdAt;
+      if (r.createdAt) {
+        const t = new Date(r.createdAt).getTime();
+        if (!isNaN(t) && t > 0) return t;
+      }
+      return 0;
+    };
+    const nowTime = Date.now();
     const dayMs = 24 * 60 * 60 * 1e3;
+    const todayMidnight = /* @__PURE__ */ new Date();
+    todayMidnight.setHours(0, 0, 0, 0);
+    const todayMidnightMs = todayMidnight.getTime();
     const trends = Array.from({ length: 7 }).map((_, i) => {
-      const dayStart = now - (6 - i) * dayMs;
+      const dayStart = todayMidnightMs - (6 - i) * dayMs;
       const dayEnd = dayStart + dayMs;
-      const count = allRegistrations.filter((r) => r.registeredAt >= dayStart && r.registeredAt < dayEnd).length;
+      const count = allRegistrations.filter((r) => {
+        const t = getRegTime(r);
+        return t >= dayStart && t < dayEnd;
+      }).length;
       const d = new Date(dayStart);
       return {
         date: `${d.getMonth() + 1}/${d.getDate()}`,
+        day: d.toLocaleDateString("en-US", { weekday: "short" }),
         count
       };
     });
-    const recentGrowth = trends[6]?.count || 0;
+    const recentGrowth = allRegistrations.filter((r) => {
+      const t = getRegTime(r);
+      return t >= todayMidnightMs || nowTime - t <= dayMs;
+    }).length;
     res.json({
       success: true,
       stats: {
@@ -3961,6 +4228,7 @@ Temp Password: ${tempPassword}
           { upsert: true }
         );
       }
+      clearCache("public_payment_settings");
       res.json({
         success: true,
         message: "Academy payment and QR settings saved successfully",
@@ -4022,7 +4290,6 @@ Temp Password: ${tempPassword}
       if (cached) {
         return res.json({ success: true, items: cached });
       }
-
       const db = await getMongoDb();
       if (db) {
         const items = await db.collection("gallery").find({}).sort({ createdAt: -1 }).toArray();
@@ -4116,8 +4383,17 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
+    app.use(express.static(distPath, {
+      maxAge: "1y",
+      immutable: true,
+      setHeaders: (res, filePath) => {
+        if (filePath.endsWith(".html")) {
+          res.setHeader("Cache-Control", "no-cache, must-revalidate");
+        }
+      }
+    }));
     app.get("*", (req, res) => {
+      res.setHeader("Cache-Control", "no-cache, must-revalidate");
       res.sendFile(path.join(distPath, "index.html"));
     });
   }
@@ -4177,6 +4453,15 @@ async function handler(req, res) {
       req.url = `/api/${subPath}`;
     } else if (req.url && !req.url.startsWith("/api")) {
       req.url = `/api${req.url.startsWith("/") ? "" : "/"}${req.url}`;
+    }
+    if (req.body) {
+      if (Buffer.isBuffer(req.body)) {
+        req.rawBody = req.body;
+      } else if (typeof req.body === "string") {
+        req.rawBody = Buffer.from(req.body);
+      } else if (typeof req.body === "object") {
+        req.rawBody = Buffer.from(JSON.stringify(req.body));
+      }
     }
     const app = await getApp();
     return new Promise((resolve, reject) => {

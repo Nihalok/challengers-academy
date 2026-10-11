@@ -33,10 +33,11 @@ export default function Programs() {
     'gym-training-1hr',
     'gym-training-4',
     'gym-training-12',
-    'open-park-group',
     'semi-private-2',
     'semi-private-4',
     'semi-private-6',
+    'open-park-group',
+    'open-park-summer-camp',
     'summer-camp-7day',
     'summer-camp-10day',
     'summer-camp-15day',
@@ -145,10 +146,29 @@ export default function Programs() {
       ageGroups: ['All Age Groups']
     },
     {
+      id: 'open-park-summer-camp',
+      title: 'Open Park – Summer Camp',
+      fee: '$350',
+      feeNote: '/ per student',
+      sessions: '10 Days Intensive',
+      duration: '2 Hours per Session',
+      students: 'Group Training',
+      popular: false,
+      tag: 'OUTDOOR PARK',
+      bgImage: '/vb_park.jpg',
+      badgeStyle: 'bg-[#15803D] text-white font-black',
+      btnBg: '#15803D',
+      btnShadow: '#14532D',
+      btnTextColor: '#FFFFFF',
+      btnIconClass: 'bg-white/20 text-white group-hover/btn:bg-white group-hover/btn:text-[#15803D]',
+      ageRange: 'All Age Groups',
+      ageGroups: ['All Age Groups']
+    },
+    {
       id: 'semi-private-2',
       title: 'Semi-Private Coaching (2 Players)',
       fee: '$320',
-      feeNote: '/ per person',
+      feeNote: '/ per student',
       sessions: '4 Sessions',
       duration: '1 Hour',
       students: '2 Students',
@@ -166,8 +186,8 @@ export default function Programs() {
     {
       id: 'semi-private-4',
       title: 'Semi-Private Coaching (4 Players)',
-      fee: '$280',
-      feeNote: '/ per person',
+      fee: '$240',
+      feeNote: '/ per student',
       sessions: '4 Sessions',
       duration: '1 Hour',
       students: '4 Students',
@@ -185,8 +205,8 @@ export default function Programs() {
     {
       id: 'semi-private-6',
       title: 'Semi-Private Coaching (6 Players)',
-      fee: '$300',
-      feeNote: '/ per person',
+      fee: '$200',
+      feeNote: '/ per student',
       sessions: '4 Sessions',
       duration: '1 Hour',
       students: '6 Students',
@@ -438,7 +458,7 @@ export default function Programs() {
                         {pkg.fee}
                       </span>
                       <span className="text-[9px] font-black uppercase tracking-widest text-espresso/60">
-                        {pkg.feeNote || (pkg.tag === 'SEMI-PRIVATE' || pkg.id?.includes('semi-private') ? '/ per person' : (pkg.students?.includes('Per Student') ? '/ student' : '/ package'))}
+                        {pkg.feeNote || (pkg.id?.includes('tryout') ? '/ evaluation' : '/ per student')}
                       </span>
                     </div>
                     <ul className="space-y-2 mb-6">

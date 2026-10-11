@@ -384,6 +384,7 @@ export const DEFAULT_PROGRAMS = [
     ageRange: '5 - 18',
     ageGroups: ['5-10', '11-14', '15-18'],
     features: ['4 x 1-Hour Sessions', 'Group Format', 'Indoor Gym Facility', 'Drills & Rotations'],
+    feeNote: '/ per student',
     price: 100,
     schedule: 'Weekly Batches (1 Hour / Session)',
     location: 'Fremont Arena / Tracy Gym',
@@ -403,6 +404,7 @@ export const DEFAULT_PROGRAMS = [
     ageRange: '5 - 18',
     ageGroups: ['5-10', '11-14', '15-18'],
     features: ['4 x 2-Hour Sessions', 'Group Format', 'Indoor Gym Facility', 'Skills & Scrimmages'],
+    feeNote: '/ per student',
     price: 200,
     schedule: 'Weekly Batches (2 Hours / Session)',
     location: 'Fremont Arena / Tracy Gym',
@@ -422,6 +424,7 @@ export const DEFAULT_PROGRAMS = [
     ageRange: '5 - 18',
     ageGroups: ['5-10', '11-14', '15-18'],
     features: ['12 x 2-Hour Sessions', 'Best Value Package', 'Save $50 vs 4-Pack', 'Tryout & Match Prep'],
+    feeNote: '/ per student',
     price: 550,
     schedule: '3 Days / Week (2 Hours / Session)',
     location: 'Fremont Arena / Tracy Gym',
@@ -441,6 +444,7 @@ export const DEFAULT_PROGRAMS = [
     ageRange: 'All Age Groups',
     ageGroups: ['All Age Groups'],
     features: ['4 x 1-Hour Sessions', '100% 1-on-1 Focus', 'Custom Mechanics', 'Flexible Booking'],
+    feeNote: '/ per student',
     price: 360,
     schedule: 'Flexible Schedule (1 Hour / Session)',
     location: 'Long Distance',
@@ -460,6 +464,7 @@ export const DEFAULT_PROGRAMS = [
     ageRange: 'All Age Groups',
     ageGroups: ['All Age Groups'],
     features: ['4 x 1-Hour Sessions', 'Coach Travels to You', 'Personalized Drills', 'Flexible Times'],
+    feeNote: '/ per student',
     price: 320,
     schedule: 'Flexible Schedule (1 Hour / Session)',
     location: 'Nearby Park Facility of Choice',
@@ -470,35 +475,16 @@ export const DEFAULT_PROGRAMS = [
     order: 4
   },
   {
-    id: 'open-park-group',
-    title: 'Open Park - Group Training',
-    phase: 'OUTDOOR GROUP',
-    description: 'High-repetition outdoor group training building agility, ball control, and defense.',
-    longDescription: '4 outdoor group training sessions (2 hours each). Great high-energy atmosphere focusing on agility, passing, court defense, and stamina ($150 per student).',
-    image: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?q=80&w=1200&auto=format&fit=crop',
-    ageRange: 'All Age Groups',
-    ageGroups: ['All Age Groups'],
-    features: ['4 x 2-Hour Sessions', '$150 Per Student', 'High Repetition Drills', 'Outdoor Park Court'],
-    price: 150,
-    schedule: 'Weekly Batches (2 Hours / Session)',
-    location: 'Open Park Facilities',
-    capacity: 20,
-    filled: 11,
-    coach: 'Academy Coaching Staff',
-    isActive: true,
-    order: 5
-  },
-  {
     id: 'semi-private-2',
     title: 'Semi-Private Coaching (2 Players)',
     phase: 'SEMI-PRIVATE',
-    description: 'Intense 1-hour skill sessions for 2 players only with Head Coach Wilson Mathew ($320/person).',
-    longDescription: 'Semi-private coaching focused exclusively on 2 athletes. 4 focused 1-hour sessions with fast-paced high-repetition drill architecture engineered for accelerated technical growth ($320 per person).',
+    description: 'Intense 1-hour skill sessions for 2 players only with Head Coach Wilson Mathew ($320/student).',
+    longDescription: 'Semi-private coaching focused exclusively on 2 athletes. 4 focused 1-hour sessions with fast-paced high-repetition drill architecture engineered for accelerated technical growth ($320 per student).',
     image: 'https://images.unsplash.com/photo-1547347298-4074fc3086f0?q=80&w=1200&auto=format&fit=crop',
     ageRange: 'All Age Groups',
     ageGroups: ['All Age Groups'],
-    features: ['4 Sessions ($320/person)', '2 Players Only', '1-Hour Session', 'Intensive Personal Reps'],
-    feeNote: '/ per person',
+    features: ['4 Sessions ($320/student)', '2 Players Only', '1-Hour Session', 'Intensive Personal Reps'],
+    feeNote: '/ per student',
     price: 320,
     schedule: 'Weekly Batches (1 Hour / Session)',
     location: 'Fremont Arena / Regional Facility',
@@ -512,14 +498,14 @@ export const DEFAULT_PROGRAMS = [
     id: 'semi-private-4',
     title: 'Semi-Private Coaching (4 Players)',
     phase: 'SEMI-PRIVATE',
-    description: 'Focused small-group coaching for 4 players building team chemistry and skill execution ($280/person).',
-    longDescription: 'High-rep small group session tailored for 4 players. 4 focused 1-hour sessions covering positional coordination, serve-receive rotations, and tactical gameplay ($280 per person).',
+    description: 'Focused small-group coaching for 4 players building team chemistry and skill execution ($240/student).',
+    longDescription: 'High-rep small group session tailored for 4 players. 4 focused 1-hour sessions covering positional coordination, serve-receive rotations, and tactical gameplay ($240 per student).',
     image: 'https://images.unsplash.com/photo-1547347298-4074fc3086f0?q=80&w=1200&auto=format&fit=crop',
     ageRange: 'All Age Groups',
     ageGroups: ['All Age Groups'],
-    features: ['4 Sessions ($280/person)', '4 Players Only', '1-Hour Session', 'Rotational Tactics'],
-    feeNote: '/ per person',
-    price: 280,
+    features: ['4 Sessions ($240/student)', '4 Players Only', '1-Hour Session', 'Rotational Tactics'],
+    feeNote: '/ per student',
+    price: 240,
     schedule: 'Weekly Batches (1 Hour / Session)',
     location: 'Fremont Arena / Regional Facility',
     capacity: 12,
@@ -532,14 +518,14 @@ export const DEFAULT_PROGRAMS = [
     id: 'semi-private-6',
     title: 'Semi-Private Coaching (6 Players)',
     phase: 'SEMI-PRIVATE',
-    description: 'Dynamic 1-hour small squad coaching for 6 players emphasizing rotational skills ($300/person).',
-    longDescription: 'Comprehensive 1-hour small squad training for 6 players across 4 sessions. Focuses on full court execution, setter-hitter connections, and defensive transition ($300 per person).',
+    description: 'Dynamic 1-hour small squad coaching for 6 players emphasizing rotational skills ($200/student).',
+    longDescription: 'Comprehensive 1-hour small squad training for 6 players across 4 sessions. Focuses on full court execution, setter-hitter connections, and defensive transition ($200 per student).',
     image: 'https://images.unsplash.com/photo-1547347298-4074fc3086f0?q=80&w=1200&auto=format&fit=crop',
     ageRange: 'All Age Groups',
     ageGroups: ['All Age Groups'],
-    features: ['4 Sessions ($300/person)', '6 Players Only', '1-Hour Session', 'Match System Drills'],
-    feeNote: '/ per person',
-    price: 300,
+    features: ['4 Sessions ($200/student)', '6 Players Only', '1-Hour Session', 'Match System Drills'],
+    feeNote: '/ per student',
+    price: 200,
     schedule: 'Weekly Batches (1 Hour / Session)',
     location: 'Fremont Arena / Regional Facility',
     capacity: 18,
@@ -547,6 +533,46 @@ export const DEFAULT_PROGRAMS = [
     coach: 'Wilson Mathew & Staff',
     isActive: true,
     order: 8
+  },
+  {
+    id: 'open-park-group',
+    title: 'Open Park - Group Training',
+    phase: 'OUTDOOR GROUP',
+    description: 'High-repetition outdoor group training building agility, ball control, and defense.',
+    longDescription: '4 outdoor group training sessions (2 hours each). Great high-energy atmosphere focusing on agility, passing, court defense, and stamina ($150 per student).',
+    image: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?q=80&w=1200&auto=format&fit=crop',
+    ageRange: 'All Age Groups',
+    ageGroups: ['All Age Groups'],
+    features: ['4 x 2-Hour Sessions', '$150 Per Student', 'High Repetition Drills', 'Outdoor Park Court'],
+    feeNote: '/ per student',
+    price: 150,
+    schedule: 'Weekly Batches (2 Hours / Session)',
+    location: 'Open Park Facilities',
+    capacity: 20,
+    filled: 11,
+    coach: 'Academy Coaching Staff',
+    isActive: true,
+    order: 9
+  },
+  {
+    id: 'open-park-summer-camp',
+    title: 'Open Park – Summer Camp',
+    phase: 'OUTDOOR GROUP',
+    description: '10-day intensive open park summer clinic covering volleyball fundamentals, high-rep drills, stamina, and team play ($350 per student).',
+    longDescription: '10-day outdoor open park summer clinic (2 hours per day). Intensive repetition, footwork agility, ball control, and competitive match scrimmages ($350 per student).',
+    image: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?q=80&w=1200&auto=format&fit=crop',
+    ageRange: 'All Age Groups',
+    ageGroups: ['All Age Groups'],
+    features: ['10 Days (2 Hours/Day)', '$350 Per Student', 'High Repetition Drills', 'Outdoor Park Court'],
+    feeNote: '/ per student',
+    price: 350,
+    schedule: 'Mon - Fri Batches (2 Hours / Session)',
+    location: 'Open Park Facilities',
+    capacity: 20,
+    filled: 6,
+    coach: 'Academy Coaching Staff',
+    isActive: true,
+    order: 10
   },
   {
     id: 'tryout-session',
@@ -558,6 +584,7 @@ export const DEFAULT_PROGRAMS = [
     ageRange: '5 - 18',
     ageGroups: ['5-10', '11-14', '15-18'],
     features: ['2-Hour Court Evaluation', 'Coach Skill Feedback', 'Placement Advice', 'No Long-Term Commitment'],
+    feeNote: '/ evaluation fee',
     price: 30,
     schedule: 'Weekly Tryout Slots (2 Hours Total)',
     location: 'Fremont Arena / Regional Gym',
@@ -565,7 +592,7 @@ export const DEFAULT_PROGRAMS = [
     filled: 12,
     coach: 'Wilson Mathew',
     isActive: true,
-    order: 9
+    order: 11
   }
 ];
 
@@ -577,6 +604,7 @@ export const DEFAULT_CAMPS = [
     duration: '7 Days',
     months: 'June & July 2026',
     bestFor: 'Technique Refinement',
+    feeNote: '/ per student',
     price: 350,
     schedule: 'Mon - Fri (9:00 AM - 1:00 PM)',
     location: 'Fremont Arena / Regional Facility',
@@ -593,6 +621,7 @@ export const DEFAULT_CAMPS = [
     duration: '10 Days',
     months: 'June & July 2026',
     bestFor: 'Game Strategy & Tactics',
+    feeNote: '/ per student',
     price: 500,
     schedule: 'Mon - Fri (9:00 AM - 1:00 PM)',
     location: 'Fremont Arena / Regional Facility',
@@ -609,6 +638,7 @@ export const DEFAULT_CAMPS = [
     duration: '15 Days',
     months: 'June & July 2026',
     bestFor: 'Competitive Club & High School Prep',
+    feeNote: '/ per student',
     price: 750,
     schedule: 'Mon - Fri (9:00 AM - 1:00 PM)',
     location: 'Fremont Arena / Regional Facility',
@@ -631,6 +661,7 @@ async function seedPrograms(db: Db) {
         $set: { 
           title: prog.title,
           price: prog.price,
+          feeNote: prog.feeNote,
           phase: prog.phase,
           description: prog.description,
           longDescription: prog.longDescription,
@@ -1008,6 +1039,9 @@ export interface SessionCatalogItem {
   id: string;
   name: string;
   category: string;
+  students?: string;
+  sessionDuration?: string;
+  packageCount?: string;
   ageGroup: string;
   skillLevel: string;
   location: string;
@@ -1020,6 +1054,7 @@ export interface SessionCatalogItem {
   filled: number;
   coach: string;
   description: string;
+  priceNote?: string;
 }
 
 export const SESSIONS_CATALOG: Record<string, SessionCatalogItem> = {
@@ -1035,6 +1070,7 @@ export const SESSIONS_CATALOG: Record<string, SessionCatalogItem> = {
     dates: 'Starting Next Weekend',
     time: '1 Hour per Session',
     price: 100,
+    priceNote: 'per student',
     capacity: 25,
     filled: 10,
     coach: 'Wilson Mathew & Coaching Team',
@@ -1052,6 +1088,7 @@ export const SESSIONS_CATALOG: Record<string, SessionCatalogItem> = {
     dates: 'Starting Next Weekend',
     time: '2 Hours per Session',
     price: 200,
+    priceNote: 'per student',
     capacity: 25,
     filled: 14,
     coach: 'Wilson Mathew & Coaching Team',
@@ -1069,6 +1106,7 @@ export const SESSIONS_CATALOG: Record<string, SessionCatalogItem> = {
     dates: 'Rolling Monthly Batches',
     time: '2 Hours per Session',
     price: 550,
+    priceNote: 'per student',
     capacity: 25,
     filled: 18,
     coach: 'Wilson Mathew & Senior Staff',
@@ -1086,6 +1124,7 @@ export const SESSIONS_CATALOG: Record<string, SessionCatalogItem> = {
     dates: 'Book on Demand',
     time: '1 Hour per Session',
     price: 360,
+    priceNote: 'per student',
     capacity: 10,
     filled: 6,
     coach: 'Dedicated Master Coach',
@@ -1103,6 +1142,7 @@ export const SESSIONS_CATALOG: Record<string, SessionCatalogItem> = {
     dates: 'Book on Demand',
     time: '1 Hour per Session',
     price: 320,
+    priceNote: 'per student',
     capacity: 10,
     filled: 4,
     coach: 'Coach Wilson Mathew / Specialist',
@@ -1120,10 +1160,32 @@ export const SESSIONS_CATALOG: Record<string, SessionCatalogItem> = {
     dates: 'Weekly Batches',
     time: '2 Hours per Session',
     price: 150,
+    priceNote: 'per student',
     capacity: 20,
     filled: 11,
     coach: 'Academy Coaching Staff',
     description: '4 outdoor group training sessions (2 hours each). High reps, agility, ball control, and defense ($150 per student).'
+  },
+  'open-park-summer-camp': {
+    id: 'open-park-summer-camp',
+    name: 'Open Park – Summer Camp',
+    category: 'Open Park Group',
+    students: 'Group Training',
+    sessionDuration: '2 Hours',
+    packageCount: '10 Days',
+    ageGroup: 'All Age Groups',
+    skillLevel: 'Fundamental & Repetitive Drills',
+    location: 'Open Park Facilities',
+    locationAddress: 'Outdoor Open Park Courts',
+    schedule: 'Mon - Fri Batches (10 Days)',
+    dates: 'June & July 2026',
+    time: '2 Hours per Session (10 Days)',
+    price: 350,
+    priceNote: 'per student',
+    capacity: 20,
+    filled: 6,
+    coach: 'Head Coach Wilson Mathew & Assistants',
+    description: '10-day intensive open park summer clinic covering volleyball fundamentals, high-rep drills, stamina, and team play ($350 per student).'
   },
   'tryout-session': {
     id: 'tryout-session',
@@ -1137,6 +1199,7 @@ export const SESSIONS_CATALOG: Record<string, SessionCatalogItem> = {
     dates: 'Upcoming Weekend',
     time: '2 Hours Total',
     price: 30,
+    priceNote: 'evaluation fee',
     capacity: 30,
     filled: 12,
     coach: 'Wilson Mathew',
@@ -1222,10 +1285,11 @@ export const SESSIONS_CATALOG: Record<string, SessionCatalogItem> = {
     dates: 'Book on Demand (4 Sessions)',
     time: '1 Hour per Session (2 Students)',
     price: 320,
+    priceNote: 'per student',
     capacity: 10,
     filled: 4,
     coach: 'Head Coach Wilson Mathew',
-    description: 'Focused small group training for 2 students. 4 focused 1-hour sessions ($320 per person).'
+    description: 'Focused small group training for 2 students. 4 focused 1-hour sessions ($320 per student).'
   },
   'semi-private-4': {
     id: 'semi-private-4',
@@ -1238,11 +1302,12 @@ export const SESSIONS_CATALOG: Record<string, SessionCatalogItem> = {
     schedule: 'Flexible Small Group Slots',
     dates: 'Book on Demand (4 Sessions)',
     time: '1 Hour per Session (4 Students)',
-    price: 280,
+    price: 240,
+    priceNote: 'per student',
     capacity: 12,
     filled: 6,
     coach: 'Head Coach Wilson Mathew',
-    description: 'Focused training for 4 students. 4 focused 1-hour sessions ($280 per person).'
+    description: 'Focused training for 4 students. 4 focused 1-hour sessions ($240 per student).'
   },
   'semi-private-6': {
     id: 'semi-private-6',
@@ -1255,11 +1320,12 @@ export const SESSIONS_CATALOG: Record<string, SessionCatalogItem> = {
     schedule: 'Flexible Small Group Slots',
     dates: 'Book on Demand (4 Sessions)',
     time: '1 Hour per Session (6 Students)',
-    price: 300,
+    price: 200,
+    priceNote: 'per student',
     capacity: 18,
     filled: 10,
     coach: 'Head Coach Wilson Mathew',
-    description: 'Focused training for 6 students. 4 focused 1-hour sessions ($300 per person).'
+    description: 'Focused training for 6 students. 4 focused 1-hour sessions ($200 per student).'
   },
   'summer-camp-7day': {
     id: 'summer-camp-7day',
@@ -3247,10 +3313,14 @@ Challengers Volleyball Academy
           // Add Programs first (official academy training packages)
           dbPrograms.forEach((p: any) => {
             if (!sessionMap.has(p.id)) {
+              const catalogEntry = (SESSIONS_CATALOG as Record<string, any>)[p.id];
               sessionMap.set(p.id, {
                 id: p.id,
-                name: p.title,
-                category: 'Regular Program',
+                name: p.title || catalogEntry?.name,
+                category: catalogEntry?.category || (p.phase === 'OUTDOOR GROUP' ? 'Open Park Group' : (p.id?.includes('semi-private') ? 'Semi-Private Coaching' : (p.id?.includes('tryout') ? 'Tryout & Assessment' : 'Regular Program'))),
+                students: catalogEntry?.students || (p.phase === 'OUTDOOR GROUP' ? 'Group Training' : (p.id?.includes('1-on-1') ? '1 Student' : 'Group')),
+                sessionDuration: catalogEntry?.sessionDuration || (p.id?.includes('1hr') ? '1 Hour' : '2 Hours'),
+                packageCount: catalogEntry?.packageCount || (p.id === 'open-park-summer-camp' ? '10 Days' : '4 Sessions'),
                 ageGroup: p.ageRange && !p.ageRange.toLowerCase().includes('all ages') ? (p.ageRange.toLowerCase().startsWith('age') ? p.ageRange : `Ages ${p.ageRange}`) : 'Ages 5 - 18',
                 skillLevel: p.phase || 'Foundations',
                 location: p.location || 'Fremont Arena',
@@ -3259,6 +3329,7 @@ Challengers Volleyball Academy
                 dates: 'Rolling Enrollment',
                 time: p.schedule?.includes('(') ? p.schedule.split('(')[1]?.replace(')', '') : '10:00 AM - 12:00 PM',
                 price: Number(p.price) || 200,
+                priceNote: p.id?.includes('tryout') ? (p.feeNote ? p.feeNote.replace('/ ', '') : 'evaluation fee') : 'per student',
                 capacity: Number(p.capacity) || 20,
                 filled: Number(p.filled) || 0,
                 coach: p.coach || 'Wilson Mathew',
@@ -3282,6 +3353,7 @@ Challengers Volleyball Academy
                 dates: c.months || 'June & July 2026',
                 time: '9:00 AM - 1:00 PM',
                 price: Number(c.price) || 350,
+                priceNote: 'per student',
                 capacity: Number(c.capacity) || 25,
                 filled: Number(c.filled) || 0,
                 coach: c.coach || 'Wilson Mathew & Staff',

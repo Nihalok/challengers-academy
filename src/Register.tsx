@@ -62,7 +62,7 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     dates: 'Starting Next Weekend',
     time: '1 Hour per Session',
     price: 100,
-    priceNote: 'package fee',
+    priceNote: 'per student',
     capacity: 25,
     filled: 10,
     coach: 'Head Coach Wilson Mathew & Coaching Team',
@@ -85,7 +85,7 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     dates: 'Starting Next Weekend',
     time: '2 Hours per Session',
     price: 200,
-    priceNote: 'package fee',
+    priceNote: 'per student',
     capacity: 25,
     filled: 14,
     coach: 'Head Coach Wilson Mathew & Coaching Team',
@@ -108,7 +108,7 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     dates: 'Rolling Monthly Batches',
     time: '2 Hours per Session',
     price: 550,
-    priceNote: 'package fee (Save $50)',
+    priceNote: 'per student',
     capacity: 25,
     filled: 18,
     coach: 'Head Coach Wilson Mathew & Senior Staff',
@@ -142,32 +142,7 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     popular: false
   },
 
-  // ── 3. OPEN PARK GROUP ──
-  {
-    id: 'open-park-group',
-    name: 'Open Park – Group Training',
-    category: 'Open Park Group',
-    students: 'Group Training',
-    sessionDuration: '2 Hours',
-    packageCount: '4 Sessions',
-    ageGroup: 'All Age Groups',
-    skillLevel: 'Fundamental & Repetitive Drills',
-    location: 'Open Park Facilities',
-    locationAddress: 'Outdoor Open Park Courts',
-    schedule: 'Saturday & Sunday Mornings',
-    dates: 'Starting Next Weekend',
-    time: '2 Hours per Session',
-    price: 150,
-    priceNote: 'per student',
-    capacity: 20,
-    filled: 9,
-    coach: 'Head Coach Wilson Mathew & Assistants',
-    description: 'High-repetition open park coaching building stamina, ball control, and defense for 12+ students.',
-    features: ['Outdoor Open Air Training', 'High-Rep Passing & Defense', 'Economical Group Rate', 'Stamina & Ball Control'],
-    popular: false
-  },
-
-  // ── 4. PRIVATE COACHING ──
+  // ── 3. PRIVATE COACHING ──
   {
     id: 'open-park-travel',
     name: 'Private Coaching – Open Park (Short Distance)',
@@ -183,7 +158,7 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     dates: 'Book on Demand',
     time: '1 Hour per Session',
     price: 320,
-    priceNote: 'package fee',
+    priceNote: 'per student',
     capacity: 10,
     filled: 4,
     coach: 'Certified Academy Coach',
@@ -206,7 +181,7 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     dates: 'Book on Demand',
     time: '1 Hour per Session',
     price: 360,
-    priceNote: 'package fee',
+    priceNote: 'per student',
     capacity: 10,
     filled: 6,
     coach: 'Dedicated Master Coach',
@@ -215,7 +190,126 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     popular: false
   },
 
-  // ── 5. SUMMER CAMPS ──
+  // ── 4. SEMI-PRIVATE COACHING (CARDS 7, 8, 9) ──
+  {
+    id: 'semi-private-2',
+    name: 'Semi-Private Coaching (2 Students)',
+    category: 'Semi-Private Coaching',
+    students: '2 Students',
+    sessionDuration: '1 Hour',
+    packageCount: '4 Sessions',
+    ageGroup: 'All Age Groups',
+    skillLevel: 'Focused Small Group',
+    location: 'Fremont Arena / Regional Facility',
+    locationAddress: 'Bay Area Facility',
+    schedule: 'Flexible Small Group Slots',
+    dates: 'Book on Demand (4 Sessions)',
+    time: '1 Hour per Session (2 Students)',
+    price: 320,
+    priceNote: 'per student',
+    capacity: 10,
+    filled: 4,
+    coach: 'Head Coach Wilson Mathew',
+    description: 'Focused semi-private training for 2 students. 4 focused 1-hour sessions of intense personalized skill reps ($320 per student).',
+    features: ['4 Sessions', '1 Hour per Session', '2 Students', 'Certified Coaches'],
+    popular: false
+  },
+  {
+    id: 'semi-private-4',
+    name: 'Semi-Private Coaching (4 Students)',
+    category: 'Semi-Private Coaching',
+    students: '4 Students',
+    sessionDuration: '1 Hour',
+    packageCount: '4 Sessions',
+    ageGroup: 'All Age Groups',
+    skillLevel: 'Focused Small Group',
+    location: 'Fremont Arena / Regional Facility',
+    locationAddress: 'Bay Area Facility',
+    schedule: 'Flexible Small Group Slots',
+    dates: 'Book on Demand (4 Sessions)',
+    time: '1 Hour per Session (4 Students)',
+    price: 240,
+    priceNote: 'per student',
+    capacity: 12,
+    filled: 6,
+    coach: 'Head Coach Wilson Mathew',
+    description: 'Semi-private small group coaching with 4 students. 4 focused 1-hour sessions focusing on team chemistry and skill execution ($240 per student).',
+    features: ['4 Sessions', '1 Hour per Session', '4 Students', 'Certified Coaches'],
+    popular: false
+  },
+  {
+    id: 'semi-private-6',
+    name: 'Semi-Private Coaching (6 Students)',
+    category: 'Semi-Private Coaching',
+    students: '6 Students',
+    sessionDuration: '1 Hour',
+    packageCount: '4 Sessions',
+    ageGroup: 'All Age Groups',
+    skillLevel: 'Focused Small Group',
+    location: 'Fremont Arena / Regional Facility',
+    locationAddress: 'Bay Area Facility',
+    schedule: 'Flexible Small Group Slots',
+    dates: 'Book on Demand (4 Sessions)',
+    time: '1 Hour per Session (6 Students)',
+    price: 200,
+    priceNote: 'per student',
+    capacity: 18,
+    filled: 10,
+    coach: 'Head Coach Wilson Mathew',
+    description: 'Semi-private training for 6 students. 4 focused 1-hour sessions with tactical sets and game simulation ($200 per student).',
+    features: ['4 Sessions', '1 Hour per Session', '6 Students', 'Certified Coaches'],
+    popular: false
+  },
+
+  // ── 5. OPEN PARK COACHING (10TH CARD & 11TH CARD - AFTER 3 SEMI-PRIVATE SESSIONS) ──
+  {
+    id: 'open-park-group',
+    name: 'Open Park – Regular coaching',
+    category: 'Open Park Group',
+    students: 'Group Training',
+    sessionDuration: '2 Hours',
+    packageCount: '4 Sessions',
+    ageGroup: 'All Age Groups',
+    skillLevel: 'Fundamental & Repetitive Drills',
+    location: 'Open Park Facilities',
+    locationAddress: 'Outdoor Open Park Courts',
+    schedule: 'Saturday & Sunday Mornings',
+    dates: 'Starting Next Weekend',
+    time: '2 Hours per Session',
+    price: 150,
+    priceNote: 'per student',
+    capacity: 20,
+    filled: 9,
+    coach: 'Head Coach Wilson Mathew & Assistants',
+    description: 'High-repetition open park coaching building stamina, ball control, and defense for 12+ students.',
+    features: ['Outdoor Open Air Training', 'High-Rep Passing & Defense', 'Economical Group Rate', 'Stamina & Ball Control'],
+    popular: false
+  },
+  {
+    id: 'open-park-summer-camp',
+    name: 'Open Park – Summer Camp',
+    category: 'Open Park Group',
+    students: 'Group Training',
+    sessionDuration: '2 Hours',
+    packageCount: '10 Days',
+    ageGroup: 'All Age Groups',
+    skillLevel: 'Fundamental & Repetitive Drills',
+    location: 'Open Park Facilities',
+    locationAddress: 'Outdoor Open Park Courts',
+    schedule: 'Mon - Fri (10 Days)',
+    dates: 'June & July 2026',
+    time: '2 Hours per Session',
+    price: 350,
+    priceNote: 'per student',
+    capacity: 20,
+    filled: 6,
+    coach: 'Head Coach Wilson Mathew & Assistants',
+    description: '10-day intensive open park summer clinic covering volleyball fundamentals, high-rep drills, stamina, and team play ($350 per student).',
+    features: ['2 Hours', '10 Days', 'Group Training', 'Certified Coaches'],
+    popular: false
+  },
+
+  // ── 6. SUMMER CAMPS (CARDS 12, 13, 14) ──
   {
     id: 'summer-camp-7day',
     name: '7-Day Intensive Summer Clinic',
@@ -231,7 +325,7 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     dates: 'June & July 2026',
     time: '9:00 AM - 1:00 PM',
     price: 350,
-    priceNote: 'package fee',
+    priceNote: 'per student',
     capacity: 25,
     filled: 14,
     coach: 'Wilson Mathew & Coaching Staff',
@@ -254,7 +348,7 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     dates: 'June & July 2026',
     time: '9:00 AM - 1:00 PM',
     price: 500,
-    priceNote: 'package fee',
+    priceNote: 'per student',
     capacity: 25,
     filled: 18,
     coach: 'Wilson Mathew & Senior Staff',
@@ -277,83 +371,12 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
     dates: 'June & July 2026',
     time: '9:00 AM - 1:00 PM',
     price: 750,
-    priceNote: 'package fee',
+    priceNote: 'per student',
     capacity: 25,
     filled: 19,
     coach: 'Wilson Mathew & Master Staff',
     description: 'Full biomechanical breakdown, video analysis, college recruitment guidance, and high-speed match play.',
     features: ['15 Days Full Masterclass', 'Biomechanical & Video Review', 'High-Speed Match Play', 'Tournament Showcase'],
-    popular: false
-  },
-
-  // ── 7. SEMI-PRIVATE COACHING ──
-  {
-    id: 'semi-private-2',
-    name: 'Semi-Private Coaching (2 Students)',
-    category: 'Semi-Private Coaching',
-    students: '2 Students',
-    sessionDuration: '1 Hour',
-    packageCount: '4 Sessions',
-    ageGroup: 'All Age Groups',
-    skillLevel: 'Focused Small Group',
-    location: 'Fremont Arena / Regional Facility',
-    locationAddress: 'Bay Area Facility',
-    schedule: 'Flexible Small Group Slots',
-    dates: 'Book on Demand (4 Sessions)',
-    time: '1 Hour per Session (2 Students)',
-    price: 320,
-    priceNote: 'per person',
-    capacity: 10,
-    filled: 4,
-    coach: 'Head Coach Wilson Mathew',
-    description: 'Focused semi-private training for 2 students. 4 focused 1-hour sessions of intense personalized skill reps ($320 per person).',
-    features: ['4 Sessions', '1 Hour per Session', '2 Students', 'Certified Coaches'],
-    popular: false
-  },
-  {
-    id: 'semi-private-4',
-    name: 'Semi-Private Coaching (4 Students)',
-    category: 'Semi-Private Coaching',
-    students: '4 Students',
-    sessionDuration: '1 Hour',
-    packageCount: '4 Sessions',
-    ageGroup: 'All Age Groups',
-    skillLevel: 'Focused Small Group',
-    location: 'Fremont Arena / Regional Facility',
-    locationAddress: 'Bay Area Facility',
-    schedule: 'Flexible Small Group Slots',
-    dates: 'Book on Demand (4 Sessions)',
-    time: '1 Hour per Session (4 Students)',
-    price: 280,
-    priceNote: 'per person',
-    capacity: 12,
-    filled: 6,
-    coach: 'Head Coach Wilson Mathew',
-    description: 'Semi-private small group coaching with 4 students. 4 focused 1-hour sessions focusing on team chemistry and skill execution ($280 per person).',
-    features: ['4 Sessions', '1 Hour per Session', '4 Students', 'Certified Coaches'],
-    popular: false
-  },
-  {
-    id: 'semi-private-6',
-    name: 'Semi-Private Coaching (6 Students)',
-    category: 'Semi-Private Coaching',
-    students: '6 Students',
-    sessionDuration: '1 Hour',
-    packageCount: '4 Sessions',
-    ageGroup: 'All Age Groups',
-    skillLevel: 'Focused Small Group',
-    location: 'Fremont Arena / Regional Facility',
-    locationAddress: 'Bay Area Facility',
-    schedule: 'Flexible Small Group Slots',
-    dates: 'Book on Demand (4 Sessions)',
-    time: '1 Hour per Session (6 Students)',
-    price: 300,
-    priceNote: 'per person',
-    capacity: 18,
-    filled: 10,
-    coach: 'Head Coach Wilson Mathew',
-    description: 'Semi-private training for 6 students. 4 focused 1-hour sessions with tactical sets and game simulation ($300 per person).',
-    features: ['4 Sessions', '1 Hour per Session', '6 Students', 'Certified Coaches'],
     popular: false
   }
 ];
@@ -477,7 +500,7 @@ export default function Register() {
 
 
 
-  // Fetch session catalog on mount and merge with official packages
+  // Fetch session catalog on mount and merge live availability from server
   useEffect(() => {
     fetch('/api/sessions')
       .then(res => {
@@ -486,62 +509,57 @@ export default function Register() {
       })
       .then(data => {
         if (data.success && Array.isArray(data.sessions) && data.sessions.length > 0) {
-          const campSessions: SessionItem[] = [];
-          const otherServerSessions: SessionItem[] = [];
-
-          // Augment or add from database — split camps vs others
-          data.sessions.filter((s: any) => s.id !== 'large-group-training').forEach((s: any) => {
-            const isCamp = (s.category || '').toLowerCase().includes('summer') ||
-                           (s.id || '').toLowerCase().includes('summer-camp') ||
-                           (s.id || '').toLowerCase().includes('camp');
-            const isPrivate = s.category?.includes('Private') || s.id?.includes('private') || s.id?.includes('travel');
-            const sessionItem: SessionItem = {
-              id: s.id,
-              name: s.name,
-              category: s.category || 'Coaching Program',
-              students: isPrivate ? '1 Student' : 'Group',
-              sessionDuration: s.duration || (isPrivate || s.id?.includes('1hr') ? '1 Hour' : '2 Hours'),
-              packageCount: 'Coaching Package',
-              ageGroup: s.ageGroup && s.ageGroup !== 'All Ages' && s.ageGroup !== 'All Ages / Group' ? s.ageGroup : 'Ages 5 - 18',
-              skillLevel: s.skillLevel || s.bestFor || 'All Levels',
-              location: s.location || 'Fremont Arena',
-              locationAddress: s.locationAddress || 'Bay Area Facility',
-              schedule: s.schedule || 'Scheduled Sessions',
-              dates: s.months || s.dates || 'Rolling Enrollment',
-              time: s.time || (isPrivate || s.id?.includes('1hr') ? '1 Hour per Session' : '2 Hours per Session'),
-              price: Number(s.price) || 200,
-              priceNote: s.priceNote || (s.id?.includes('semi-private') ? 'per person' : 'package fee'),
-              capacity: Number(s.capacity) || 25,
-              filled: Number(s.filled) || 0,
-              coach: s.coach || 'Head Coach Wilson Mathew & Coaches',
-              description: s.description || 'Comprehensive academy volleyball coaching.',
-              features: ['Professional Mentorship', 'Court Drills', 'Tactics', 'Technique Review'],
-              popular: false
+          // Merge server live capacity/filled into OFFICIAL_SESSIONS while strictly preserving official order and attributes
+          const updatedSessions = OFFICIAL_SESSIONS.map(official => {
+            const serverMatch = data.sessions.find((s: any) => s.id === official.id);
+            if (!serverMatch) return official;
+            return {
+              ...official,
+              // Strictly preserve official title, category, students, sessionDuration, packageCount, and features
+              price: typeof serverMatch.price === 'number' && serverMatch.price > 0 ? serverMatch.price : official.price,
+              capacity: Number(serverMatch.capacity) || official.capacity,
+              filled: Number(serverMatch.filled) || official.filled,
             };
-            if (isCamp) {
-              campSessions.push(sessionItem);
-            } else if (!OFFICIAL_SESSIONS.find(o => o.id === s.id) && !s.id.toLowerCase().includes('duplicate') && s.id !== 'large-group-training') {
-              otherServerSessions.push(sessionItem);
-            }
           });
 
-          // Separate non-camps and summer camps from official list
-          const baseNonCamps = OFFICIAL_SESSIONS.filter(s => !s.id.includes('camp') && !s.category.toLowerCase().includes('camp'));
-          const baseCamps = OFFICIAL_SESSIONS.filter(s => s.id.includes('camp') || s.category.toLowerCase().includes('camp'));
+          // Any new custom sessions from DB not in OFFICIAL_SESSIONS
+          const customServerSessions: SessionItem[] = [];
+          data.sessions
+            .filter((s: any) => s.id !== 'large-group-training' && !s.id.toLowerCase().includes('duplicate'))
+            .forEach((s: any) => {
+              if (!OFFICIAL_SESSIONS.some(o => o.id === s.id)) {
+                const isPrivate = s.category?.includes('Private') || s.id?.includes('private') || s.id?.includes('travel');
+                customServerSessions.push({
+                  id: s.id,
+                  name: s.name,
+                  category: s.category || 'Coaching Program',
+                  students: isPrivate ? '1 Student' : 'Group',
+                  sessionDuration: s.duration || (isPrivate || s.id?.includes('1hr') ? '1 Hour' : '2 Hours'),
+                  packageCount: s.packageCount || 'Coaching Package',
+                  ageGroup: s.ageGroup && s.ageGroup !== 'All Ages' && s.ageGroup !== 'All Ages / Group' ? s.ageGroup : 'Ages 5 - 18',
+                  skillLevel: s.skillLevel || s.bestFor || 'All Levels',
+                  location: s.location || 'Fremont Arena',
+                  locationAddress: s.locationAddress || 'Bay Area Facility',
+                  schedule: s.schedule || 'Scheduled Sessions',
+                  dates: s.months || s.dates || 'Rolling Enrollment',
+                  time: s.time || (isPrivate || s.id?.includes('1hr') ? '1 Hour per Session' : '2 Hours per Session'),
+                  price: Number(s.price) || 200,
+                  priceNote: s.priceNote || 'package fee',
+                  capacity: Number(s.capacity) || 25,
+                  filled: Number(s.filled) || 0,
+                  coach: s.coach || 'Head Coach Wilson Mathew & Coaches',
+                  description: s.description || 'Comprehensive academy volleyball coaching.',
+                  features: ['Professional Mentorship', 'Court Drills', 'Tactics', 'Technique Review'],
+                  popular: false
+                });
+              }
+            });
 
-          const finalCamps = [...baseCamps];
-          campSessions.forEach(cs => {
-            const idx = finalCamps.findIndex(f => f.id === cs.id);
-            if (idx !== -1) finalCamps[idx] = cs;
-            else finalCamps.push(cs);
-          });
-
-          // Order: Regular Packages first → other custom server sessions → Summer Camps at the bottom
-          setSessions([...baseNonCamps, ...otherServerSessions, ...finalCamps]);
+          setSessions([...updatedSessions, ...customServerSessions]);
         }
       })
       .catch(() => {
-        // Fallback already initialized with OFFICIAL_SESSIONS (with camps at bottom)
+        // Fallback already initialized with OFFICIAL_SESSIONS
       });
   }, []);
 
@@ -979,6 +997,12 @@ export default function Register() {
                 Search &amp; Select Coaching Program
               </h2>
               <p className="text-slate-500 text-xs mt-0.5 font-medium">Click any package to register &amp; reserve your spot</p>
+              <p className="text-xs sm:text-[13px] text-slate-700 font-semibold mt-1.5 flex items-center gap-1.5 flex-wrap">
+                <Calendar className="w-3.5 h-3.5 text-[#D62828] shrink-0" />
+                <span>
+                  <strong className="text-slate-900 font-bold">Program Duration:</strong> Every Year, August–April (9 Months) <span className="text-slate-400 mx-1">•</span> <span className="text-[#D62828] font-bold">June &amp; July: Summer Camp</span>
+                </span>
+              </p>
             </div>
 
             {/* Search Input */}
@@ -1009,7 +1033,7 @@ export default function Register() {
               { id: 'tryout', label: 'Tryout Session ($30)' },
               { id: 'gym', label: 'Regular Gym Coaching ($100 - $550)' },
               { id: 'park', label: 'Open Park Coaching ($150)' },
-              { id: 'semi-private', label: 'Semi-Private Coaching ($280 - $320/person)' },
+              { id: 'semi-private', label: 'Semi-Private Coaching ($200 - $320/student)' },
               { id: 'private', label: 'Private 1-on-1 ($320 - $360)' },
               { id: 'camp', label: 'Summer Camps ($350 - $750)' },
             ].map(tab => {
@@ -1209,7 +1233,7 @@ export default function Register() {
                               ${session.price}
                             </span>
                             <span className="text-[9px] font-black uppercase tracking-widest text-espresso/60">
-                              / {session.priceNote || 'package'}
+                              / {session.id.includes('tryout') ? (session.priceNote || 'evaluation fee') : 'per student'}
                             </span>
                           </div>
 
@@ -1260,7 +1284,7 @@ export default function Register() {
                 {(activeCategory === 'semi-private' || activeCategory === 'all') && (
                   <div className="text-center mt-8 pt-4 border-t border-slate-100">
                     <p className="text-xs font-bold text-slate-500 italic">
-                      * Semi-private coaching: 4 sessions of 1-hour focused training for groups of 2, 4, or 6 students (All Age Groups). Rates shown are per person.
+                      * Semi-private coaching: 4 sessions of 1-hour focused training for groups of 2, 4, or 6 students (All Age Groups). Rates shown are per student.
                     </p>
                   </div>
                 )}
@@ -1374,7 +1398,7 @@ export default function Register() {
                             ${selectedSession.price}
                           </span>
                           <span className="text-[10px] text-white/60 block uppercase font-bold">
-                            {selectedSession.priceNote || 'package fee'}
+                            / {selectedSession.id.includes('tryout') ? (selectedSession.priceNote || 'evaluation fee') : 'per student'}
                           </span>
                         </div>
                         <button

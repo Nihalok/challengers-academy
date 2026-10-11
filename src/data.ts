@@ -53,34 +53,44 @@ export const PROGRAMS: Program[] = [
     features: ['4 x 2-Hour Sessions ($150)', 'Outdoor Park Court', '12 Members Max', 'High Rep Drills']
   },
   {
+    id: 'open-park-summer-camp',
+    title: 'Open Park – Summer Camp',
+    description: '10-day intensive open park summer camp (2 hours daily) focusing on high-rep drills, agility, and scrimmages ($350/student).',
+    longDescription: '10-day outdoor open park summer clinic (2 hours per day). Intensive skill acceleration, footwork agility, ball control, and competitive match scrimmages ($350 per student).',
+    image: ASSETS.HERO.ACTION_CARD_3,
+    ageRange: 'All Age Groups',
+    ageGroups: ['All Age Groups'],
+    features: ['10 Days (2 Hours/Day)', 'Group Training ($350)', 'Outdoor Park Court', 'High Rep Drills']
+  },
+  {
     id: 'semi-private-2',
     title: 'Semi-Private Coaching (2 Players)',
-    description: 'Intense 1-hour skill sessions for 2 players only with Head Coach Wilson Mathew ($320/person).',
-    longDescription: 'Semi-private coaching focused exclusively on 2 athletes. 4 focused 1-hour sessions with fast-paced high-repetition drill architecture engineered for accelerated technical growth ($320 per person).',
+    description: 'Intense 1-hour skill sessions for 2 players only with Head Coach Wilson Mathew ($320/student).',
+    longDescription: 'Semi-private coaching focused exclusively on 2 athletes. 4 focused 1-hour sessions with fast-paced high-repetition drill architecture engineered for accelerated technical growth ($320 per student).',
     image: ASSETS.HERO.ACTION_CARD_2,
     ageRange: 'All Age Groups',
     ageGroups: ['All Age Groups'],
-    features: ['4 Sessions ($320/person)', '2 Players Only', '1-Hour Session', 'Intensive Personal Reps']
+    features: ['4 Sessions ($320/student)', '2 Players Only', '1-Hour Session', 'Intensive Personal Reps']
   },
   {
     id: 'semi-private-4',
     title: 'Semi-Private Coaching (4 Players)',
-    description: 'Focused small-group coaching for 4 players building team chemistry and skill execution ($280/person).',
-    longDescription: 'High-rep small group session tailored for 4 players. 4 focused 1-hour sessions covering positional coordination, serve-receive rotations, and tactical gameplay ($280 per person).',
+    description: 'Focused small-group coaching for 4 players building team chemistry and skill execution ($240/student).',
+    longDescription: 'High-rep small group session tailored for 4 players. 4 focused 1-hour sessions covering positional coordination, serve-receive rotations, and tactical gameplay ($240 per student).',
     image: ASSETS.HERO.ACTION_CARD_2,
     ageRange: 'All Age Groups',
     ageGroups: ['All Age Groups'],
-    features: ['4 Sessions ($280/person)', '4 Players Only', '1-Hour Session', 'Rotational Tactics']
+    features: ['4 Sessions ($240/student)', '4 Players Only', '1-Hour Session', 'Rotational Tactics']
   },
   {
     id: 'semi-private-6',
     title: 'Semi-Private Coaching (6 Players)',
-    description: 'Dynamic 1-hour small squad coaching for 6 players emphasizing rotational skills ($300/person).',
-    longDescription: 'Comprehensive 1-hour small squad training for 6 players across 4 sessions. Focuses on full court execution, setter-hitter connections, and defensive transition ($300 per person).',
+    description: 'Dynamic 1-hour small squad coaching for 6 players emphasizing rotational skills ($200/student).',
+    longDescription: 'Comprehensive 1-hour small squad training for 6 players across 4 sessions. Focuses on full court execution, setter-hitter connections, and defensive transition ($200 per student).',
     image: ASSETS.HERO.ACTION_CARD_2,
     ageRange: 'All Age Groups',
     ageGroups: ['All Age Groups'],
-    features: ['4 Sessions ($300/person)', '6 Players Only', '1-Hour Session', 'Match System Drills']
+    features: ['4 Sessions ($200/student)', '6 Players Only', '1-Hour Session', 'Match System Drills']
   },
   {
     id: 'open-park-travel',
