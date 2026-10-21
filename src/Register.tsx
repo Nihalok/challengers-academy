@@ -312,7 +312,7 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
   // ── 6. SUMMER CAMPS (CARDS 12, 13, 14) ──
   {
     id: 'summer-camp-7day',
-    name: '7-Day Intensive Summer Clinic',
+    name: '7-Day Intensive Summer Clinic - GYM',
     category: 'Summer Camp',
     students: 'Group',
     sessionDuration: '2 Hours',
@@ -335,7 +335,7 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
   },
   {
     id: 'summer-camp-10day',
-    name: '10-Day Elite Summer Intensive',
+    name: '10-Day Elite Summer Intensive - GYM',
     category: 'Summer Camp',
     students: 'Group',
     sessionDuration: '2 Hours',
@@ -358,7 +358,7 @@ const OFFICIAL_SESSIONS: SessionItem[] = [
   },
   {
     id: 'summer-camp-15day',
-    name: '15-Day Masterclass Camp',
+    name: '15-Day Masterclass Camp - GYM',
     category: 'Summer Camp',
     students: 'Group',
     sessionDuration: '2 Hours',

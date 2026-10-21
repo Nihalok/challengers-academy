@@ -600,7 +600,7 @@ export const DEFAULT_PROGRAMS = [
 export const DEFAULT_CAMPS = [
   {
     id: 'summer-camp-7day',
-    name: '7-Day Intensive Summer Clinic',
+    name: '7-Day Intensive Summer Clinic - GYM',
     duration: '7 Days',
     months: 'June & July 2026',
     bestFor: 'Technique Refinement',
@@ -617,7 +617,7 @@ export const DEFAULT_CAMPS = [
   },
   {
     id: 'summer-camp-10day',
-    name: '10-Day Elite Summer Intensive',
+    name: '10-Day Elite Summer Intensive - GYM',
     duration: '10 Days',
     months: 'June & July 2026',
     bestFor: 'Game Strategy & Tactics',
@@ -634,7 +634,7 @@ export const DEFAULT_CAMPS = [
   },
   {
     id: 'summer-camp-15day',
-    name: '15-Day Masterclass Camp',
+    name: '15-Day Masterclass Camp - GYM',
     duration: '15 Days',
     months: 'June & July 2026',
     bestFor: 'Competitive Club & High School Prep',

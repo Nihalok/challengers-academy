@@ -7,17 +7,17 @@ import { ASSETS } from './assets/images';
 import SEO from './components/SEO';
 
 const CAMP_DURATIONS = [
-  { id: '7-day', name: '7-Day Intensive', duration: '7 Days', months: 'June & July', bestFor: 'Technique Refinement' },
-  { id: '10-day', name: '10-Day Elite', duration: '10 Days', months: 'June & July', bestFor: 'Game Strategy' },
-  { id: '15-day', name: '15-Day Master', duration: '15 Days', months: 'June & July', bestFor: 'High Performance' },
+  { id: '7-day', name: '7-Day Intensive - GYM', duration: '7 Days', months: 'June & July', bestFor: 'Technique Refinement' },
+  { id: '10-day', name: '10-Day Elite - GYM', duration: '10 Days', months: 'June & July', bestFor: 'Game Strategy' },
+  { id: '15-day', name: '15-Day Master - GYM', duration: '15 Days', months: 'June & July', bestFor: 'High Performance' },
 ];
 
 const SLIDER_CARDS = [
   {
     id: '7-day-track',
-    title: '7-Day Intensive',
+    title: '7-Day Intensive - GYM',
     subtitle: 'Technique Refinement',
-    desc: 'Focused 7-day immersion building core passing mechanics, serving accuracy, and explosive jump technique on open outdoor grounds.',
+    desc: 'Focused 7-day immersion building core passing mechanics, serving accuracy, and explosive jump technique in state-of-the-art gym facilities.',
     bg: ASSETS.CAMPS.DAY_7,
     thumb: ASSETS.CAMPS.DAY_7,
     tag: 'FOUNDATION TRACK',
@@ -25,9 +25,9 @@ const SLIDER_CARDS = [
   },
   {
     id: '10-day-track',
-    title: '10-Day Elite',
+    title: '10-Day Elite - GYM',
     subtitle: 'Game Strategy & Systems',
-    desc: 'Advanced 10-day outdoor bootcamp mastering 5-1 rotational tactics, block timing, and live match play execution.',
+    desc: 'Advanced 10-day gym bootcamp mastering 5-1 rotational tactics, block timing, and live match play execution.',
     bg: ASSETS.CAMPS.DAY_10,
     thumb: ASSETS.CAMPS.DAY_10,
     tag: 'TACTICAL TRACK',
@@ -35,9 +35,9 @@ const SLIDER_CARDS = [
   },
   {
     id: '15-day-track',
-    title: '15-Day Master',
+    title: '15-Day Master - GYM',
     subtitle: 'High Performance',
-    desc: 'Our ultimate 15-day masterclass combining pro conditioning, positional mastery, and high-energy tournament scrimmages.',
+    desc: 'Our ultimate 15-day gym masterclass combining pro conditioning, positional mastery, and high-energy tournament scrimmages.',
     bg: ASSETS.CAMPS.DAY_15,
     thumb: ASSETS.CAMPS.DAY_15,
     tag: 'PRO MASTERCLASS',

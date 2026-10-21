@@ -223,7 +223,7 @@ export default function Programs() {
     },
     {
       id: 'summer-camp-7day',
-      title: '7-Day Intensive Summer Clinic',
+      title: '7-Day Intensive Summer Clinic - GYM',
       fee: '$350',
       sessions: '7 Days Intensive',
       duration: '4 Hours Daily',
@@ -241,7 +241,7 @@ export default function Programs() {
     },
     {
       id: 'summer-camp-10day',
-      title: '10-Day Elite Summer Intensive',
+      title: '10-Day Elite Summer Intensive - GYM',
       fee: '$500',
       sessions: '10 Days Elite Bootcamp',
       duration: '4 Hours Daily',
@@ -259,7 +259,7 @@ export default function Programs() {
     },
     {
       id: 'summer-camp-15day',
-      title: '15-Day Masterclass Camp',
+      title: '15-Day Masterclass Camp - GYM',
       fee: '$750',
       sessions: '15 Days Masterclass',
       duration: '4 Hours Daily',

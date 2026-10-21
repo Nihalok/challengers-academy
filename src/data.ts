@@ -114,7 +114,7 @@ export const PROGRAMS: Program[] = [
   },
   {
     id: 'summer-camp-7day',
-    title: '7-Day Intensive Summer Clinic',
+    title: '7-Day Intensive Summer Clinic - GYM',
     description: 'Immersive 7-day volleyball clinic covering fundamental skill acceleration and game play.',
     longDescription: 'Immersive 7-day volleyball clinic covering position specialization, competitive matches, and video breakdown for youth and junior players.',
     image: ASSETS.HERO.ACTION_CARD_1,
@@ -124,7 +124,7 @@ export const PROGRAMS: Program[] = [
   },
   {
     id: 'summer-camp-10day',
-    title: '10-Day Elite Summer Intensive',
+    title: '10-Day Elite Summer Intensive - GYM',
     description: 'Position-specific mastery, advanced rotational systems, and agility conditioning.',
     longDescription: '10 days of elite volleyball training designed for maximum growth. Comprehensive position specialization, tactical systems, and conditioning.',
     image: ASSETS.HERO.ACTION_CARD_2,
@@ -134,7 +134,7 @@ export const PROGRAMS: Program[] = [
   },
   {
     id: 'summer-camp-15day',
-    title: '15-Day Masterclass Camp',
+    title: '15-Day Masterclass Camp - GYM',
     description: 'Full biomechanical breakdown, video analysis, college recruitment guidance, and high-speed match play.',
     longDescription: 'Full 15-day masterclass camp with complete biomechanical review, film breakdown, collegiate prep guidance, and daily competitive tournaments.',
     image: ASSETS.EXPERTISE.ELITE,
