@@ -270,7 +270,7 @@ function getMailTransporter() {
   const host = process.env.EMAIL_HOST?.trim() || 'smtp.gmail.com';
   const isGmail = process.env.EMAIL_SERVICE === 'gmail' || user.includes('@gmail.com') || host === 'smtp.gmail.com';
   // In serverless / cloud hosting, port 465 (direct SSL/TLS) is far more reliable and instant for Gmail than STARTTLS on 587
-  const port = isGmail ? 465 : parseInt(process.env.EMAIL_PORT || '587');
+  const port = process.env.EMAIL_PORT ? parseInt(process.env.EMAIL_PORT, 10) : (isGmail ? 465 : 587);
   const secure = port === 465;
 
   return nodemailer.createTransport({
@@ -332,7 +332,9 @@ async function sendPasswordResetEmail(email: string, resetToken: string, req?: a
     return;
   }
   const from = getFromAddress();
-  await transporter.sendMail({
+  // Verify transporter before sending to catch connection issues
+      await transporter.verify();
+      const info = await transporter.sendMail({
     from,
     to: email,
     subject: 'Challengers Academy - Admin Password Reset',
@@ -1606,6 +1608,8 @@ async function sendAdminNotificationEmail(reg: RegistrationRecord, force = false
   const emailSubject = `🚨 [New Paid Registration] ${reg.playerName}${reg.hasSibling ? ` + Sibling (${reg.siblingName})` : ''} - ${reg.sessionName} ($${reg.amountPaid}) [${reg.paymentMethod || 'Stripe'}]`;
 
   try {
+    // Verify transporter before sending to catch connection issues
+    await transporter.verify();
     const info = await transporter.sendMail({
       from,
       to: adminEmail,
@@ -1807,6 +1811,8 @@ If you have questions, reply to this email or call us at (510) 909-5834.
 Challengers Volleyball Academy - Bay Area, CA
 `;
 
+    // Verify transporter before sending to catch connection issues
+    await transporter.verify();
     const info = await transporter.sendMail({
       from,
       to: targetEmail,
@@ -2652,7 +2658,9 @@ export async function createApp() {
 
       if (transporter) {
         try {
-          await transporter.sendMail({
+          // Verify transporter before sending to catch connection issues
+      await transporter.verify();
+      const info = await transporter.sendMail({
             from,
             to: adminEmail,
             replyTo: cleanEmail,
@@ -3022,7 +3030,9 @@ Challengers Volleyball Academy
       const transporter = getMailTransporter();
       if (transporter) {
         const appUrl = process.env.APP_URL || 'http://localhost:3000';
-        await transporter.sendMail({
+        // Verify transporter before sending to catch connection issues
+      await transporter.verify();
+      const info = await transporter.sendMail({
           from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
           to: email,
           subject: 'You have been added to Challengers Academy Admin',
@@ -4163,7 +4173,9 @@ Challengers Volleyball Academy
       }
       const adminEmail = process.env.ACADEMY_ADMIN_EMAIL || process.env.EMAIL_USER || 'nihalok625@gmail.com';
       const from = getFromAddress();
-      const info = await transporter.sendMail({
+      // Verify transporter before sending to catch connection issues
+    await transporter.verify();
+    const info = await transporter.sendMail({
         from,
         to: adminEmail,
         subject: '🏐 Challengers Academy - Email Test Successful!',
