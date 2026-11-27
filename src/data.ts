@@ -195,16 +195,6 @@ export const LOCATIONS: Location[] = [
     description: 'Hansen Elementary School facility in Mountain House. Saturday morning sessions for fundamental and advanced volleyball training.'
   },
   {
-    id: 'fremont',
-    name: 'Kerala House - Fremont',
-    address: '4037 Fremont Blvd',
-    city: 'Fremont',
-    zip: '94538',
-    coords: { lat: 37.5342, lng: -121.9682 },
-    schedule: 'Sundays | 6:30 pm - 8:30 pm',
-    description: 'Kerala House facility in Fremont. Sunday evening sessions covering fundamentals and advanced volleyball training.'
-  },
-  {
     id: 'san-jose',
     name: 'San Jose',
     address: 'Coming Soon',
@@ -219,7 +209,7 @@ export const LOCATIONS: Location[] = [
 export const STATS: Stat[] = [
   { label: 'Years Coaching', value: 35, suffix: '+' },
   { label: 'Athletes Trained', value: 5000, suffix: '+' },
-  { label: 'Program Locations', value: 3 },
+  { label: 'Program Locations', value: 2 },
   { label: 'Success Rate', value: 98, suffix: '%' }
 ];
 

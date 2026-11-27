@@ -57,7 +57,7 @@ export default function Admin() {
     ageGroups: '5-10',
     features: 'Motor Skills, Fun Drills, Basic Rules, Team Play',
     schedule: 'Saturdays & Sundays (9:00 AM - 10:30 AM)',
-    location: 'Fremont Arena',
+    location: 'Mountain House',
     capacity: 20,
     filled: 0,
     coach: 'Head Coach Wilson Mathew & Team',
@@ -76,7 +76,7 @@ export default function Admin() {
     bestFor: 'Technique Refinement',
     price: 350,
     schedule: 'Mon - Fri (9:00 AM - 1:00 PM)',
-    location: 'Fremont Arena',
+    location: 'Mountain House',
     capacity: 25,
     filled: 0,
     coach: 'Head Coach Wilson Mathew & Staff',
@@ -88,7 +88,7 @@ export default function Admin() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncSuccessMessage, setSyncSuccessMessage] = useState<string | null>(null);
   const [paymentFilter, setPaymentFilter] = useState<'all' | 'card' | 'apple_pay' | 'google_pay' | 'link' | 'qr'>('all');
-  const [locationFilter, setLocationFilter] = useState<'all' | 'fremont' | 'mountain_house' | 'san_jose'>('all');
+  const [locationFilter, setLocationFilter] = useState<'all' | 'mountain_house' | 'san_jose'>('all');
   const [regSearchQuery, setRegSearchQuery] = useState('');
   const [copiedStripeId, setCopiedStripeId] = useState<string | null>(null);
   const [isSyncingStripe, setIsSyncingStripe] = useState(false);
@@ -175,8 +175,7 @@ export default function Admin() {
   // Location Matching Helper for 3 Academy Locations
   const matchesLocationFilter = (locRaw: any, filter: string): boolean => {
     if (filter === 'all') return true;
-    const l = String(locRaw || 'Fremont (Kerala House)').toLowerCase();
-    if (filter === 'fremont') return l.includes('fremont') || l.includes('kerala');
+    const l = String(locRaw || 'Mountain House (Hansen Elementary)').toLowerCase();
     if (filter === 'mountain_house') return l.includes('mountain') || l.includes('hansen');
     if (filter === 'san_jose') return l.includes('san jose') || l.includes('sanjose') || l.includes('jose');
     return true;
@@ -188,7 +187,7 @@ export default function Admin() {
     const q = query.toLowerCase().trim();
     const qNorm = q.replace(/[^a-z0-9]/g, '');
 
-    const loc = String(item.location || item.preferredLocation || 'Fremont (Kerala House)').toLowerCase();
+    const loc = String(item.location || item.preferredLocation || 'Mountain House (Hansen Elementary)').toLowerCase();
     const locNorm = loc.replace(/[^a-z0-9]/g, '');
 
     const playerName = String(item.playerName || item.studentName || item.fullName || item.name || '').toLowerCase();
@@ -230,7 +229,7 @@ export default function Admin() {
       playerName: l.playerName || l.studentName || l.fullName || 'Prospective Athlete',
       sessionName: l.sessionName || l.sessionId || l.programId || 'Inquiry / Session',
       schedule: l.schedule || 'Flexible',
-      location: l.location || l.preferredLocation || 'Fremont (Kerala House)',
+      location: l.location || l.preferredLocation || 'Mountain House (Hansen Elementary)',
       amountPaid: l.amount || l.price || 0,
       paymentStatus: 'PENDING_PAYMENT',
       paymentMethod: l.paymentMethod || 'Incomplete Checkout',
@@ -392,7 +391,7 @@ export default function Admin() {
     const saved = localStorage.getItem('challengers_academy_settings');
     return saved ? JSON.parse(saved) : {
       academyName: 'Challengers Volleyball Academy',
-      primaryLocation: 'Fremont & Bay Area, CA',
+      primaryLocation: 'Mountain House & San Jose, CA',
       supportEmail: 'challengersvolleyballacademy@gmail.com',
       contactPhone: '+1 (510) 909-5834',
       taxRate: 0,
@@ -762,7 +761,7 @@ export default function Admin() {
       bestFor: 'Technique Refinement',
       price: 350,
       schedule: 'Mon - Fri (9:00 AM - 1:00 PM)',
-      location: 'Fremont Arena',
+      location: 'Mountain House',
       capacity: 25,
       filled: 0,
       coach: 'Head Coach Wilson Mathew & Staff',
@@ -781,7 +780,7 @@ export default function Admin() {
       bestFor: camp.bestFor || 'Technique Refinement',
       price: camp.price || 350,
       schedule: camp.schedule || 'Mon - Fri (9:00 AM - 1:00 PM)',
-      location: camp.location || 'Fremont Arena',
+      location: camp.location || 'Mountain House',
       capacity: camp.capacity || 25,
       filled: camp.filled || 0,
       coach: camp.coach || 'Head Coach Wilson Mathew & Staff',
@@ -860,7 +859,7 @@ export default function Admin() {
       ageGroups: '5-10',
       features: 'Motor Skills, Fun Drills, Basic Rules, Team Play',
       schedule: 'Saturdays & Sundays (9:00 AM - 10:30 AM)',
-      location: 'Fremont Arena',
+      location: 'Mountain House',
       capacity: 20,
       filled: 0,
       coach: 'Head Coach Wilson Mathew & Team',
@@ -882,7 +881,7 @@ export default function Admin() {
       ageGroups: Array.isArray(prog.ageGroups) ? prog.ageGroups.join(',') : (prog.ageGroups || '5-10'),
       features: Array.isArray(prog.features) ? prog.features.join(', ') : (prog.features || ''),
       schedule: prog.schedule || '',
-      location: prog.location || 'Fremont Arena',
+      location: prog.location || 'Mountain House',
       capacity: prog.capacity || 20,
       filled: prog.filled || 0,
       coach: prog.coach || 'Head Coach Wilson Mathew & Team',
@@ -1710,7 +1709,7 @@ export default function Admin() {
                               title="Filter by Academy Location"
                             >
                               <option value="all">📍 All 3 Locations</option>
-                              <option value="fremont">Fremont (Kerala House)</option>
+                              
                               <option value="mountain_house">Mountain House (Hansen)</option>
                               <option value="san_jose">San Jose</option>
                             </select>
@@ -1748,7 +1747,7 @@ export default function Admin() {
                           </span>
                           {[
                             { label: 'All', query: '', filterId: 'all' },
-                            { label: 'Fremont', query: 'Fremont', filterId: 'fremont' },
+                            
                             { label: 'Mountain House', query: 'Mountain House', filterId: 'mountain_house' },
                             { label: 'San Jose', query: 'San Jose', filterId: 'san_jose' },
                           ].map((item) => {
@@ -1881,7 +1880,7 @@ export default function Admin() {
                                   <td className="px-6 py-5">
                                     <div className="text-xs font-bold text-espresso">{item.sessionName || item.sessionId}</div>
                                     <div className="text-[10px] text-espresso/50 font-medium">
-                                      {item.schedule || 'Flexible'} · {item.location || item.preferredLocation || 'Fremont (Kerala House)'}
+                                      {item.schedule || 'Flexible'} · {item.location || item.preferredLocation || 'Mountain House (Hansen Elementary)'}
                                     </div>
                                   </td>
 
@@ -2661,7 +2660,7 @@ export default function Admin() {
                         </div>
                         <div className="space-y-2">
                           <label className="text-[10px] font-black uppercase tracking-widest text-espresso/40">Location</label>
-                          <input value={programForm.location} onChange={e => setProgramForm({ ...programForm, location: e.target.value })} className="w-full bg-ivory border-0 rounded-xl px-4 py-3 text-sm font-medium" placeholder="e.g. Fremont Arena" />
+                          <input value={programForm.location} onChange={e => setProgramForm({ ...programForm, location: e.target.value })} className="w-full bg-ivory border-0 rounded-xl px-4 py-3 text-sm font-medium" placeholder="e.g. Mountain House" />
                         </div>
                       </div>
 
@@ -2861,7 +2860,7 @@ export default function Admin() {
                         </div>
                         <div className="space-y-2">
                           <label className="text-[10px] font-black uppercase tracking-widest text-espresso/40">Location</label>
-                          <input value={campForm.location} onChange={e => setCampForm({ ...campForm, location: e.target.value })} className="w-full bg-ivory border-0 rounded-xl px-4 py-3 text-sm font-medium" placeholder="e.g. Fremont Arena" />
+                          <input value={campForm.location} onChange={e => setCampForm({ ...campForm, location: e.target.value })} className="w-full bg-ivory border-0 rounded-xl px-4 py-3 text-sm font-medium" placeholder="e.g. Mountain House" />
                         </div>
                       </div>
 

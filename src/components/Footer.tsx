@@ -87,13 +87,6 @@ From first-time players to competitive athletes, we help young Volleyball player
                 <p className="text-white/50 mt-0.5">Saturdays · 9:00 am – 11:00 am</p>
               </div>
 
-              {/* Fremont */}
-              <div>
-                <p className="text-white font-bold text-[11px] uppercase tracking-wider">Kerala House · Fremont</p>
-                <p className="text-white/60 text-[10px]">4037 Fremont Blvd, Fremont CA 94538</p>
-                <p className="text-white/50 mt-0.5">Sundays · 6:30 pm – 8:30 pm</p>
-              </div>
-
               {/* San Jose */}
               <div>
                 <p className="text-white font-bold text-[11px] uppercase tracking-wider">San Jose</p>

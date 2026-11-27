@@ -97,7 +97,7 @@ export default function Camps() {
     <div className="relative bg-[#FBF9F6] min-h-screen overflow-hidden font-sans pt-32 sm:pt-36 md:pt-40">
       <SEO 
         title="Summer Elite Camps 2026" 
-        description="High-energy summer volleyball camps for youth and high school players in Fremont, Mountain House, and San Jose."
+        description="High-energy summer volleyball camps for youth and high school players in Mountain House and San Jose."
       />
 
       {/* Blended Background */}
@@ -394,7 +394,7 @@ export default function Camps() {
               Our summer camps are our most popular programs. Don't miss your chance to train with Head Coach Wilson this summer.
             </p>
             <NavLink 
-              to="/register?program=summer-camp-2026-fremont" 
+              to="/register?program=summer-camp-2026" 
               className="inline-block px-6 sm:px-8 py-3 sm:py-3.5 bg-espresso text-white rounded-full font-bold uppercase tracking-widest text-[9px] sm:text-[10px] hover:bg-[#F9BC00] hover:text-espresso transition-all shadow-xl"
             >
               Secure Your Spot

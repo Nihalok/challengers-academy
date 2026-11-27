@@ -96,7 +96,7 @@ export async function generateBankStatementPdf(
       periodLabel = 'All Records to Date',
       generatedBy = 'Administrator',
       academyName = 'CHALLENGERS VOLLEYBALL ACADEMY',
-      academyAddress = 'Fremont & Bay Area, CA',
+      academyAddress = 'Mountain House & San Jose, CA',
       academyContact = 'challengersvolleyballacademy@gmail.com | +1 (510) 909-5834',
     } = options;
 
@@ -529,7 +529,7 @@ export async function generateBankStatementPdf(
 
           doc.setFontSize(5.5);
           doc.setTextColor(148, 163, 184);
-          const locationSchedule = `${reg.location || 'Fremont'} · ${reg.schedule || 'Regular'}`;
+          const locationSchedule = `${reg.location || 'Mountain House'} · ${reg.schedule || 'Regular'}`;
           const truncatedLoc = locationSchedule.length > 25 ? locationSchedule.slice(0, 25) + '...' : locationSchedule;
           doc.text(truncatedLoc, curX + 2, currentY + 7.2);
           curX += regCols[3].width;

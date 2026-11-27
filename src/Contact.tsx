@@ -233,7 +233,7 @@ export default function Contact() {
                         </span>
                       </div>
                       <p className="text-sm sm:text-base font-bold text-espresso group-hover:text-[#F3722C] transition-colors my-1">
-                        Fremont · Mountain House · San Jose
+                        Mountain House · San Jose
                       </p>
                       <p className="text-[10px] sm:text-[11px] font-medium text-espresso/50 uppercase tracking-wider">
                         Kerala House · Hansen Elementary · Bay Area Courts
